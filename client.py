@@ -73,6 +73,7 @@ class Client:
         self.clock = pg.time.Clock()
         self.camera = Camera(MAP_WIDTH, MAP_HEIGHT)
         self.screen = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+        #self.screen = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), FULLSCREEN)
         pg.display.set_caption(
             f"Client - ID: {self.player_id} - Username: {self.username} - FPS: {round(self.clock.get_fps(), 2)}")
         # load data
@@ -136,7 +137,7 @@ class Client:
         for x in range(self.camera.x, SCREEN_WIDTH, TILESIZE):
             pg.draw.line(self.screen, GRID_COLOR, (x, 0), (x, SCREEN_HEIGHT))
         for y in range(self.camera.y, SCREEN_HEIGHT, TILESIZE):
-            pg.draw.line(self.screen, GRID_COLOR, (0, y), (SCREEN_HEIGHT, y))
+            pg.draw.line(self.screen, GRID_COLOR, (0, y), (SCREEN_WIDTH, y))
 
     def draw(self):
         # background
