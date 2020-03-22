@@ -17,6 +17,7 @@ GRID_COLOR = (40, 40, 40)
 # display settings
 FPS = 60
 USERNAME_SIZE = 20
+USERNAME_FONT = "ARCADECLASSIC.TTF"
 
 # player settings
 PLAYER_SPEED = 300  # pixels per second

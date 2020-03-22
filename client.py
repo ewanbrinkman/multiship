@@ -36,7 +36,11 @@ class Client:
     def load(self):
         # folders
         game_folder = path.dirname(__file__)
+        font_folder = path.join(game_folder, 'font')
         img_folder = path.join(game_folder, 'img')
+        # fonts
+        self.username_font = path.join(font_folder, USERNAME_FONT)
+        # images
         for img in PLAYER_IMGS:
             new_img = pg.image.load(path.join(img_folder, img)).convert_alpha()
             self.player_imgs[img] = pg.transform.scale(new_img, (PLAYER_WIDTH, PLAYER_HEIGHT))
@@ -157,7 +161,7 @@ class Client:
         for sprite_player in self.sprite_players:
             # blit to screen as done below so that the camera can be applied
             self.screen.blit(sprite_player.image, self.camera.apply_sprite(sprite_player))
-            self.draw_text(sprite_player.username, "ARCADECLASSIC.TTF", USERNAME_SIZE, sprite_player.fillcolor,
+            self.draw_text(sprite_player.username, self.username_font, USERNAME_SIZE, sprite_player.fillcolor,
                            sprite_player.pos.x + self.camera.x, sprite_player.rect.top + self.camera.y, align='s')
 
         # update the client's monitor
