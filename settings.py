@@ -4,6 +4,8 @@ PORT = 4242
 RECEIVE_LIMIT = 2048
 MAX_CLIENTS = 10
 
+# colors
+
 # map settings
 SCREEN_WIDTH = 500  # 1440
 SCREEN_HEIGHT = 500  # 900
