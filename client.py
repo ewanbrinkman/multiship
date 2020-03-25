@@ -56,8 +56,24 @@ class Client:
         # load data
         self.load()
 
-        # the start screen
-        self.main_menu()
+        while self.running:
+            # the start screen
+            self.main_menu()
+
+            # join the game
+            if self.running:
+                # connect
+                self.connect()
+                # game loop
+                self.game_loop()
+                # reset client data when the client disconnects
+                self.reset_data()
+                # end of server connection, return to main menu
+
+            # quit the program
+            else:
+                print("\nQuiting Program")
+                pg.quit()
 
     def main_menu(self):
         # main menu loop
@@ -65,20 +81,9 @@ class Client:
             # pause
             self.dt = self.clock.tick(FPS) / 1000
             # events, update, draw
-            self.events()
-            self.update()
-            self.draw()
-
-        # if the client connects, start the game, else quit the program
-        if self.running:
-            # connect
-            self.connect()
-            # game loop
-            self.game_loop()
-        else:
-            print("Quiting Program")
-            pg.quit()
-
+            self.menu_events()
+            self.menu_update()
+            self.menu_draw()
 
     def game_loop(self):
         # game loop while connected to the server
@@ -86,14 +91,9 @@ class Client:
             # pause
             self.dt = self.clock.tick(FPS) / 1000
             # events, update, draw
-            self.events()
-            self.update()
-            self.draw()
-
-        # reset client data
-        self.reset_data()
-        # if the client disconnects, the client will return to the main menu
-        self.main_menu()
+            self.game_events()
+            self.game_update()
+            self.game_draw()
 
     def reset_data(self):
         # received over network
@@ -109,7 +109,7 @@ class Client:
         # client attributes
         self.username = input("Enter Username: ")
         # connect to the server
-        print(f"Connecting To Server At {SERVER_IP}:{PORT}")
+        print(f"\nConnecting To Server At {SERVER_IP}:{PORT}")
         self.network = Network()
         self.player = self.network.get_player()
         # connected if a response was received from the server and the client's data isn't taken
@@ -117,6 +117,7 @@ class Client:
             self.connected = True
 
     def disconnect(self):
+        print(f"\nDisconnected From Server At {self.network.server_ip}:{self.network.server_port}")
         self.network.client.close()
         self.connected = False
         self.menu = True
@@ -133,32 +134,44 @@ class Client:
             print("Unable To Connect To Server:", reason)
         return verify
 
-    def events(self):
-        if self.connected:
-            for event in pg.event.get():
-                # quit the game
-                if event.type == QUIT:
-                    self.disconnect()
-                # quit the game
-                if event.type == KEYDOWN and event.key == K_ESCAPE:
-                    self.disconnect()
-        else:
-            for event in pg.event.get():
-                # quit the game
-                if event.type == QUIT:
+    def menu_events(self):
+        for event in pg.event.get():
+            # quit the game
+            if event.type == QUIT:
+                self.menu = False
+                self.running = False
+            # quit the game
+            if event.type == KEYDOWN:
+                # quit the program
+                if event.key == K_ESCAPE:
                     self.menu = False
                     self.running = False
-                # quit the game
-                if event.type == KEYDOWN:
-                    # quit the program
-                    if event.key == K_ESCAPE:
-                        self.menu = False
-                        self.running = False
-                    # connect to the server
-                    if event.key == K_c:
-                        self.menu = False
+                # connect to the server
+                if event.key == K_c:
+                    self.menu = False
 
-    def update(self):
+    def menu_update(self):
+        # update display caption with useful information
+        pg.display.set_caption(
+            f"Client - ID: {self.player_id} - Username: {self.username} - FPS: {round(self.clock.get_fps(), 2)}")
+
+    def menu_draw(self):
+        # background
+        self.screen.fill((255, 255, 255))
+
+        # update the client's monitor
+        pg.display.flip()
+
+    def game_events(self):
+        for event in pg.event.get():
+            # quit the game
+            if event.type == QUIT:
+                self.disconnect()
+            # quit the game
+            if event.type == KEYDOWN and event.key == K_ESCAPE:
+                self.disconnect()
+
+    def game_update(self):
         if self.connected:
             # receive the updated game over the network from the server
             # send the
@@ -203,11 +216,12 @@ class Client:
         for y in range(self.camera.y, SCREEN_HEIGHT, TILESIZE):
             pg.draw.line(self.screen, GRID_COLOR, (0, y), (SCREEN_WIDTH, y))
 
-    def draw(self):
-        # background
-        self.screen.fill((255, 255, 255))
-
+    def game_draw(self):
         if self.connected:
+
+            # background
+            self.screen.fill((255, 255, 255))
+
             # tile grid
             self.draw_grid()
             # thick map boundary line
@@ -225,8 +239,8 @@ class Client:
                 self.draw_text(sprite_player.username, self.username_font, USERNAME_SIZE, sprite_player.fillcolor,
                                sprite_player.pos.x + self.camera.x, sprite_player.rect.top + self.camera.y, align='s')
 
-        # update the client's monitor
-        pg.display.flip()
+            # update the client's monitor
+            pg.display.flip()
 
     def draw_text(self, text, font_name, size, fillcolor, x, y, align='n'):
         font = pg.font.Font(font_name, size)
