@@ -5,6 +5,9 @@ RECEIVE_LIMIT = 2048
 MAX_CLIENTS = 10
 
 # colors
+WHITE = (255, 255, 255)
+DARKGRAY = (40, 40, 40)
+BLACK = (0, 0, 0)
 
 # map settings
 SCREEN_WIDTH = 500  # 1440
@@ -14,7 +17,7 @@ MAP_HEIGHT = SCREEN_HEIGHT * 2
 
 # tile settings
 TILESIZE = 64
-GRID_COLOR = (40, 40, 40)
+GRID_COLOR = DARKGRAY
 
 # display settings
 FPS = 60
