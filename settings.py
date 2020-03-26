@@ -8,6 +8,12 @@ MAX_CLIENTS = 10
 WHITE = (255, 255, 255)
 DARKGRAY = (40, 40, 40)
 BLACK = (0, 0, 0)
+RED = (255, 0, 0)
+GREEN = (0, 255, 0)
+BLUE = (0, 0, 255)
+YELLOW = (255, 255, 0)
+CYAN = (0, 255, 255)
+MAGENTA = (255, 0, 255)
 
 # map settings
 SCREEN_WIDTH = 500  # 1440
@@ -20,9 +26,25 @@ TILESIZE = 64
 GRID_COLOR = DARKGRAY
 
 # display settings
+GAME_TITLE = "Multiplayer Pygame"
 FPS = 60
+
+# font settings
+TEXT_COLOR = BLACK
+TITLE_SIZE = 30
 USERNAME_SIZE = 20
-USERNAME_FONT = "ARCADECLASSIC.TTF"
+ENTRY_SIZE = 20
+THEME_FONT = "Kenney Future.ttf"
+
+# entry box settings
+VALID_CHARS = "AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890_-. "
+ENTRY_ACTIVE_COLOR = CYAN
+ENTRY_INACTIVE_COLOR = BLUE
+MAX_ENTRY_LENGTH = 15
+ENTRY_WIDTH = 350
+ENTRY_HEIGHT = 32
+REPEAT_PAUSE = 500
+REPEAT_RATE = 100
 
 # player settings
 PLAYER_SPEED = 300  # pixels per second

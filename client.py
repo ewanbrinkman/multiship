@@ -4,6 +4,7 @@ from pygame.locals import *
 from network import Network
 from player import SpritePlayer
 from tilemap import Camera
+from entrybox import EntryBox
 from settings import *
 
 
@@ -25,8 +26,9 @@ class Client:
         self.screen = None
         self.clock = None
         self.dt = None
-        # sprite groups
+        # groups
         self.sprite_players = pg.sprite.Group()
+        self.entry_boxes = {}
         # data to load
         self.player_imgs = {}
 
@@ -36,7 +38,7 @@ class Client:
         font_folder = path.join(game_folder, 'font')
         img_folder = path.join(game_folder, 'img')
         # fonts
-        self.username_font = path.join(font_folder, USERNAME_FONT)
+        self.theme_font = path.join(font_folder, THEME_FONT)
         # images
         for img in PLAYER_IMGS:
             new_img = pg.image.load(path.join(img_folder, img)).convert_alpha()
@@ -76,6 +78,18 @@ class Client:
                 pg.quit()
 
     def main_menu(self):
+        # allows the user to hold down a key when entering text into an entry box
+        pg.key.set_repeat(REPEAT_PAUSE, REPEAT_RATE)
+
+        # entry box creation
+        # username
+        self.entry_boxes["username"] = EntryBox(SCREEN_WIDTH / 2 - ENTRY_WIDTH / 2, 100, ENTRY_WIDTH, ENTRY_HEIGHT,
+                                                self.theme_font, text="enter username")
+        self.entry_boxes["server ip"] = EntryBox(SCREEN_WIDTH / 2 - ENTRY_WIDTH / 2, 150, ENTRY_WIDTH, ENTRY_HEIGHT,
+                                                 self.theme_font, text="enter ip")
+        self.entry_boxes["port"] = EntryBox(SCREEN_WIDTH / 2 - ENTRY_WIDTH / 2, 200, ENTRY_WIDTH, ENTRY_HEIGHT,
+                                            self.theme_font, text="enter port")
+
         # main menu loop
         while self.menu:
             # pause
@@ -84,6 +98,9 @@ class Client:
             self.menu_events()
             self.menu_update()
             self.menu_draw()
+
+        # cancels the effect that allows the user to hold down a key
+        pg.key.set_repeat()
 
     def game_loop(self):
         # game loop while connected to the server
@@ -115,6 +132,8 @@ class Client:
         # connected if a response was received from the server and the client's data isn't taken
         if self.player and self.verify_client():
             self.connected = True
+        else:
+            self.menu = True
 
     def disconnect(self):
         print(f"\nDisconnected From Server At {self.network.server_ip}:{self.network.server_port}")
@@ -150,6 +169,9 @@ class Client:
                 if event.key == K_c:
                     self.menu = False
 
+            for entry_box in self.entry_boxes.values():
+                entry_box.events(event)
+
     def menu_update(self):
         # update display caption with useful information
         pg.display.set_caption(
@@ -159,6 +181,14 @@ class Client:
         # background
         self.screen.fill((255, 255, 255))
 
+        # title
+        self.draw_text(GAME_TITLE, TITLE_SIZE, TEXT_COLOR,
+                       SCREEN_WIDTH / 2, 50, align='s', font_name=self.theme_font)
+
+        # entry boxes
+        for entry_box in self.entry_boxes.values():
+            entry_box.draw(self.screen)
+
         # update the client's monitor
         pg.display.flip()
 
@@ -167,6 +197,8 @@ class Client:
             # quit the game
             if event.type == QUIT:
                 self.disconnect()
+                self.menu = False
+                self.running = False
             # quit the game
             if event.type == KEYDOWN and event.key == K_ESCAPE:
                 self.disconnect()
@@ -236,13 +268,14 @@ class Client:
             for sprite_player in self.sprite_players:
                 # blit to screen as done below so that the camera can be applied
                 self.screen.blit(sprite_player.image, self.camera.apply_sprite(sprite_player))
-                self.draw_text(sprite_player.username, self.username_font, USERNAME_SIZE, sprite_player.fillcolor,
-                               sprite_player.pos.x + self.camera.x, sprite_player.rect.top + self.camera.y, align='s')
+                self.draw_text(sprite_player.username, USERNAME_SIZE, sprite_player.fillcolor,
+                               sprite_player.pos.x + self.camera.x, sprite_player.rect.top + self.camera.y,
+                               align='s', font_name=self.theme_font)
 
             # update the client's monitor
             pg.display.flip()
 
-    def draw_text(self, text, font_name, size, fillcolor, x, y, align='n'):
+    def draw_text(self, text, size, fillcolor, x, y, align='n', font_name=None, ):
         font = pg.font.Font(font_name, size)
         text_surface = font.render(text, True, fillcolor)
         text_rect = text_surface.get_rect()
