@@ -183,7 +183,7 @@ class Client:
         # update with the data entered by the user
         self.username = self.entry_boxes['username'].text
         self.server_ip = self.entry_boxes['server ip'].text
-        self.port = self.entry_boxes['port'].text
+        self.port = int(self.entry_boxes['port'].text)
 
     def menu_draw(self):
         # background
