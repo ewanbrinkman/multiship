@@ -29,8 +29,9 @@ class Client:
         self.screen = None
         self.clock = None
         self.dt = None
-        # groups
+        # sprite groups
         self.sprite_players = pg.sprite.Group()
+        # start screen data
         self.entry_boxes = {}
         self.buttons = {}
         # data to load
@@ -172,9 +173,11 @@ class Client:
                     self.menu = False
                     self.running = False
 
+            # update entry boxes with pygame events
             for entry_box in self.entry_boxes.values():
                 entry_box.events(event)
 
+            # update buttons with pygame events and mouse position
             for button_name, button in self.buttons.items():
                 if button.events(event, pg.mouse.get_pos()):
                     if button_name == "connect":
