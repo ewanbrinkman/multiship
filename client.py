@@ -4,7 +4,7 @@ from pygame.locals import *
 from network import Network
 from player import SpritePlayer
 from tilemap import Camera
-from entrybox import EntryBox
+from widgets import EntryBox, Button
 from settings import *
 
 
@@ -32,6 +32,7 @@ class Client:
         # groups
         self.sprite_players = pg.sprite.Group()
         self.entry_boxes = {}
+        self.buttons = {}
         # data to load
         self.player_imgs = {}
 
@@ -84,14 +85,18 @@ class Client:
         # allows the user to hold down a key when entering text into an entry box
         pg.key.set_repeat(REPEAT_PAUSE, REPEAT_RATE)
 
-        # entry box creation
-        # username
+        # entry boxes
         self.entry_boxes["username"] = EntryBox(SCREEN_WIDTH / 2 - ENTRY_WIDTH / 2, 100, ENTRY_WIDTH, ENTRY_HEIGHT,
                                                 self.theme_font, VALID_USERNAME, text=self.username)
         self.entry_boxes["server ip"] = EntryBox(SCREEN_WIDTH / 2 - ENTRY_WIDTH / 2, 150, ENTRY_WIDTH, ENTRY_HEIGHT,
                                                  self.theme_font, VALID_IP, text=SERVER_IP)
         self.entry_boxes["port"] = EntryBox(SCREEN_WIDTH / 2 - ENTRY_WIDTH / 2, 200, ENTRY_WIDTH, ENTRY_HEIGHT,
                                             self.theme_font, VALID_PORT, text=str(PORT))
+        # buttons
+        self.buttons["connect"] = Button(SCREEN_WIDTH / 2 - BUTTON_WIDTH / 2, 300, BUTTON_WIDTH, BUTTON_HEIGHT,
+                                         self.theme_font, text="Connect")
+        self.buttons["quit"] = Button(SCREEN_WIDTH / 2 - BUTTON_WIDTH / 2, 400, BUTTON_WIDTH, BUTTON_HEIGHT,
+                                         self.theme_font, text="Quit")
 
         # main menu loop
         while self.menu:
@@ -126,8 +131,6 @@ class Client:
         self.sprite_players = pg.sprite.Group()
 
     def connect(self):
-        # client attributes
-        self.username = input("Enter Username: ")
         # connect to the server
         print(f"\nConnecting To Server At {self.server_ip}:{self.port}")
         self.network = Network(self.server_ip, self.port)
@@ -168,12 +171,17 @@ class Client:
                 if event.key == K_ESCAPE:
                     self.menu = False
                     self.running = False
-                # connect to the server
-                if event.key == K_c:
-                    self.menu = False
 
             for entry_box in self.entry_boxes.values():
                 entry_box.events(event)
+
+            for button_name, button in self.buttons.items():
+                if button.events(event, pg.mouse.get_pos()):
+                    if button_name == "connect":
+                        self.menu = False
+                    elif button_name == "quit":
+                        self.menu = False
+                        self.running = False
 
     def menu_update(self):
         # update display caption with useful information
@@ -196,6 +204,10 @@ class Client:
         # entry boxes
         for entry_box in self.entry_boxes.values():
             entry_box.draw(self.screen)
+
+        # buttons
+        for button in self.buttons.values():
+            button.draw(self.screen)
 
         # update the client's monitor
         pg.display.flip()

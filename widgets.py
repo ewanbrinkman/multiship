@@ -2,8 +2,8 @@ import pygame as pg
 from settings import *
 
 
-class EntryBox():
-    def __init__(self, x, y, width, height, font, valid_chars, text=''):
+class EntryBox:
+    def __init__(self, x, y, width, height, font, valid_chars, text=""):
         self.rect = pg.Rect(x, y, width, height)
         font = pg.font.Font(font, ENTRY_SIZE)
         self.font = font
@@ -24,11 +24,13 @@ class EntryBox():
             else:
                 # user clicked somewhere else, entry box no longer active
                 self.active = False
+
             # update color
             if self.active:
                 self.fillcolor = ENTRY_ACTIVE_COLOR
             else:
                 self.fillcolor = ENTRY_INACTIVE_COLOR
+
         if event.type == pg.KEYDOWN:
             if self.active:
                 if event.key == pg.K_RETURN:
@@ -54,3 +56,51 @@ class EntryBox():
         surface.blit(self.text_surface, (self.rect.x + 5, self.rect.y + 5))
         # entry box boundary
         pg.draw.rect(surface, self.fillcolor, self.rect, 2)
+
+
+class Button:
+    def __init__(self, x, y, width, height, font, text=""):
+        self.rect = pg.Rect(x, y, width, height)
+        self.fillcolor = BUTTON_INACTIVE
+        self.active = False
+        self.pressed = False
+        font = pg.font.Font(font, ENTRY_SIZE)
+        # render text
+        self.text_surface = font.render(text, True, TEXT_COLOR)
+
+    def events(self, event, mouse_pos):
+        # if the button should execute some code or not
+        execute = False
+
+        # test for the current status of the button
+        if self.rect.collidepoint(mouse_pos):
+            self.active = True
+
+            if event.type == pg.MOUSEBUTTONDOWN:
+                self.pressed = True
+        else:
+            self.active = False
+
+        if event.type == pg.MOUSEBUTTONUP and self.pressed:
+            if self.rect.collidepoint(event.pos):
+                execute = True
+            else:
+                self.pressed = False
+
+        # update color
+        if self.active:
+            self.fillcolor = BUTTON_ACTIVE
+        if self.pressed:
+            self.fillcolor = BUTTON_PRESSED
+        if not self.active and not self.pressed:
+            self.fillcolor = BUTTON_INACTIVE
+
+        return execute
+
+    def draw(self, surface):
+        # button fill
+        pg.draw.rect(surface, self.fillcolor, self.rect)
+        # blit the text with a slight offset to center it
+        surface.blit(self.text_surface, (self.rect.x + 5, self.rect.y + 5))
+        # button boundary
+        pg.draw.rect(surface, DARKGRAY, self.rect, 2)
