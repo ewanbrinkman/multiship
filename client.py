@@ -10,8 +10,11 @@ from settings import *
 
 class Client:
     def __init__(self):
+        # server to connect to
+        self.server_ip = SERVER_IP
+        self.port = PORT
         # client attributes
-        self.username = None
+        self.username = "enter username"
         self.running = True
         self.menu = True
         self.connected = False
@@ -62,7 +65,7 @@ class Client:
             # the start screen
             self.main_menu()
 
-            # join the game
+            # connect to a server only if program is running and port is an integer
             if self.running:
                 # connect
                 self.connect()
@@ -84,11 +87,11 @@ class Client:
         # entry box creation
         # username
         self.entry_boxes["username"] = EntryBox(SCREEN_WIDTH / 2 - ENTRY_WIDTH / 2, 100, ENTRY_WIDTH, ENTRY_HEIGHT,
-                                                self.theme_font, text="enter username")
+                                                self.theme_font, VALID_USERNAME, text=self.username)
         self.entry_boxes["server ip"] = EntryBox(SCREEN_WIDTH / 2 - ENTRY_WIDTH / 2, 150, ENTRY_WIDTH, ENTRY_HEIGHT,
-                                                 self.theme_font, text="enter ip")
+                                                 self.theme_font, VALID_IP, text=SERVER_IP)
         self.entry_boxes["port"] = EntryBox(SCREEN_WIDTH / 2 - ENTRY_WIDTH / 2, 200, ENTRY_WIDTH, ENTRY_HEIGHT,
-                                            self.theme_font, text="enter port")
+                                            self.theme_font, VALID_PORT, text=str(PORT))
 
         # main menu loop
         while self.menu:
@@ -126,8 +129,8 @@ class Client:
         # client attributes
         self.username = input("Enter Username: ")
         # connect to the server
-        print(f"\nConnecting To Server At {SERVER_IP}:{PORT}")
-        self.network = Network()
+        print(f"\nConnecting To Server At {self.server_ip}:{self.port}")
+        self.network = Network(self.server_ip, self.port)
         self.player = self.network.get_player()
         # connected if a response was received from the server and the client's data isn't taken
         if self.player and self.verify_client():
@@ -176,6 +179,11 @@ class Client:
         # update display caption with useful information
         pg.display.set_caption(
             f"Client - ID: {self.player_id} - Username: {self.username} - FPS: {round(self.clock.get_fps(), 2)}")
+
+        # update with the data entered by the user
+        self.username = self.entry_boxes['username'].text
+        self.server_ip = self.entry_boxes['server ip'].text
+        self.port = self.entry_boxes['port'].text
 
     def menu_draw(self):
         # background
