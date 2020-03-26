@@ -89,9 +89,9 @@ class Client:
         self.entry_boxes["username"] = EntryBox(SCREEN_WIDTH / 2 - ENTRY_WIDTH / 2, 100, ENTRY_WIDTH, ENTRY_HEIGHT,
                                                 self.theme_font, VALID_USERNAME, text=self.username)
         self.entry_boxes["server ip"] = EntryBox(SCREEN_WIDTH / 2 - ENTRY_WIDTH / 2, 150, ENTRY_WIDTH, ENTRY_HEIGHT,
-                                                 self.theme_font, VALID_IP, text=SERVER_IP)
+                                                 self.theme_font, VALID_IP, text=self.server_ip)
         self.entry_boxes["port"] = EntryBox(SCREEN_WIDTH / 2 - ENTRY_WIDTH / 2, 200, ENTRY_WIDTH, ENTRY_HEIGHT,
-                                            self.theme_font, VALID_PORT, text=str(PORT))
+                                            self.theme_font, VALID_PORT, text=str(self.port))
         # buttons
         self.buttons["connect"] = Button(SCREEN_WIDTH / 2 - BUTTON_WIDTH / 2, 300, BUTTON_WIDTH, BUTTON_HEIGHT,
                                          self.theme_font, text="Connect")
@@ -191,7 +191,11 @@ class Client:
         # update with the data entered by the user
         self.username = self.entry_boxes['username'].text
         self.server_ip = self.entry_boxes['server ip'].text
-        self.port = int(self.entry_boxes['port'].text)
+        port_text = self.entry_boxes['port'].text
+        if port_text:
+            self.port = int(self.entry_boxes['port'].text)
+        else:
+            self.port = 0
 
     def menu_draw(self):
         # background
