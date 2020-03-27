@@ -17,16 +17,16 @@ class Camera:
     def apply_rect(self, rect):
         return rect.move(self.rect.topleft)
 
-    def update(self, target):
+    def update(self, target, screen_width, screen_height):
         # make the target on the center of the screen
-        self.x = -target.rect.centerx + int(SCREEN_WIDTH / 2)
-        self.y = -target.rect.centery + int(SCREEN_HEIGHT / 2)
+        self.x = -target.rect.centerx + int(screen_width / 2)
+        self.y = -target.rect.centery + int(screen_height / 2)
 
         # limit scrolling to map size
         self.x = min(0, self.x)  # left
         self.y = min(0, self.y)  # top
-        self.x = max(-(self.width - SCREEN_WIDTH), self.x)  # right
-        self.y = max(-(self.height - SCREEN_HEIGHT), self.y)  # left
+        self.x = max(-(self.width - screen_width), self.x)  # right
+        self.y = max(-(self.height - screen_height), self.y)  # left
         self.rect = pg.Rect(self.x, self.y, self.width, self.height)
 
 

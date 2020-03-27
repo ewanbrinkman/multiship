@@ -229,8 +229,7 @@ class Server:
         self.connections[player_id] = connection
 
         # create a new player and send it to the new client
-        self.game['players'][player_id] = NetPlayer(player_id, PLAYER_SPAWN_X, PLAYER_SPAWN_Y,
-                                                    PLAYER_WIDTH, PLAYER_HEIGHT)
+        self.game['players'][player_id] = NetPlayer(player_id, PLAYER_SPAWN_X, PLAYER_SPAWN_Y)
         connection.send(dumps(self.game['players'][player_id]))
 
         # update total player count

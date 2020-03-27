@@ -6,17 +6,16 @@ from settings import *
 
 
 class NetPlayer:
-    def __init__(self, player_id, x, y, width, height):
+    def __init__(self, player_id, x, y):
         # basic data
         self.player_id = player_id  # only data part of the player that is unchangeable
         self.username = None
         # position
         self.pos = Vec(x, y)
         self.vel = Vec(0, 0)
-        self.rect = pg.Rect(x, y, width, height)
         self.frozen = False
         # player image
-        self.image_string = 'pixelcat.png'
+        self.image_string = "player_fwd.png"
         self.fillcolor = (randint(0, 255), randint(0, 255), randint(0, 255))
 
     def update(self, sprite_player):
@@ -56,6 +55,8 @@ class SpritePlayer(pg.sprite.Sprite):
 
     def update_image(self):
         self.image = self.client.player_imgs[self.image_string].copy()
+        self.image = pg.transform.scale(self.image, (self.image.get_rect().width * self.client.map.ratio,
+                                                     self.image.get_rect().height * self.client.map.ratio))
         self.rect = self.image.get_rect()
         self.rect.center = (self.pos.x, self.pos.y)
         self.fillcolor = self.fillcolor
@@ -114,7 +115,7 @@ class SpritePlayer(pg.sprite.Sprite):
         for hit in hits:
             if hit != self:
                 # update this sprite if it collided
-                self.image_string = 'pixelcatrest.png'
+                self.image_string = "player_bwd.png"
                 self.update_image()
 
     def collide_group(self, group, direction):
