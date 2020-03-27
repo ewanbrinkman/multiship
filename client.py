@@ -3,7 +3,7 @@ import pygame as pg
 from pygame.locals import *
 from network import Network
 from player import SpritePlayer
-from tilemap import Camera
+from tilemap import Camera, TiledMap
 from widgets import EntryBox, Button
 from settings import *
 
@@ -29,19 +29,25 @@ class Client:
         self.screen = None
         self.clock = None
         self.dt = None
+        self.camera = None
         # sprite groups
         self.sprite_players = pg.sprite.Group()
         # start screen data
         self.entry_boxes = {}
         self.buttons = {}
+        # fonts
+        self.theme_font = None
+        # debug mode
+        self.debug = False
         # data to load
         self.player_imgs = {}
 
     def load(self):
         # folders
         game_folder = path.dirname(__file__)
-        font_folder = path.join(game_folder, 'font')
-        img_folder = path.join(game_folder, 'img')
+        font_folder = path.join(game_folder, "font")
+        img_folder = path.join(game_folder, "img")
+        self.map_folder = path.join(game_folder, "map")
         # fonts
         self.theme_font = path.join(font_folder, THEME_FONT)
         # images
@@ -49,12 +55,17 @@ class Client:
             new_img = pg.image.load(path.join(img_folder, img)).convert_alpha()
             self.player_imgs[img] = pg.transform.scale(new_img, (PLAYER_WIDTH, PLAYER_HEIGHT))
 
+    def load_map(self):
+        # map creation
+        self.map = TiledMap(path.join(self.map_folder, "map1.tmx"))
+        self.map_img = self.map.make_map()
+        self.map_rect = self.map_img.get_rect()
+
     def run(self):
         # start pygame
         pg.init()
         # set up display
         self.clock = pg.time.Clock()
-        self.camera = Camera(MAP_WIDTH, MAP_HEIGHT)
         self.screen = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
         # self.screen = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), FULLSCREEN)
         pg.display.set_caption(
@@ -62,6 +73,10 @@ class Client:
 
         # load data
         self.load()
+
+        # load map and then camera
+        self.load_map()
+        self.camera = Camera(self.map.width, self.map.height)
 
         while self.running:
             # the start screen
@@ -97,7 +112,7 @@ class Client:
         self.buttons["connect"] = Button(SCREEN_WIDTH / 2 - BUTTON_WIDTH / 2, 300, BUTTON_WIDTH, BUTTON_HEIGHT,
                                          self.theme_font, text="Connect")
         self.buttons["quit"] = Button(SCREEN_WIDTH / 2 - BUTTON_WIDTH / 2, 400, BUTTON_WIDTH, BUTTON_HEIGHT,
-                                         self.theme_font, text="Quit")
+                                      self.theme_font, text="Quit")
 
         # main menu loop
         while self.menu:
@@ -226,9 +241,14 @@ class Client:
                 self.disconnect()
                 self.menu = False
                 self.running = False
-            # quit the game
-            if event.type == KEYDOWN and event.key == K_ESCAPE:
-                self.disconnect()
+            # key presses
+            if event.type == KEYDOWN:
+                # quit the game
+                if event.key == K_ESCAPE:
+                    self.disconnect()
+                # debug mode toggle
+                if event.key == K_b:
+                    self.debug = not self.debug
 
     def game_update(self):
         if self.connected:
@@ -281,10 +301,14 @@ class Client:
             # background
             self.screen.fill((255, 255, 255))
 
+            # map image
+            self.screen.blit(self.map_img, self.camera.apply_rect(self.map_rect))
+
             # tile grid
-            self.draw_grid()
+            if self.debug:
+                self.draw_grid()
             # thick map boundary line
-            pg.draw.rect(self.screen, (GRID_COLOR), (0 + self.camera.x, 0 + self.camera.y, MAP_WIDTH, MAP_HEIGHT), 30)
+            # pg.draw.rect(self.screen, GRID_COLOR, (0 + self.camera.x, 0 + self.camera.y, MAP_WIDTH, MAP_HEIGHT), 30)
 
             # player images
             # frozen color effect
