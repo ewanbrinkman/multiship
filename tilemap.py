@@ -40,9 +40,10 @@ class Camera:
 class TiledMap:
     def __init__(self, filename):
         tilemap_data = pytmx.load_pygame(filename, pixelalpha=True)
-        self.ratio = TILESIZE / tilemap_data.tilewidth
-        self.width = tilemap_data.width * tilemap_data.tilewidth * self.ratio
-        self.height = tilemap_data.height * tilemap_data.tileheight * self.ratio
+        self.width = tilemap_data.width * tilemap_data.tilewidth
+        self.height = tilemap_data.height * tilemap_data.tileheight
+        self.image = pg.Surface((self.width, self.height))
+        self.rect = self.image.get_rect()
         self.tilemap_data = tilemap_data
 
     def render(self, surface):
@@ -56,8 +57,4 @@ class TiledMap:
                                             y * self.tilemap_data.tileheight))
 
     def make_map(self):
-        map_surface = pg.Surface((self.width / self.ratio, self.height / self.ratio))
-        self.render(map_surface)
-        map_surface = pg.transform.scale(map_surface, (int(map_surface.get_width() * self.ratio),
-                                                       int(map_surface.get_height() * self.ratio)))
-        return map_surface
+        self.render(self.image)

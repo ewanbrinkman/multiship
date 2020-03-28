@@ -13,6 +13,7 @@ class NetPlayer:
         # position
         self.pos = Vec(x, y)
         self.vel = Vec(0, 0)
+        self.rect = None
         self.frozen = False
         # player image
         self.image_string = "shipblue.png"
@@ -55,9 +56,6 @@ class SpritePlayer(pg.sprite.Sprite):
 
     def update_image(self):
         self.image = self.client.player_imgs[self.image_string].copy()
-        # scale to correct size
-        self.image = pg.transform.scale(self.image, (int(self.image.get_rect().width * self.client.map.ratio),
-                                                     int(self.image.get_rect().height * self.client.map.ratio)))
         self.rect = self.image.get_rect()
         self.rect.center = (self.pos.x, self.pos.y)
         self.fillcolor = self.fillcolor
@@ -97,18 +95,16 @@ class SpritePlayer(pg.sprite.Sprite):
         # get key presses
         keys = pg.key.get_pressed()
 
-        vel_speed = PLAYER_SPEED * self.client.map.ratio
-
         # update velocity
         self.vel = Vec(0, 0)
         if keys[K_a] or keys[K_LEFT]:
-            self.vel.x -= vel_speed
+            self.vel.x -= PLAYER_SPEED
         if keys[K_d] or keys[K_RIGHT]:
-            self.vel.x += vel_speed
+            self.vel.x += PLAYER_SPEED
         if keys[K_w] or keys[K_UP]:
-            self.vel.y -= vel_speed
+            self.vel.y -= PLAYER_SPEED
         if keys[K_s] or keys[K_DOWN]:
-            self.vel.y += vel_speed
+            self.vel.y += PLAYER_SPEED
         if self.vel.x != 0 and self.vel.y != 0:
             self.vel *= 1 / 1.41421356237  # 1 over root 2
 

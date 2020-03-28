@@ -32,21 +32,20 @@ class Client:
         self.camera = None
         # sprite groups
         self.sprite_players = pg.sprite.Group()
+        # display
+        self.theme_font = None
+        self.fullscreen = True
+        self.debug = False
+        # data to load
+        self.map_folder = None
+        self.icon = None
+        self.player_imgs = {}
         # start screen
         self.entry_boxes = {}
         self.buttons = {}
-        self.start_screen_bg = None
-        # fonts
-        self.theme_font = None
-        # debug mode
-        self.debug = False
-        # display attributes
-        self.fullscreen = True
-        # data to load
-        self.player_imgs = {}
-        # maps
         self.menu_bg = None
         self.menu_shift = 0
+        # maps
         self.map = None
 
     def load(self):
@@ -70,14 +69,13 @@ class Client:
     def render_maps(self):
         # menu background
         self.menu_bg = TiledMap(path.join(self.map_folder, MENU_BG_IMG))
-        self.menu_bg_img = self.menu_bg.make_map()
+        self.menu_bg.make_map()
         # amount to shift everything, to make up for the background being slightly bigger then the screen size
-        self.menu_shift = (self.menu_bg_img.get_rect().width - SCREEN_WIDTH) / 2
+        self.menu_shift = (self.menu_bg.rect.width - SCREEN_WIDTH) / 2
 
         # basic map
         self.map = TiledMap(path.join(self.map_folder, "map1.tmx"))
-        self.map_img = self.map.make_map()
-        self.map_rect = self.map_img.get_rect()
+        self.map.make_map()
 
     def run(self):
         # start pygame
@@ -252,7 +250,7 @@ class Client:
         # background
         self.screen.fill((255, 255, 255))
 
-        self.screen.blit(self.menu_bg_img, (0, 0))
+        self.screen.blit(self.menu_bg.image, (0, 0))
 
         # title
         self.draw_text(GAME_TITLE, TITLE_SIZE, TEXT_COLOR,
@@ -344,7 +342,7 @@ class Client:
             self.screen.fill((255, 255, 255))
 
             # map image
-            self.screen.blit(self.map_img, self.camera.apply_rect(self.map_rect))
+            self.screen.blit(self.map.image, self.camera.apply_rect(self.map.rect))
 
             # tile grid
             if self.debug:

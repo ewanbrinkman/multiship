@@ -62,7 +62,7 @@ BUTTON_WIDTH = 150
 BUTTON_HEIGHT = 65
 
 # player settings
-PLAYER_SPEED = 300  # pixels per second
+PLAYER_SPEED = 200  # pixels per second
 PLAYER_SPAWN_X = 0
 PLAYER_SPAWN_Y = 0
 PLAYER_IMGS = ["shipblue.png", "shipyellow.png"]
