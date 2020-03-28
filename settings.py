@@ -1,5 +1,5 @@
 # server settings
-SERVER_IP = "192.168.86.55"
+SERVER_IP = "192.168.1.175"
 PORT = 4242
 RECEIVE_LIMIT = 2048
 MAX_CLIENTS = 10
@@ -22,10 +22,8 @@ ACTIVE_BLUE = (126, 213, 255)
 PRESSED_BLUE = (148, 224, 255)
 
 # map settings
-SCREEN_WIDTH_MINI = 500
-SCREEN_HEIGHT_MINI = 500
-SCREEN_WIDTH_MAX = 1440
-SCREEN_HEIGHT_MAX = 900
+SCREEN_WIDTH = 1440
+SCREEN_HEIGHT = 900
 
 # tile settings
 TILESIZE = 64
@@ -33,13 +31,13 @@ GRID_COLOR = DARK_GRAY
 
 # display settings
 GAME_TITLE = "Multiship"
-START_BG_IMG = "watertile.png"
+MENU_BG_IMG = "menubg.tmx"
 ICON_IMG = "watertile.png"
 FPS = 60
 
 # font settings
 TEXT_COLOR = (0, 83, 92)
-TITLE_SIZE = 30
+TITLE_SIZE = 100
 USERNAME_SIZE = 20
 ENTRY_SIZE = 20
 THEME_FONT = "Kenney Future.ttf"

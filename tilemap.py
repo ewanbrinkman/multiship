@@ -17,26 +17,33 @@ class Camera:
     def apply_rect(self, rect):
         return rect.move(self.rect.topleft)
 
-    def update(self, target, screen_width, screen_height):
+    def update(self, target):
         # make the target on the center of the screen
-        self.x = -target.rect.centerx + int(screen_width / 2)
-        self.y = -target.rect.centery + int(screen_height / 2)
+        self.x = -target.rect.centerx + int(SCREEN_WIDTH / 2)
+        self.y = -target.rect.centery + int(SCREEN_HEIGHT / 2)
 
         # limit scrolling to map size
         self.x = min(0, self.x)  # left
         self.y = min(0, self.y)  # top
-        self.x = max(-(self.width - screen_width), self.x)  # right
-        self.y = max(-(self.height - screen_height), self.y)  # left
+        self.x = max(-(self.width - SCREEN_WIDTH), self.x)  # right
+        self.y = max(-(self.height - SCREEN_HEIGHT), self.y)  # left
+
+        # center the map if it is smaller then the screen size
+        if self.width < SCREEN_WIDTH:
+            self.x = SCREEN_WIDTH / 2 - self.width / 2
+        if self.height < SCREEN_HEIGHT:
+            self.y = SCREEN_HEIGHT / 2 - self.height / 2
+
         self.rect = pg.Rect(self.x, self.y, self.width, self.height)
 
 
 class TiledMap:
     def __init__(self, filename):
-        tilemap = pytmx.load_pygame(filename, pixelalpha=True)
-        self.ratio = TILESIZE / tilemap.tilewidth
-        self.width = tilemap.width * tilemap.tilewidth * self.ratio
-        self.height = tilemap.height * tilemap.tileheight * self.ratio
-        self.tilemap_data = tilemap
+        tilemap_data = pytmx.load_pygame(filename, pixelalpha=True)
+        self.ratio = TILESIZE / tilemap_data.tilewidth
+        self.width = tilemap_data.width * tilemap_data.tilewidth * self.ratio
+        self.height = tilemap_data.height * tilemap_data.tileheight * self.ratio
+        self.tilemap_data = tilemap_data
 
     def render(self, surface):
         tile_image = self.tilemap_data.get_tile_image_by_gid

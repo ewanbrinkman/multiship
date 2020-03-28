@@ -52,10 +52,12 @@ class EntryBox:
                 self.text_surface = self.font.render(self.text, True, TEXT_COLOR)
 
     def draw(self, surface):
+        # entry box fill
+        pg.draw.rect(surface, self.fillcolor, self.rect)
         # blit the text with a slight offset to center it
         surface.blit(self.text_surface, (self.rect.x + 5, self.rect.y + 5))
         # entry box boundary
-        pg.draw.rect(surface, self.fillcolor, self.rect, 2)
+        pg.draw.rect(surface, DARK_GRAY, self.rect, 2)
 
 
 class Button:
@@ -101,6 +103,7 @@ class Button:
         # button fill
         pg.draw.rect(surface, self.fillcolor, self.rect)
         # blit the text with a slight offset to center it
-        surface.blit(self.text_surface, (self.rect.x + 5, self.rect.y + 5))
+        surface.blit(self.text_surface, (self.rect.x + self.rect.width / 2 - self.text_surface.get_width() / 2,
+                                         self.rect.y + self.rect.height / 2 - self.text_surface.get_height() / 2))
         # button boundary
         pg.draw.rect(surface, DARK_GRAY, self.rect, 2)

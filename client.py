@@ -42,10 +42,12 @@ class Client:
         self.debug = False
         # display attributes
         self.fullscreen = True
-        self.screen_width = SCREEN_WIDTH_MAX
-        self.screen_height = SCREEN_HEIGHT_MAX
         # data to load
         self.player_imgs = {}
+        # maps
+        self.menu_bg = None
+        self.menu_shift = 0
+        self.map = None
 
     def load(self):
         # folders
@@ -53,28 +55,26 @@ class Client:
         font_folder = path.join(game_folder, "font")
         img_folder = path.join(game_folder, "img")
         self.map_folder = path.join(game_folder, "map")
+
+        # app icon
+        self.icon = pg.image.load(path.join(img_folder, ICON_IMG))
+
         # fonts
         self.theme_font = path.join(font_folder, THEME_FONT)
+
         # images
         for img in PLAYER_IMGS:
             new_img = pg.image.load(path.join(img_folder, img)).convert_alpha()
             self.player_imgs[img] = new_img
-        # start screen background
-        self.start_screen_bg = pg.Surface((self.screen_width, self.screen_height))
-        # basic image
-        bg_image = pg.image.load(path.join(img_folder, START_BG_IMG)).convert_alpha()
-        # get ratio and scale
-        bg_image_rect = bg_image.get_rect()
-        ratio = TILESIZE / bg_image_rect.width
-        bg_image = pg.transform.scale(bg_image, (int(bg_image_rect.width * ratio), int(bg_image_rect.height * ratio)))
-        for x in range(0, self.screen_width, TILESIZE):
-            for y in range(0, self.screen_height, TILESIZE):
-                self.start_screen_bg.blit(bg_image, (x, y))
-        # icon
-        self.icon = pg.image.load(path.join(img_folder, ICON_IMG))
 
-    def load_map(self):
-        # map creation
+    def render_maps(self):
+        # menu background
+        self.menu_bg = TiledMap(path.join(self.map_folder, MENU_BG_IMG))
+        self.menu_bg_img = self.menu_bg.make_map()
+        # amount to shift everything, to make up for the background being slightly bigger then the screen size
+        self.menu_shift = (self.menu_bg_img.get_rect().width - SCREEN_WIDTH) / 2
+
+        # basic map
         self.map = TiledMap(path.join(self.map_folder, "map1.tmx"))
         self.map_img = self.map.make_map()
         self.map_rect = self.map_img.get_rect()
@@ -85,7 +85,7 @@ class Client:
         # clock
         self.clock = pg.time.Clock()
         # set up display
-        self.screen = pg.display.set_mode((self.screen_width, self.screen_height), pg.FULLSCREEN)
+        self.screen = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pg.FULLSCREEN)
         pg.display.set_caption(
             f"Client - ID: {self.player_id} - Username: {self.username} - FPS: {round(self.clock.get_fps(), 2)}")
 
@@ -96,7 +96,7 @@ class Client:
         pg.display.set_icon(self.icon)
 
         # load map and then camera after, so it fits the map
-        self.load_map()
+        self.render_maps()
         self.camera = Camera(self.map.width, self.map.height)
 
         while self.running:
@@ -123,16 +123,21 @@ class Client:
         pg.key.set_repeat(REPEAT_PAUSE, REPEAT_RATE)
 
         # entry boxes
-        self.entry_boxes["username"] = EntryBox(self.screen_width / 2 - ENTRY_WIDTH / 2, 100, ENTRY_WIDTH, ENTRY_HEIGHT,
+        self.entry_boxes["username"] = EntryBox(SCREEN_WIDTH / 2 - ENTRY_WIDTH / 2 + self.menu_shift,
+                                                150, ENTRY_WIDTH, ENTRY_HEIGHT,
                                                 self.theme_font, VALID_USERNAME, text=self.username)
-        self.entry_boxes["server ip"] = EntryBox(self.screen_width / 2 - ENTRY_WIDTH / 2, 150, ENTRY_WIDTH, ENTRY_HEIGHT,
+        self.entry_boxes["server ip"] = EntryBox(SCREEN_WIDTH / 2 - ENTRY_WIDTH / 2 + self.menu_shift,
+                                                 220, ENTRY_WIDTH, ENTRY_HEIGHT,
                                                  self.theme_font, VALID_IP, text=self.server_ip)
-        self.entry_boxes["port"] = EntryBox(self.screen_width / 2 - ENTRY_WIDTH / 2, 200, ENTRY_WIDTH, ENTRY_HEIGHT,
+        self.entry_boxes["port"] = EntryBox(SCREEN_WIDTH / 2 - ENTRY_WIDTH / 2 + self.menu_shift,
+                                            290, ENTRY_WIDTH, ENTRY_HEIGHT,
                                             self.theme_font, VALID_PORT, text=str(self.port))
         # buttons
-        self.buttons["connect"] = Button(self.screen_width / 2 - ENTRY_WIDTH / 2, 400, BUTTON_WIDTH, BUTTON_HEIGHT,
+        self.buttons["connect"] = Button(SCREEN_WIDTH / 2 - SCREEN_WIDTH / 4 + self.menu_shift,
+                                         737, BUTTON_WIDTH, BUTTON_HEIGHT,
                                          self.theme_font, text="Connect")
-        self.buttons["quit"] = Button(self.screen_width / 2 + ENTRY_WIDTH / 2 - BUTTON_WIDTH, 400, BUTTON_WIDTH, BUTTON_HEIGHT,
+        self.buttons["quit"] = Button(SCREEN_WIDTH / 2 + SCREEN_WIDTH / 4 - BUTTON_WIDTH + self.menu_shift,
+                                      737, BUTTON_WIDTH, BUTTON_HEIGHT,
                                       self.theme_font, text="Quit")
 
         # main menu loop
@@ -210,27 +215,11 @@ class Client:
                     self.running = False
                 # fullscreen mode toggle
                 if event.key == K_f:
-                    # toggle fullscreen
                     self.fullscreen = not self.fullscreen
-                    # change screen size accordingly
                     if self.fullscreen:
-                        # fullscreen mode
-                        self.screen_width = SCREEN_WIDTH_MAX
-                        self.screen_height = SCREEN_HEIGHT_MAX
-                        self.screen = pg.display.set_mode((self.screen_width, self.screen_height), FULLSCREEN)
+                        self.screen = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), FULLSCREEN)
                     else:
-                        # mini screen mode
-                        self.screen_width = SCREEN_WIDTH_MINI
-                        self.screen_height = SCREEN_HEIGHT_MINI
-                        self.screen = pg.display.set_mode((self.screen_width, self.screen_height))
-                    # reposition widgets
-                    for entry_box in self.entry_boxes.values():
-                        entry_box.rect.x = self.screen_width / 2 - ENTRY_WIDTH / 2
-                    for button_name, button in self.buttons.items():
-                        if button_name == "connect":
-                            button.rect.x = self.screen_width / 2 - ENTRY_WIDTH / 2
-                        elif button_name == "quit":
-                            button.rect.x = self.screen_width / 2 + ENTRY_WIDTH / 2 - BUTTON_WIDTH
+                        self.screen = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
             # update entry boxes with pygame events
             for entry_box in self.entry_boxes.values():
@@ -263,11 +252,11 @@ class Client:
         # background
         self.screen.fill((255, 255, 255))
 
-        self.screen.blit(self.start_screen_bg, (0, 0))
+        self.screen.blit(self.menu_bg_img, (0, 0))
 
         # title
         self.draw_text(GAME_TITLE, TITLE_SIZE, TEXT_COLOR,
-                       self.screen_width / 2, 50, align='s', font_name=self.theme_font)
+                       SCREEN_WIDTH / 2 + self.menu_shift, 70, align='center', font_name=self.theme_font)
 
         # entry boxes
         for entry_box in self.entry_boxes.values():
@@ -297,19 +286,11 @@ class Client:
                     self.debug = not self.debug
                 # fullscreen mode toggle
                 if event.key == K_f:
-                    # toggle fullscreen
                     self.fullscreen = not self.fullscreen
-                    # change screen size accordingly
                     if self.fullscreen:
-                        # fullscreen mode
-                        self.screen_width = SCREEN_WIDTH_MAX
-                        self.screen_height = SCREEN_HEIGHT_MAX
-                        self.screen = pg.display.set_mode((self.screen_width, self.screen_height), FULLSCREEN)
+                        self.screen = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), FULLSCREEN)
                     else:
-                        # mini screen mode
-                        self.screen_width = SCREEN_WIDTH_MINI
-                        self.screen_height = SCREEN_HEIGHT_MINI
-                        self.screen = pg.display.set_mode((self.screen_width, self.screen_height))
+                        self.screen = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
     def game_update(self):
         if self.connected:
@@ -344,17 +325,17 @@ class Client:
             # update camera
             for sprite_player in self.sprite_players:
                 if sprite_player.player_id == self.player_id:
-                    self.camera.update(sprite_player, self.screen_width, self.screen_height)
+                    self.camera.update(sprite_player)
 
         # update display caption with useful information
         pg.display.set_caption(
             f"Client - ID: {self.player_id} - Username: {self.username} - FPS: {round(self.clock.get_fps(), 2)}")
 
     def draw_grid(self):
-        for x in range(self.camera.x, self.screen_width, TILESIZE):
-            pg.draw.line(self.screen, GRID_COLOR, (x, 0), (x, self.screen_height))
-        for y in range(self.camera.y, self.screen_height, TILESIZE):
-            pg.draw.line(self.screen, GRID_COLOR, (0, y), (self.screen_width, y))
+        for x in range(self.camera.x, SCREEN_WIDTH, TILESIZE):
+            pg.draw.line(self.screen, GRID_COLOR, (x, 0), (x, SCREEN_HEIGHT))
+        for y in range(self.camera.y, SCREEN_HEIGHT, TILESIZE):
+            pg.draw.line(self.screen, GRID_COLOR, (0, y), (SCREEN_WIDTH, y))
 
     def game_draw(self):
         if self.connected:
