@@ -103,4 +103,4 @@ class Button:
         # blit the text with a slight offset to center it
         surface.blit(self.text_surface, (self.rect.x + 5, self.rect.y + 5))
         # button boundary
-        pg.draw.rect(surface, DARKGRAY, self.rect, 2)
+        pg.draw.rect(surface, DARK_GRAY, self.rect, 2)

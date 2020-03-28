@@ -58,17 +58,20 @@ class Client:
         # images
         for img in PLAYER_IMGS:
             new_img = pg.image.load(path.join(img_folder, img)).convert_alpha()
-            #self.player_imgs[img] = pg.transform.scale(new_img, (PLAYER_WIDTH, PLAYER_HEIGHT))
             self.player_imgs[img] = new_img
         # start screen background
         self.start_screen_bg = pg.Surface((self.screen_width, self.screen_height))
+        # basic image
         bg_image = pg.image.load(path.join(img_folder, START_BG_IMG)).convert_alpha()
+        # get ratio and scale
         bg_image_rect = bg_image.get_rect()
-        ratio = int(TILESIZE / bg_image_rect.width)
-        bg_image = pg.transform.scale(bg_image, (bg_image_rect.width * ratio, bg_image_rect.height * ratio))
+        ratio = TILESIZE / bg_image_rect.width
+        bg_image = pg.transform.scale(bg_image, (int(bg_image_rect.width * ratio), int(bg_image_rect.height * ratio)))
         for x in range(0, self.screen_width, TILESIZE):
             for y in range(0, self.screen_height, TILESIZE):
                 self.start_screen_bg.blit(bg_image, (x, y))
+        # icon
+        self.icon = pg.image.load(path.join(img_folder, ICON_IMG))
 
     def load_map(self):
         # map creation
@@ -79,8 +82,9 @@ class Client:
     def run(self):
         # start pygame
         pg.init()
-        # set up display
+        # clock
         self.clock = pg.time.Clock()
+        # set up display
         self.screen = pg.display.set_mode((self.screen_width, self.screen_height), pg.FULLSCREEN)
         pg.display.set_caption(
             f"Client - ID: {self.player_id} - Username: {self.username} - FPS: {round(self.clock.get_fps(), 2)}")
@@ -88,7 +92,10 @@ class Client:
         # load data
         self.load()
 
-        # load map and then camera
+        # icon
+        pg.display.set_icon(self.icon)
+
+        # load map and then camera after, so it fits the map
         self.load_map()
         self.camera = Camera(self.map.width, self.map.height)
 
@@ -123,9 +130,9 @@ class Client:
         self.entry_boxes["port"] = EntryBox(self.screen_width / 2 - ENTRY_WIDTH / 2, 200, ENTRY_WIDTH, ENTRY_HEIGHT,
                                             self.theme_font, VALID_PORT, text=str(self.port))
         # buttons
-        self.buttons["connect"] = Button(self.screen_width / 2 - BUTTON_WIDTH / 2, 300, BUTTON_WIDTH, BUTTON_HEIGHT,
+        self.buttons["connect"] = Button(self.screen_width / 2 - ENTRY_WIDTH / 2, 400, BUTTON_WIDTH, BUTTON_HEIGHT,
                                          self.theme_font, text="Connect")
-        self.buttons["quit"] = Button(self.screen_width / 2 - BUTTON_WIDTH / 2, 400, BUTTON_WIDTH, BUTTON_HEIGHT,
+        self.buttons["quit"] = Button(self.screen_width / 2 + ENTRY_WIDTH / 2 - BUTTON_WIDTH, 400, BUTTON_WIDTH, BUTTON_HEIGHT,
                                       self.theme_font, text="Quit")
 
         # main menu loop
@@ -219,8 +226,11 @@ class Client:
                     # reposition widgets
                     for entry_box in self.entry_boxes.values():
                         entry_box.rect.x = self.screen_width / 2 - ENTRY_WIDTH / 2
-                    for button in self.buttons.values():
-                        button.rect.x = self.screen_width / 2 - BUTTON_WIDTH / 2
+                    for button_name, button in self.buttons.items():
+                        if button_name == "connect":
+                            button.rect.x = self.screen_width / 2 - ENTRY_WIDTH / 2
+                        elif button_name == "quit":
+                            button.rect.x = self.screen_width / 2 + ENTRY_WIDTH / 2 - BUTTON_WIDTH
 
             # update entry boxes with pygame events
             for entry_box in self.entry_boxes.values():
