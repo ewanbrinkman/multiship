@@ -3,8 +3,7 @@ from settings import *
 
 
 class EntryBox:
-    def __init__(self, x, y, width, height, font, valid_chars, text=""):
-        self.rect = pg.Rect(x, y, width, height)
+    def __init__(self, x, y, width, font, valid_chars, text=""):
         font = pg.font.Font(font, ENTRY_SIZE)
         self.font = font
         self.default_text = text
@@ -14,6 +13,7 @@ class EntryBox:
         self.valid_chars = valid_chars
         # render text
         self.text_surface = self.font.render(self.text, True, TEXT_COLOR)
+        self.rect = pg.Rect(x, y, width, self.text_surface.get_height())
 
     def events(self, event):
         # if the user clicks on the entry box
@@ -55,7 +55,7 @@ class EntryBox:
         # entry box fill
         pg.draw.rect(surface, self.fillcolor, self.rect)
         # blit the text with a slight offset to center it
-        surface.blit(self.text_surface, (self.rect.x + 5, self.rect.y + 5))
+        surface.blit(self.text_surface, (self.rect.x + 5, self.rect.y))
         # entry box boundary
         pg.draw.rect(surface, DARK_GRAY, self.rect, 2)
 
@@ -66,7 +66,7 @@ class Button:
         self.fillcolor = BUTTON_INACTIVE
         self.active = False
         self.pressed = False
-        font = pg.font.Font(font, ENTRY_SIZE)
+        font = pg.font.Font(font, BUTTON_SIZE)
         # render text
         self.text_surface = font.render(text, True, TEXT_COLOR)
 

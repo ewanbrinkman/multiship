@@ -44,7 +44,8 @@ class Client:
         self.entry_boxes = {}
         self.buttons = {}
         self.menu_bg = None
-        self.menu_shift = 0
+        self.menu_bg_shiftx = 0
+        self.menu_bg_shifty = 0
         # maps
         self.map = None
 
@@ -71,7 +72,8 @@ class Client:
         self.menu_bg = TiledMap(path.join(self.map_folder, MENU_BG_IMG))
         self.menu_bg.make_map()
         # amount to shift everything, to make up for the background being slightly bigger then the screen size
-        self.menu_shift = (self.menu_bg.rect.width - SCREEN_WIDTH) / 2
+        self.menu_bg_shiftx = (self.menu_bg.rect.width - SCREEN_WIDTH) / 2
+        self.menu_bg_shifty = (self.menu_bg.rect.height - SCREEN_HEIGHT) / 2
 
         # basic map
         self.map = TiledMap(path.join(self.map_folder, "map1.tmx"))
@@ -121,21 +123,21 @@ class Client:
         pg.key.set_repeat(REPEAT_PAUSE, REPEAT_RATE)
 
         # entry boxes
-        self.entry_boxes["username"] = EntryBox(SCREEN_WIDTH / 2 - ENTRY_WIDTH / 2 + self.menu_shift,
-                                                150, ENTRY_WIDTH, ENTRY_HEIGHT,
+        self.entry_boxes["username"] = EntryBox(SCREEN_WIDTH / 2 - ENTRY_WIDTH / 2,
+                                                150, ENTRY_WIDTH,
                                                 self.theme_font, VALID_USERNAME, text=self.username)
-        self.entry_boxes["server ip"] = EntryBox(SCREEN_WIDTH / 2 - ENTRY_WIDTH / 2 + self.menu_shift,
-                                                 220, ENTRY_WIDTH, ENTRY_HEIGHT,
+        self.entry_boxes["server ip"] = EntryBox(SCREEN_WIDTH / 2 - ENTRY_WIDTH / 2,
+                                                 220, ENTRY_WIDTH,
                                                  self.theme_font, VALID_IP, text=self.server_ip)
-        self.entry_boxes["port"] = EntryBox(SCREEN_WIDTH / 2 - ENTRY_WIDTH / 2 + self.menu_shift,
-                                            290, ENTRY_WIDTH, ENTRY_HEIGHT,
+        self.entry_boxes["port"] = EntryBox(SCREEN_WIDTH / 2 - ENTRY_WIDTH / 2,
+                                            290, ENTRY_WIDTH,
                                             self.theme_font, VALID_PORT, text=str(self.port))
         # buttons
-        self.buttons["connect"] = Button(SCREEN_WIDTH / 2 - SCREEN_WIDTH / 4 + self.menu_shift,
-                                         737, BUTTON_WIDTH, BUTTON_HEIGHT,
+        self.buttons["connect"] = Button(SCREEN_WIDTH / 2 - SCREEN_WIDTH / 4,
+                                         TILESIZE * 11 + TILESIZE / 2 - TILESIZE / 8, BUTTON_WIDTH, BUTTON_HEIGHT,
                                          self.theme_font, text="Connect")
-        self.buttons["quit"] = Button(SCREEN_WIDTH / 2 + SCREEN_WIDTH / 4 - BUTTON_WIDTH + self.menu_shift,
-                                      737, BUTTON_WIDTH, BUTTON_HEIGHT,
+        self.buttons["quit"] = Button(SCREEN_WIDTH / 2 + SCREEN_WIDTH / 4 - BUTTON_WIDTH,
+                                      TILESIZE * 11 + TILESIZE / 2 - TILESIZE / 8, BUTTON_WIDTH, BUTTON_HEIGHT,
                                       self.theme_font, text="Quit")
 
         # main menu loop
@@ -250,11 +252,11 @@ class Client:
         # background
         self.screen.fill((255, 255, 255))
 
-        self.screen.blit(self.menu_bg.image, (0, 0))
+        self.screen.blit(self.menu_bg.image, (0 - self.menu_bg_shiftx, 0))
 
         # title
-        self.draw_text(GAME_TITLE, TITLE_SIZE, TEXT_COLOR,
-                       SCREEN_WIDTH / 2 + self.menu_shift, 70, align='center', font_name=self.theme_font)
+        self.draw_text(GAME_TITLE, TITLE_SIZE, TEXT_COLOR, SCREEN_WIDTH / 2, 70,
+                       align='center', font_name=self.theme_font)
 
         # entry boxes
         for entry_box in self.entry_boxes.values():
