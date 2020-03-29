@@ -6,7 +6,6 @@ class EntryBox:
     def __init__(self, x, y, width, font, valid_chars, text=""):
         font = pg.font.Font(font, ENTRY_SIZE)
         self.font = font
-        self.default_text = text
         self.text = text
         self.fillcolor = ENTRY_INACTIVE_COLOR
         self.active = False
@@ -31,31 +30,27 @@ class EntryBox:
             else:
                 self.fillcolor = ENTRY_INACTIVE_COLOR
 
+        # add or delete a character from the entry box
         if event.type == pg.KEYDOWN:
             if self.active:
                 if event.key == pg.K_RETURN:
                     self.active = False
                 elif event.key == pg.K_BACKSPACE:
-                    # delete the whole entry, which would say something like "enter username"
-                    if self.text == self.default_text:
-                        self.text = ''
-                        self.default_text = None
-                    # delete the last character
-                    else:
-                        self.text = self.text[:-1]
-                elif event.unicode in self.valid_chars and len(self.text) < MAX_ENTRY_LENGTH:
-                    # delete the whole entry, which would say something like "enter username"
-                    if self.text == self.default_text:
-                        self.text = ''
-                        self.default_text = None
+                    self.text = self.text[:-1]
+                elif event.unicode in self.valid_chars:
                     self.text += event.unicode
                 self.text_surface = self.font.render(self.text, True, TEXT_COLOR)
+                # delete the character just entered if it would go off the entry box
+                print(self.text_surface.get_width(), ENTRY_WIDTH)
+                if self.text_surface.get_width() > ENTRY_WIDTH - ENTRY_TEXT_OFFSET * 2:
+                    self.text = self.text[:-1]
+                    self.text_surface = self.font.render(self.text, True, TEXT_COLOR)
 
     def draw(self, surface):
         # entry box fill
         pg.draw.rect(surface, self.fillcolor, self.rect)
         # blit the text with a slight offset to center it
-        surface.blit(self.text_surface, (self.rect.x + 5, self.rect.y))
+        surface.blit(self.text_surface, (self.rect.x + ENTRY_TEXT_OFFSET, self.rect.y))
         # entry box boundary
         pg.draw.rect(surface, DARK_GRAY, self.rect, 2)
 

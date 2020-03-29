@@ -54,6 +54,7 @@ class Client:
         game_folder = path.dirname(__file__)
         font_folder = path.join(game_folder, "font")
         img_folder = path.join(game_folder, "img")
+        snd_folder = path.join(game_folder, "snd")
         self.map_folder = path.join(game_folder, "map")
 
         # app icon
@@ -66,6 +67,9 @@ class Client:
         for img in PLAYER_IMGS:
             new_img = pg.image.load(path.join(img_folder, img)).convert_alpha()
             self.player_imgs[img] = new_img
+
+        # sounds
+        pg.mixer.music.load(path.join(snd_folder, MENU_BG_MUSIC))
 
     def render_maps(self):
         # menu background
@@ -81,6 +85,7 @@ class Client:
 
     def run(self):
         # start pygame
+        pg.mixer.pre_init(44100, -16, 1, 2048)
         pg.init()
         # clock
         self.clock = pg.time.Clock()
@@ -121,7 +126,6 @@ class Client:
     def main_menu(self):
         # allows the user to hold down a key when entering text into an entry box
         pg.key.set_repeat(REPEAT_PAUSE, REPEAT_RATE)
-
         # entry boxes
         self.entry_boxes["username"] = EntryBox(SCREEN_WIDTH / 2 - ENTRY_WIDTH / 2,
                                                 150, ENTRY_WIDTH,
@@ -139,6 +143,9 @@ class Client:
         self.buttons["quit"] = Button(SCREEN_WIDTH / 2 + SCREEN_WIDTH / 4 - BUTTON_WIDTH,
                                       TILESIZE * 11 + TILESIZE / 2 - TILESIZE / 8, BUTTON_WIDTH, BUTTON_HEIGHT,
                                       self.theme_font, text="Quit")
+
+        # background music
+        pg.mixer.music.play(loops=-1)
 
         # main menu loop
         while self.menu:
@@ -214,7 +221,7 @@ class Client:
                     self.menu = False
                     self.running = False
                 # fullscreen mode toggle
-                if event.key == K_f:
+                if event.key == K_F1:
                     self.fullscreen = not self.fullscreen
                     if self.fullscreen:
                         self.screen = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), FULLSCREEN)
@@ -281,16 +288,16 @@ class Client:
                 # quit the game
                 if event.key == K_ESCAPE:
                     self.disconnect()
-                # debug mode toggle
-                if event.key == K_b:
-                    self.debug = not self.debug
                 # fullscreen mode toggle
-                if event.key == K_f:
+                if event.key == K_F1:
                     self.fullscreen = not self.fullscreen
                     if self.fullscreen:
                         self.screen = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), FULLSCREEN)
                     else:
                         self.screen = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+                # debug mode toggle
+                if event.key == K_F2:
+                    self.debug = not self.debug
 
     def game_update(self):
         if self.connected:

@@ -30,7 +30,7 @@ TILESIZE = 64
 GRID_COLOR = DARK_GRAY
 
 # display settings
-GAME_TITLE = "Multiship"
+GAME_TITLE = "Ship Hunt"
 MENU_BG_IMG = "menubg.tmx"
 ICON_IMG = "watertile.png"
 FPS = 60
@@ -49,8 +49,8 @@ VALID_IP = "1234567890."
 VALID_PORT = "1234567890"
 ENTRY_INACTIVE_COLOR = INACTIVE_BLUE
 ENTRY_ACTIVE_COLOR = ACTIVE_BLUE
-MAX_ENTRY_LENGTH = 15
 ENTRY_WIDTH = 350
+ENTRY_TEXT_OFFSET = 5
 REPEAT_PAUSE = 350
 REPEAT_RATE = 50
 
@@ -66,3 +66,6 @@ PLAYER_SPEED = 200  # pixels per second
 PLAYER_SPAWN_X = 700
 PLAYER_SPAWN_Y = 300
 PLAYER_IMGS = ["shipblue.png", "shipyellow.png"]
+
+# sound
+MENU_BG_MUSIC = "Dryads Feast.mp3"
