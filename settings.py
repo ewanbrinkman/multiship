@@ -69,3 +69,4 @@ PLAYER_IMGS = ["shipblue.png", "shipyellow.png"]
 
 # sound
 MENU_BG_MUSIC = "Dryads Feast.mp3"
+GAME_BG_MUSIC = "Blackmoor Tides.wav"

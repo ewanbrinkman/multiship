@@ -48,6 +48,9 @@ class Client:
         self.menu_bg_shifty = 0
         # maps
         self.map = None
+        # music
+        self.menu_music = None
+        self.game_music = None
 
     def load(self):
         # folders
@@ -69,7 +72,8 @@ class Client:
             self.player_imgs[img] = new_img
 
         # sounds
-        pg.mixer.music.load(path.join(snd_folder, MENU_BG_MUSIC))
+        self.menu_music = path.join(snd_folder, MENU_BG_MUSIC)
+        self.game_music = path.join(snd_folder, GAME_BG_MUSIC)
 
     def render_maps(self):
         # menu background
@@ -145,6 +149,7 @@ class Client:
                                       self.theme_font, text="Quit")
 
         # background music
+        pg.mixer.music.load(self.menu_music)
         pg.mixer.music.play(loops=-1)
 
         # main menu loop
@@ -160,6 +165,10 @@ class Client:
         pg.key.set_repeat()
 
     def game_loop(self):
+        # background music
+        pg.mixer.music.load(self.game_music)
+        pg.mixer.music.play(loops=-1)
+
         # game loop while connected to the server
         while self.connected:
             # pause
