@@ -41,7 +41,6 @@ class EntryBox:
                     self.text += event.unicode
                 self.text_surface = self.font.render(self.text, True, TEXT_COLOR)
                 # delete the character just entered if it would go off the entry box
-                print(self.text_surface.get_width(), ENTRY_WIDTH)
                 if self.text_surface.get_width() > ENTRY_WIDTH - ENTRY_TEXT_OFFSET * 2:
                     self.text = self.text[:-1]
                     self.text_surface = self.font.render(self.text, True, TEXT_COLOR)

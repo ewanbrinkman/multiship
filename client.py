@@ -69,7 +69,8 @@ class Client:
         # images
         for img in PLAYER_IMGS:
             new_img = pg.image.load(path.join(img_folder, img)).convert_alpha()
-            self.player_imgs[img] = new_img
+            # rotate so the sprite moves in the direction it is pointing
+            self.player_imgs[img] = pg.transform.rotate(new_img, 90)
 
         # sounds
         self.menu_music = path.join(snd_folder, MENU_BG_MUSIC)
@@ -132,13 +133,13 @@ class Client:
         pg.key.set_repeat(REPEAT_PAUSE, REPEAT_RATE)
         # entry boxes
         self.entry_boxes["username"] = EntryBox(SCREEN_WIDTH / 2 - ENTRY_WIDTH / 2,
-                                                150, ENTRY_WIDTH,
+                                                140, ENTRY_WIDTH,
                                                 self.theme_font, VALID_USERNAME, text=self.username)
         self.entry_boxes["server ip"] = EntryBox(SCREEN_WIDTH / 2 - ENTRY_WIDTH / 2,
-                                                 220, ENTRY_WIDTH,
+                                                 210, ENTRY_WIDTH,
                                                  self.theme_font, VALID_IP, text=self.server_ip)
         self.entry_boxes["port"] = EntryBox(SCREEN_WIDTH / 2 - ENTRY_WIDTH / 2,
-                                            290, ENTRY_WIDTH,
+                                            280, ENTRY_WIDTH,
                                             self.theme_font, VALID_PORT, text=str(self.port))
         # buttons
         self.buttons["connect"] = Button(SCREEN_WIDTH / 2 - SCREEN_WIDTH / 4,
@@ -353,6 +354,18 @@ class Client:
         for y in range(self.camera.y, SCREEN_HEIGHT, TILESIZE):
             pg.draw.line(self.screen, GRID_COLOR, (0, y), (SCREEN_WIDTH, y))
 
+    def draw_debug(self):
+        self.draw_grid()
+        for sprite in self.sprite_players:
+            pg.draw.rect(self.screen, GREEN, (sprite.rect.x + self.camera.x,
+                                              sprite.rect.y + self.camera.y,
+                                              sprite.rect.width,
+                                              sprite.rect.height), 1)
+            pg.draw.rect(self.screen, RED, (sprite.hit_rect.x + self.camera.x,
+                                            sprite.hit_rect.y + self.camera.y,
+                                            sprite.hit_rect.width,
+                                            sprite.hit_rect.height), 1)
+
     def game_draw(self):
         if self.connected:
 
@@ -361,12 +374,6 @@ class Client:
 
             # map image
             self.screen.blit(self.map.image, self.camera.apply_rect(self.map.rect))
-
-            # tile grid
-            if self.debug:
-                self.draw_grid()
-            # thick map boundary line
-            # pg.draw.rect(self.screen, GRID_COLOR, (0 + self.camera.x, 0 + self.camera.y, MAP_WIDTH, MAP_HEIGHT), 30)
 
             # player images
             # frozen color effect
@@ -380,6 +387,10 @@ class Client:
                 self.draw_text(sprite_player.username, USERNAME_SIZE, sprite_player.fillcolor,
                                sprite_player.pos.x + self.camera.x, sprite_player.rect.top + self.camera.y,
                                align='s', font_name=self.theme_font)
+
+            # debug information
+            if self.debug:
+                self.draw_debug()
 
             # update the client's monitor
             pg.display.flip()
