@@ -13,6 +13,7 @@ class NetPlayer:
         # position
         self.pos = Vec(x, y)
         self.vel = Vec(0, 0)
+        self.acc = Vec(0, 0)
         self.rot = 0
         self.frozen = False
         # player image
@@ -37,8 +38,10 @@ class SpritePlayer(pg.sprite.Sprite):
         # position
         self.pos = Vec(net_player.pos.x, net_player.pos.y)
         self.vel = Vec(net_player.vel.x, net_player.vel.y)
+        self.acc = Vec(net_player.acc.x, net_player.acc.y)
         self.rot = net_player.rot
         self.rot_vel = 0
+        self.rot_acc = 0
         self.frozen = net_player.frozen
         # save the client, to access data such as the game sent over the network
         self.client = client
@@ -90,19 +93,19 @@ class SpritePlayer(pg.sprite.Sprite):
         # get key presses
         keys = pg.key.get_pressed()
 
-        # reset velocity
-        self.vel = Vec(0, 0)
-        self.rot_vel = 0
+        # reset acceleration
+        self.acc = Vec(0, 0)
+        self.rot_acc = 0
 
         # apply key presses
         if keys[K_a] or keys[K_LEFT]:
-            self.rot_vel = PLAYER_ROT_VEL
+            self.rot_acc = PLAYER_ROT_ACC
         if keys[K_d] or keys[K_RIGHT]:
-            self.rot_vel = -PLAYER_ROT_VEL
+            self.rot_acc = -PLAYER_ROT_ACC
         if keys[K_w] or keys[K_UP]:
-            self.vel = Vec(PLAYER_SPEED, 0).rotate(-self.rot)
+            self.acc = Vec(PLAYER_ACC, 0).rotate(-self.rot)
         if keys[K_s] or keys[K_DOWN]:
-            self.vel = Vec(-PLAYER_SPEED, 0).rotate(-self.rot)
+            self.acc = Vec(-PLAYER_ACC, 0).rotate(-self.rot)
 
     def collide_hit_rect_both(self, one, two):
         return one.hit_rect.colliderect(two.hit_rect)
@@ -125,8 +128,20 @@ class SpritePlayer(pg.sprite.Sprite):
         self.apply_keys()
         # move the sprite player, if there are no restrictions in place (such as being frozen)
         if not self.frozen:
-            self.pos += self.vel * self.client.dt
-            self.rot = (self.rot + self.rot_vel * self.client.dt) % 360
+            # change position
+            # apply friction
+            self.acc += self.vel * PLAYER_FRICTION
+            # equations of motion
+            self.vel += self.acc
+            self.pos += (self.vel + 0.5 * self.acc) * self.client.dt
+
+            # change image
+            # apply friction
+            self.rot_acc += self.rot_vel * PLAYER_ROT_FRICTION
+            # equations of motion
+            self.rot_vel += self.rot_acc
+            self.rot += ((self.rot_vel + 0.5 * self.rot_acc) * self.client.dt) % 360
+
             self.update_image()
 
         # collision detection

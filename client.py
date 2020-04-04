@@ -76,6 +76,9 @@ class Client:
         self.menu_music = path.join(snd_folder, MENU_BG_MUSIC)
         self.game_music = path.join(snd_folder, GAME_BG_MUSIC)
 
+        # load map
+        self.render_maps()
+
     def render_maps(self):
         # menu background
         self.menu_bg = TiledMap(path.join(self.map_folder, MENU_BG_IMG))
@@ -105,15 +108,11 @@ class Client:
         # icon
         pg.display.set_icon(self.icon)
 
-        # load map and then camera after, so it fits the map
-        self.render_maps()
-        self.camera = Camera(self.map.width, self.map.height)
-
         while self.running:
             # the start screen
             self.main_menu()
 
-            # connect to a server only if program is running and port is an integer
+            # connect to a server only if program is running
             if self.running:
                 # connect
                 self.connect()
@@ -169,6 +168,9 @@ class Client:
         # background music
         pg.mixer.music.load(self.game_music)
         pg.mixer.music.play(loops=-1)
+
+        # create camera to fit map size
+        self.camera = Camera(self.map.width, self.map.height)
 
         # game loop while connected to the server
         while self.connected:

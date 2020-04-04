@@ -21,20 +21,15 @@ INACTIVE_BLUE = (0, 179, 255)
 ACTIVE_BLUE = (126, 213, 255)
 PRESSED_BLUE = (148, 224, 255)
 
-# map settings
+# display settings
+GAME_TITLE = "Get Shipped"
+FPS = 60
 SCREEN_WIDTH = 1440
 SCREEN_HEIGHT = 900
-
-# tile settings
 TILESIZE = 64
 GRID_COLOR = DARK_GRAY
-
-# display settings
-GAME_TITLE = "Ship Hunt"
 MENU_BG_IMG = "menubg.tmx"
 ICON_IMG = "watertile.png"
-FPS = 60
-
 # font settings
 TEXT_COLOR = (0, 83, 92)
 TITLE_SIZE = 150
@@ -53,7 +48,6 @@ ENTRY_WIDTH = 330
 ENTRY_TEXT_OFFSET = 5
 REPEAT_PAUSE = 350
 REPEAT_RATE = 50
-
 # button settings
 BUTTON_INACTIVE = INACTIVE_BLUE
 BUTTON_ACTIVE = ACTIVE_BLUE
@@ -62,13 +56,16 @@ BUTTON_WIDTH = 190
 BUTTON_HEIGHT = 80
 
 # player settings
-PLAYER_SPEED = 200  # pixels per second
+PLAYER_ACC = 50
+PLAYER_FRICTION = -0.12
 PLAYER_SPAWN_X = 700
 PLAYER_SPAWN_Y = 300
 PLAYER_IMGS = ["shipblue.png", "shipyellow.png"]
 PLAYER_HIT_RECT_WIDTH = 66
 PLAYER_HIT_RECT_HEIGHT = 66
-PLAYER_ROT_VEL = 250  # degrees per second
+#PLAYER_ROT_VEL = 250  # degrees per second
+PLAYER_ROT_ACC = 50
+PLAYER_ROT_FRICTION = -0.12
 
 # sound
 MENU_BG_MUSIC = "Dryads Feast.mp3"
