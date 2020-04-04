@@ -387,7 +387,7 @@ class Client:
                 # blit to screen as done below so that the camera can be applied
                 self.screen.blit(sprite_player.image, self.camera.apply_sprite(sprite_player))
                 self.draw_text(sprite_player.username, USERNAME_SIZE, sprite_player.fillcolor,
-                               sprite_player.pos.x + self.camera.x, sprite_player.rect.top + self.camera.y,
+                               sprite_player.pos.x + self.camera.x, sprite_player.hit_rect.top + USERNAME_HEIGHT + self.camera.y,
                                align='s', font_name=self.theme_font)
 
             # debug information
