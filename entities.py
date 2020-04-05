@@ -11,6 +11,32 @@ def update_player(old_player, new_player):
         if hasattr(old_player, attr):
             setattr(old_player, attr, getattr(new_player, attr))
 
+
+def collide_hit_rect_both(one, two):
+    return one.hit_rect.colliderect(two.hit_rect)
+
+
+def collide_group(sprite, group, direction):
+    if direction == "x":
+        hits = pg.sprite.spritecollide(sprite, group, False, collide_hit_rect_both)
+        if hits:
+            if hits[0].hit_rect.centerx > sprite.hit_rect.centerx:
+                sprite.pos.x = hits[0].hit_rect.left - sprite.hit_rect.width / 2
+            if hits[0].hit_rect.centerx < sprite.hit_rect.centerx:
+                sprite.pos.x = hits[0].hit_rect.right + sprite.hit_rect.width / 2
+            sprite.vel.x = 0
+            sprite.hit_rect.centerx = sprite.pos.x
+    if direction == "y":
+        hits = pg.sprite.spritecollide(sprite, group, False, collide_hit_rect_both)
+        if hits:
+            if hits[0].hit_rect.centery > sprite.hit_rect.centery:
+                sprite.pos.y = hits[0].hit_rect.top - sprite.hit_rect.height / 2
+            if hits[0].hit_rect.centery < sprite.hit_rect.centery:
+                sprite.pos.y = hits[0].hit_rect.bottom + sprite.hit_rect.height / 2
+            sprite.vel.y = 0
+            sprite.hit_rect.centery = sprite.pos.y
+
+
 class NetPlayer:
     def __init__(self, player_id, x, y):
         # basic data
@@ -22,7 +48,7 @@ class NetPlayer:
         self.frozen = False
         # player image
         self.image_string = "shipblue.png"
-        self.fillcolor = (randint(0, 255), randint(0, 255), randint(0, 255))
+        self.fillcolor = (randint(0, 255), randint(0, 255), randint(0, 255))\
 
 
 class SpritePlayer(pg.sprite.Sprite):
@@ -63,14 +89,11 @@ class SpritePlayer(pg.sprite.Sprite):
         self.fillcolor = self.fillcolor
 
     def match_net_player(self):
-        # update the sprite to match the player received over the network
+        # get the correct player to overwrite data
         net_player = self.client.game['players'][self.player_id]
-
+        # overwrite attributes
         update_player(self, net_player)
-
-        # update rect position
-        self.rect.center = (net_player.pos.x, net_player.pos.y)
-
+        # change the image to match the new data
         self.update_image()
 
     def update(self):
@@ -100,37 +123,29 @@ class SpritePlayer(pg.sprite.Sprite):
         if keys[K_s] or keys[K_DOWN]:
             self.acc = Vec(-PLAYER_ACC / 3, 0).rotate(-self.rot)
 
-    def collide_hit_rect_both(self, one, two):
-        return one.hit_rect.colliderect(two.hit_rect)
-
     def basic_collisions(self, group):
         # test collision
-        hits = pg.sprite.spritecollide(self, group, False, self.collide_hit_rect_both)
+        hits = pg.sprite.spritecollide(self, group, False, collide_hit_rect_both)
         for hit in hits:
             if hit != self:
                 # update this sprite if it collided
                 self.image_string = "shipyellow.png"
-                self.update_image()
 
-    def collide_group(self, sprite, group, direction):
-        if direction == "x":
-            hits = pg.sprite.spritecollide(sprite, group, False, self.collide_hit_rect_both)
+    def apply_friction(self, movement_type):
+        # north, south, east, and west movement
+        if movement_type == "nsew":
+            hits = pg.sprite.spritecollide(self, self.client.shallows, False, collide_hit_rect_both)
             if hits:
-                if hits[0].hit_rect.centerx > sprite.hit_rect.centerx:
-                    sprite.pos.x = hits[0].hit_rect.left - sprite.hit_rect.width / 2
-                if hits[0].hit_rect.centerx < sprite.hit_rect.centerx:
-                    sprite.pos.x = hits[0].hit_rect.right + sprite.hit_rect.width / 2
-                sprite.vel.x = 0
-                sprite.hit_rect.centerx = sprite.pos.x
-        if direction == "y":
-            hits = pg.sprite.spritecollide(sprite, group, False, self.collide_hit_rect_both)
+                return PLAYER_SHALLOW_FRICTION
+            else:
+                return PLAYER_WATER_FRICTION
+        # rotation movement
+        elif movement_type == "rot":
+            hits = pg.sprite.spritecollide(self, self.client.shallows, False, collide_hit_rect_both)
             if hits:
-                if hits[0].hit_rect.centery > sprite.hit_rect.centery:
-                    sprite.pos.y = hits[0].hit_rect.top - sprite.hit_rect.height / 2
-                if hits[0].hit_rect.centery < sprite.hit_rect.centery:
-                    sprite.pos.y = hits[0].hit_rect.bottom + sprite.hit_rect.height / 2
-                sprite.vel.y = 0
-                sprite.hit_rect.centery = sprite.pos.y
+                return PLAYER_SHALLOW_ROT_FRICTION
+            else:
+                return PLAYER_WATER_ROT_FRICTION
 
     def move(self):
         # update the players velocity with key presses
@@ -140,7 +155,7 @@ class SpritePlayer(pg.sprite.Sprite):
         if not self.frozen:
             # change position
             # apply friction
-            self.acc += self.vel * PLAYER_FRICTION
+            self.acc += self.vel * self.apply_friction("nsew")
             # equations of motion
             self.vel += self.acc
             self.pos += (self.vel + 0.5 * self.acc) * self.client.dt
@@ -149,29 +164,33 @@ class SpritePlayer(pg.sprite.Sprite):
 
             # change image
             # apply friction
-            self.rot_acc += self.rot_vel * PLAYER_ROT_FRICTION
+            self.rot_acc += self.rot_vel * self.apply_friction("rot")
             # equations of motion
             self.rot_vel += self.rot_acc
             self.rot += ((self.rot_vel + 0.5 * self.rot_acc) * self.client.dt) % 360
 
         # collision detection
         self.hit_rect.centerx = self.pos.x
-        self.collide_group(self, self.client.obstacles, "x")
+        collide_group(self, self.client.walls, "x")
         self.hit_rect.centery = self.pos.y
-        self.collide_group(self, self.client.obstacles, "y")
+        collide_group(self, self.client.walls, "y")
 
         # basic collision updates
         self.basic_collisions(self.client.players)
 
         # match the sprite's rect with where it should be based on the hit rect
         self.rect.center = self.hit_rect.center
-        # update the image
+        # update the image with the correct positioning
         self.update_image()
 
 
 class Obstacle(pg.sprite.Sprite):
-    def __init__(self, client, x, y, width, height):
-        self.groups = client.all_sprites, client.obstacles
+    def __init__(self, client, x, y, width, height, type):
+        if type == "wall":
+            self.groups = client.all_sprites, client.obstacles, client.walls
+        elif type == "shallow":
+            self.groups = client.all_sprites, client.obstacles, client.shallows
         pg.sprite.Sprite.__init__(self, self.groups)
         self.rect = pg.Rect(x, y, width, height)
         self.hit_rect = self.rect
+        self.type = type

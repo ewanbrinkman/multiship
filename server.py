@@ -3,7 +3,7 @@ from _thread import start_new_thread
 from pickle import dumps, loads
 import pygame as pg
 from pygame.math import Vector2 as Vec
-from player import NetPlayer
+from entities import NetPlayer
 from settings import *
 
 

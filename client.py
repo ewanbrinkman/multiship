@@ -2,7 +2,7 @@ from os import path
 import pygame as pg
 from pygame.locals import *
 from network import Network
-from player import SpritePlayer, update_player, Obstacle
+from entities import SpritePlayer, update_player, Obstacle
 from tilemap import Camera, TiledMap
 from widgets import EntryBox, Button
 from settings import *
@@ -34,6 +34,8 @@ class Client:
         self.all_sprites = pg.sprite.Group()
         self.players = pg.sprite.Group()
         self.obstacles = pg.sprite.Group()
+        self.walls = pg.sprite.Group()
+        self.shallows = pg.sprite.Group()
         # display
         self.theme_font = None
         self.fullscreen = True
@@ -99,9 +101,12 @@ class Client:
         for tile_object in self.map.tilemap_data.objects:
             # obstacles
             if tile_object.type == "obstacle":
-                if tile_object.name == "land":
+                if tile_object.name == "wall":
                     Obstacle(self, tile_object.x, tile_object.y,
-                             tile_object.width, tile_object.height)
+                             tile_object.width, tile_object.height, "wall")
+                if tile_object.name == "shallow":
+                    Obstacle(self, tile_object.x, tile_object.y,
+                             tile_object.width, tile_object.height, "shallow")
 
     def run(self):
         # start pygame
