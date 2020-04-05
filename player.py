@@ -5,6 +5,12 @@ from random import randint
 from settings import *
 
 
+def update_player(old_player, new_player):
+    # change all of the old player's attributes to match the corresponding attribute in the new player
+    for attr in new_player.__dict__:
+        if hasattr(old_player, attr):
+            setattr(old_player, attr, getattr(new_player, attr))
+
 class NetPlayer:
     def __init__(self, player_id, x, y):
         # basic data
@@ -12,33 +18,25 @@ class NetPlayer:
         self.username = None
         # position
         self.pos = Vec(x, y)
-        self.vel = Vec(0, 0)
-        self.acc = Vec(0, 0)
         self.rot = 0
         self.frozen = False
         # player image
         self.image_string = "shipblue.png"
         self.fillcolor = (randint(0, 255), randint(0, 255), randint(0, 255))
 
-    def update(self, sprite_player):
-        # change all of the net player's attributes to match the corresponding attribute in the sprite player
-        for attr in sprite_player.__dict__:
-            if hasattr(self, attr):
-                setattr(self, attr, getattr(sprite_player, attr))
-
 
 class SpritePlayer(pg.sprite.Sprite):
     def __init__(self, client, net_player):
         # pygame sprite creation with groups
-        self.groups = client.sprite_players
+        self.groups = client.all_sprites, client.players
         pg.sprite.Sprite.__init__(self, self.groups)
         # basic data
         self.player_id = net_player.player_id
         self.username = net_player.username
         # position
         self.pos = Vec(net_player.pos.x, net_player.pos.y)
-        self.vel = Vec(net_player.vel.x, net_player.vel.y)
-        self.acc = Vec(net_player.acc.x, net_player.acc.y)
+        self.vel = Vec(0, 0)
+        self.acc = Vec(0, 0)
         self.rot = net_player.rot
         self.rot_vel = 0
         self.rot_acc = 0
@@ -68,10 +66,7 @@ class SpritePlayer(pg.sprite.Sprite):
         # update the sprite to match the player received over the network
         net_player = self.client.game['players'][self.player_id]
 
-        # change all of the net player's attributes to match the corresponding attribute in the sprite player
-        for attr in net_player.__dict__:
-            if hasattr(self, attr):
-                setattr(self, attr, getattr(net_player, attr))
+        update_player(self, net_player)
 
         # update rect position
         self.rect.center = (net_player.pos.x, net_player.pos.y)
@@ -86,8 +81,6 @@ class SpritePlayer(pg.sprite.Sprite):
         else:
             # update the sprite with the latest data
             self.match_net_player()
-            # basic collision updates
-            self.collisions(self.client.sprite_players)
 
     def apply_keys(self):
         # get key presses
@@ -105,12 +98,12 @@ class SpritePlayer(pg.sprite.Sprite):
         if keys[K_w] or keys[K_UP]:
             self.acc = Vec(PLAYER_ACC, 0).rotate(-self.rot)
         if keys[K_s] or keys[K_DOWN]:
-            self.acc = Vec(-PLAYER_ACC, 0).rotate(-self.rot)
+            self.acc = Vec(-PLAYER_ACC / 3, 0).rotate(-self.rot)
 
     def collide_hit_rect_both(self, one, two):
         return one.hit_rect.colliderect(two.hit_rect)
 
-    def collisions(self, group):
+    def basic_collisions(self, group):
         # test collision
         hits = pg.sprite.spritecollide(self, group, False, self.collide_hit_rect_both)
         for hit in hits:
@@ -119,8 +112,25 @@ class SpritePlayer(pg.sprite.Sprite):
                 self.image_string = "shipyellow.png"
                 self.update_image()
 
-    def collide_group(self, group, direction):
-        pass
+    def collide_group(self, sprite, group, direction):
+        if direction == "x":
+            hits = pg.sprite.spritecollide(sprite, group, False, self.collide_hit_rect_both)
+            if hits:
+                if hits[0].hit_rect.centerx > sprite.hit_rect.centerx:
+                    sprite.pos.x = hits[0].hit_rect.left - sprite.hit_rect.width / 2
+                if hits[0].hit_rect.centerx < sprite.hit_rect.centerx:
+                    sprite.pos.x = hits[0].hit_rect.right + sprite.hit_rect.width / 2
+                sprite.vel.x = 0
+                sprite.hit_rect.centerx = sprite.pos.x
+        if direction == "y":
+            hits = pg.sprite.spritecollide(sprite, group, False, self.collide_hit_rect_both)
+            if hits:
+                if hits[0].hit_rect.centery > sprite.hit_rect.centery:
+                    sprite.pos.y = hits[0].hit_rect.top - sprite.hit_rect.height / 2
+                if hits[0].hit_rect.centery < sprite.hit_rect.centery:
+                    sprite.pos.y = hits[0].hit_rect.bottom + sprite.hit_rect.height / 2
+                sprite.vel.y = 0
+                sprite.hit_rect.centery = sprite.pos.y
 
     def move(self):
         # update the players velocity with key presses
@@ -134,6 +144,8 @@ class SpritePlayer(pg.sprite.Sprite):
             # equations of motion
             self.vel += self.acc
             self.pos += (self.vel + 0.5 * self.acc) * self.client.dt
+            # add wind
+            self.pos += Vec(WINDX, WINDY)
 
             # change image
             # apply friction
@@ -142,16 +154,24 @@ class SpritePlayer(pg.sprite.Sprite):
             self.rot_vel += self.rot_acc
             self.rot += ((self.rot_vel + 0.5 * self.rot_acc) * self.client.dt) % 360
 
-            self.update_image()
-
         # collision detection
         self.hit_rect.centerx = self.pos.x
-        self.collide_group(self.client.sprite_players, 'x')
+        self.collide_group(self, self.client.obstacles, "x")
         self.hit_rect.centery = self.pos.y
-        self.collide_group(self.client.sprite_players, 'y')
+        self.collide_group(self, self.client.obstacles, "y")
 
         # basic collision updates
-        self.collisions(self.client.sprite_players)
+        self.basic_collisions(self.client.players)
 
         # match the sprite's rect with where it should be based on the hit rect
         self.rect.center = self.hit_rect.center
+        # update the image
+        self.update_image()
+
+
+class Obstacle(pg.sprite.Sprite):
+    def __init__(self, client, x, y, width, height):
+        self.groups = client.all_sprites, client.obstacles
+        pg.sprite.Sprite.__init__(self, self.groups)
+        self.rect = pg.Rect(x, y, width, height)
+        self.hit_rect = self.rect

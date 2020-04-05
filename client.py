@@ -2,7 +2,7 @@ from os import path
 import pygame as pg
 from pygame.locals import *
 from network import Network
-from player import SpritePlayer
+from player import SpritePlayer, update_player, Obstacle
 from tilemap import Camera, TiledMap
 from widgets import EntryBox, Button
 from settings import *
@@ -31,7 +31,9 @@ class Client:
         self.dt = None
         self.camera = None
         # sprite groups
-        self.sprite_players = pg.sprite.Group()
+        self.all_sprites = pg.sprite.Group()
+        self.players = pg.sprite.Group()
+        self.obstacles = pg.sprite.Group()
         # display
         self.theme_font = None
         self.fullscreen = True
@@ -78,6 +80,7 @@ class Client:
 
         # load map
         self.render_maps()
+        self.create_map("map1.tmx")
 
     def render_maps(self):
         # menu background
@@ -87,9 +90,18 @@ class Client:
         self.menu_bg_shiftx = (self.menu_bg.rect.width - SCREEN_WIDTH) / 2
         self.menu_bg_shifty = (self.menu_bg.rect.height - SCREEN_HEIGHT) / 2
 
-        # basic map
-        self.map = TiledMap(path.join(self.map_folder, "map1.tmx"))
+    def create_map(self, filename):
+        # basic map background image with data
+        self.map = TiledMap(path.join(self.map_folder, filename))
         self.map.make_map()
+
+        # map objects
+        for tile_object in self.map.tilemap_data.objects:
+            # obstacles
+            if tile_object.type == "obstacle":
+                if tile_object.name == "land":
+                    Obstacle(self, tile_object.x, tile_object.y,
+                             tile_object.width, tile_object.height)
 
     def run(self):
         # start pygame
@@ -189,7 +201,7 @@ class Client:
         # stored data
         self.player_ids = []
         # sprite groups
-        self.sprite_players = pg.sprite.Group()
+        self.players = pg.sprite.Group()
 
     def connect(self):
         # connect to the server
@@ -328,21 +340,21 @@ class Client:
                     self.player_ids.append(player_id)
                     SpritePlayer(self, self.game['players'][player_id])
             # update all sprite data, or kill the sprite if the player has disconnected
-            self.sprite_players.update()
+            self.players.update()
 
             # update the client's player sprite only, this means checking for key presses and collision detection
-            for sprite_player in self.sprite_players:
+            for sprite_player in self.players:
                 if sprite_player.player_id == self.player_id:
                     sprite_player.move()
 
             # update the client's net work player to match the client's sprite player
             # this is required to send the server the updated data of the client's player
-            for sprite_player in self.sprite_players:
+            for sprite_player in self.players:
                 if sprite_player.player_id == self.player_id:
-                    self.player.update(sprite_player)
+                    update_player(self.player, sprite_player)
 
             # update camera
-            for sprite_player in self.sprite_players:
+            for sprite_player in self.players:
                 if sprite_player.player_id == self.player_id:
                     self.camera.update(sprite_player)
 
@@ -358,12 +370,12 @@ class Client:
 
     def draw_debug(self):
         self.draw_grid()
-        for sprite in self.sprite_players:
-            pg.draw.rect(self.screen, GREEN, (sprite.rect.x + self.camera.x,
+        for sprite in self.all_sprites:
+            pg.draw.rect(self.screen, IMAGE_RECT_COLOR, (sprite.rect.x + self.camera.x,
                                               sprite.rect.y + self.camera.y,
                                               sprite.rect.width,
                                               sprite.rect.height), 1)
-            pg.draw.rect(self.screen, RED, (sprite.hit_rect.x + self.camera.x,
+            pg.draw.rect(self.screen, HIT_RECT_COLOR, (sprite.hit_rect.x + self.camera.x,
                                             sprite.hit_rect.y + self.camera.y,
                                             sprite.hit_rect.width,
                                             sprite.hit_rect.height), 1)
@@ -379,11 +391,11 @@ class Client:
 
             # player images
             # frozen color effect
-            for sprite_player in self.sprite_players:
+            for sprite_player in self.players:
                 if sprite_player.frozen:
                     sprite_player.image.fill((200, 200, 250, 255), special_flags=pg.BLEND_RGBA_MULT)
             # player sprite image and username
-            for sprite_player in self.sprite_players:
+            for sprite_player in self.players:
                 # blit to screen as done below so that the camera can be applied
                 self.screen.blit(sprite_player.image, self.camera.apply_sprite(sprite_player))
                 self.draw_text(sprite_player.username, USERNAME_SIZE, sprite_player.fillcolor,

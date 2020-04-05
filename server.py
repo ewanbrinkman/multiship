@@ -289,6 +289,7 @@ class Server:
                     else:
                         reply = self.game
                         connection.sendall(dumps(reply))
+                        print(len(dumps(reply)))
                 except EOFError:
                     break
 

@@ -26,10 +26,15 @@ GAME_TITLE = "Get Shipped"
 FPS = 60
 SCREEN_WIDTH = 1440
 SCREEN_HEIGHT = 900
-TILESIZE = 64
-GRID_COLOR = DARK_GRAY
 MENU_BG_IMG = "menubg.tmx"
 ICON_IMG = "watertile.png"
+
+# debug settings
+HIT_RECT_COLOR = RED
+IMAGE_RECT_COLOR = GREEN
+TILESIZE = 64
+GRID_COLOR = DARK_GRAY
+
 # font settings
 TEXT_COLOR = (0, 83, 92)
 TITLE_SIZE = 150
@@ -64,10 +69,13 @@ PLAYER_SPAWN_Y = 300
 PLAYER_IMGS = ["shipblue.png", "shipyellow.png"]
 PLAYER_HIT_RECT_WIDTH = 66
 PLAYER_HIT_RECT_HEIGHT = 66
-#PLAYER_ROT_VEL = 250  # degrees per second
 PLAYER_ROT_ACC = 3
 PLAYER_ROT_FRICTION = -0.01
 
 # sound
 MENU_BG_MUSIC = "Dryads Feast.mp3"
 GAME_BG_MUSIC = "Blackmoor Tides Chant.wav"
+
+# game settings
+WINDX = 0
+WINDY = 0
