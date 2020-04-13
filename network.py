@@ -20,11 +20,11 @@ class Network:
             self.client.connect(self.address)
             return loads(self.client.recv(RECEIVE_LIMIT))
         except socket.error:
-            print(f"Error Connecting To {self.server_ip}:{self.server_port}")
+            print(f'Error Connecting To {self.server_ip}:{self.server_port}')
 
     def send(self, data):
         try:
             self.client.send(dumps(data))
             return loads(self.client.recv(RECEIVE_LIMIT))
         except EOFError:
-            print("Error Sending Data")
+            print('Error Sending Data')

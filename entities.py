@@ -17,7 +17,7 @@ def collide_hit_rect_both(one, two):
 
 
 def collide_group(sprite, group, direction):
-    if direction == "x":
+    if direction == 'x':
         hits = pg.sprite.spritecollide(sprite, group, False, collide_hit_rect_both)
         if hits:
             if hits[0].hit_rect.centerx > sprite.hit_rect.centerx:
@@ -26,7 +26,7 @@ def collide_group(sprite, group, direction):
                 sprite.pos.x = hits[0].hit_rect.right + sprite.hit_rect.width / 2
             sprite.vel.x = 0
             sprite.hit_rect.centerx = sprite.pos.x
-    if direction == "y":
+    if direction == 'y':
         hits = pg.sprite.spritecollide(sprite, group, False, collide_hit_rect_both)
         if hits:
             if hits[0].hit_rect.centery > sprite.hit_rect.centery:
@@ -47,7 +47,7 @@ class NetPlayer:
         self.rot = 0
         self.frozen = False
         # player image
-        self.image_string = "shipblue.png"
+        self.image_string = 'shipblue.png'
         self.fillcolor = (randint(0, 255), randint(0, 255), randint(0, 255))\
 
 
@@ -95,6 +95,8 @@ class SpritePlayer(pg.sprite.Sprite):
         update_player(self, net_player)
         # change the image to match the new data
         self.update_image()
+        # change client username to match received username from net player
+        self.client.username = self.username
 
     def update(self):
         # remove the player if they have disconnected from the server
@@ -129,18 +131,18 @@ class SpritePlayer(pg.sprite.Sprite):
         for hit in hits:
             if hit != self:
                 # update this sprite if it collided
-                self.image_string = "shipyellow.png"
+                self.image_string = 'shipyellow.png'
 
     def apply_friction(self, movement_type):
         # north, south, east, and west movement
-        if movement_type == "nsew":
+        if movement_type == 'nsew':
             hits = pg.sprite.spritecollide(self, self.client.shallows, False, collide_hit_rect_both)
             if hits:
                 return PLAYER_SHALLOW_FRICTION
             else:
                 return PLAYER_WATER_FRICTION
         # rotation movement
-        elif movement_type == "rot":
+        elif movement_type == 'rot':
             hits = pg.sprite.spritecollide(self, self.client.shallows, False, collide_hit_rect_both)
             if hits:
                 return PLAYER_SHALLOW_ROT_FRICTION
@@ -155,7 +157,7 @@ class SpritePlayer(pg.sprite.Sprite):
         if not self.frozen:
             # change position
             # apply friction
-            self.acc += self.vel * self.apply_friction("nsew")
+            self.acc += self.vel * self.apply_friction('nsew')
             # equations of motion
             self.vel += self.acc
             self.pos += (self.vel + 0.5 * self.acc) * self.client.dt
@@ -164,16 +166,16 @@ class SpritePlayer(pg.sprite.Sprite):
 
             # change image
             # apply friction
-            self.rot_acc += self.rot_vel * self.apply_friction("rot")
+            self.rot_acc += self.rot_vel * self.apply_friction('rot')
             # equations of motion
             self.rot_vel += self.rot_acc
             self.rot += ((self.rot_vel + 0.5 * self.rot_acc) * self.client.dt) % 360
 
         # collision detection
         self.hit_rect.centerx = self.pos.x
-        collide_group(self, self.client.walls, "x")
+        collide_group(self, self.client.walls, 'x')
         self.hit_rect.centery = self.pos.y
-        collide_group(self, self.client.walls, "y")
+        collide_group(self, self.client.walls, 'y')
 
         # basic collision updates
         self.basic_collisions(self.client.players)
@@ -186,9 +188,9 @@ class SpritePlayer(pg.sprite.Sprite):
 
 class Obstacle(pg.sprite.Sprite):
     def __init__(self, client, x, y, width, height, type):
-        if type == "wall":
+        if type == 'wall':
             self.groups = client.all_sprites, client.obstacles, client.walls
-        elif type == "shallow":
+        elif type == 'shallow':
             self.groups = client.all_sprites, client.obstacles, client.shallows
         pg.sprite.Sprite.__init__(self, self.groups)
         self.rect = pg.Rect(x, y, width, height)

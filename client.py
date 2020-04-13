@@ -14,7 +14,7 @@ class Client:
         self.server_ip = SERVER_IP
         self.port = PORT
         # client attributes
-        self.username = "enter username"
+        self.username = 'enter username'
         self.running = True
         self.menu = True
         self.connected = False
@@ -52,6 +52,7 @@ class Client:
         self.menu_bg_shifty = 0
         # maps
         self.map = None
+        self.current_map = None
         # music
         self.menu_music = None
         self.game_music = None
@@ -59,10 +60,10 @@ class Client:
     def load(self):
         # folders
         game_folder = path.dirname(__file__)
-        font_folder = path.join(game_folder, "font")
-        img_folder = path.join(game_folder, "img")
-        snd_folder = path.join(game_folder, "snd")
-        self.map_folder = path.join(game_folder, "map")
+        font_folder = path.join(game_folder, 'font')
+        img_folder = path.join(game_folder, 'img')
+        snd_folder = path.join(game_folder, 'snd')
+        self.map_folder = path.join(game_folder, 'map')
 
         # app icon
         self.icon = pg.image.load(path.join(img_folder, ICON_IMG))
@@ -99,13 +100,13 @@ class Client:
         # map objects
         for tile_object in self.map.tilemap_data.objects:
             # obstacles
-            if tile_object.type == "obstacle":
-                if tile_object.name == "wall":
+            if tile_object.type == 'obstacle':
+                if tile_object.name == 'wall':
                     Obstacle(self, tile_object.x, tile_object.y,
-                             tile_object.width, tile_object.height, "wall")
-                if tile_object.name == "shallow":
+                             tile_object.width, tile_object.height, 'wall')
+                if tile_object.name == 'shallow':
                     Obstacle(self, tile_object.x, tile_object.y,
-                             tile_object.width, tile_object.height, "shallow")
+                             tile_object.width, tile_object.height, 'shallow')
 
     def run(self):
         # start pygame
@@ -116,7 +117,7 @@ class Client:
         # set up display
         self.screen = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pg.FULLSCREEN)
         pg.display.set_caption(
-            f"Client - ID: {self.player_id} - Username: {self.username} - FPS: {round(self.clock.get_fps(), 2)}")
+            f'Client - ID: {self.player_id} - Username: {self.username} - FPS: {round(self.clock.get_fps(), 2)}')
 
         # load data
         self.load()
@@ -132,38 +133,38 @@ class Client:
             if self.running:
                 # connect
                 self.connect()
-                self.create_map("map1.tmx")
-                # game loop
-                self.game_loop()
-                # reset client data when the client disconnects
-                self.reset_data()
-                # end of server connection, return to main menu
+                if self.connected:
+                    # game loop
+                    self.game_loop()
+                    # reset client data when the client disconnects
+                    self.reset_data()
+                    # end of server connection, return to main menu
 
             # quit the program
             else:
-                print("\nQuiting Program")
+                print('\nQuiting Program')
                 pg.quit()
 
     def main_menu(self):
         # allows the user to hold down a key when entering text into an entry box
         pg.key.set_repeat(REPEAT_PAUSE, REPEAT_RATE)
         # entry boxes
-        self.entry_boxes["username"] = EntryBox(SCREEN_WIDTH / 2 - ENTRY_WIDTH / 2,
+        self.entry_boxes['username'] = EntryBox(SCREEN_WIDTH / 2 - ENTRY_WIDTH / 2,
                                                 140, ENTRY_WIDTH,
                                                 self.theme_font, VALID_USERNAME, text=self.username)
-        self.entry_boxes["server ip"] = EntryBox(SCREEN_WIDTH / 2 - ENTRY_WIDTH / 2,
+        self.entry_boxes['server ip'] = EntryBox(SCREEN_WIDTH / 2 - ENTRY_WIDTH / 2,
                                                  210, ENTRY_WIDTH,
                                                  self.theme_font, VALID_IP, text=self.server_ip)
-        self.entry_boxes["port"] = EntryBox(SCREEN_WIDTH / 2 - ENTRY_WIDTH / 2,
+        self.entry_boxes['port'] = EntryBox(SCREEN_WIDTH / 2 - ENTRY_WIDTH / 2,
                                             280, ENTRY_WIDTH,
                                             self.theme_font, VALID_PORT, text=str(self.port))
         # buttons
-        self.buttons["connect"] = Button(SCREEN_WIDTH / 2 - SCREEN_WIDTH / 4,
+        self.buttons['connect'] = Button(SCREEN_WIDTH / 2 - SCREEN_WIDTH / 4,
                                          TILESIZE * 11 + TILESIZE / 2 - TILESIZE / 8, BUTTON_WIDTH, BUTTON_HEIGHT,
-                                         self.theme_font, text="Connect")
-        self.buttons["quit"] = Button(SCREEN_WIDTH / 2 + SCREEN_WIDTH / 4 - BUTTON_WIDTH,
+                                         self.theme_font, text='Connect')
+        self.buttons['quit'] = Button(SCREEN_WIDTH / 2 + SCREEN_WIDTH / 4 - BUTTON_WIDTH,
                                       TILESIZE * 11 + TILESIZE / 2 - TILESIZE / 8, BUTTON_WIDTH, BUTTON_HEIGHT,
-                                      self.theme_font, text="Quit")
+                                      self.theme_font, text='Quit')
 
         # background music
         pg.mixer.music.load(self.menu_music)
@@ -209,19 +210,26 @@ class Client:
         for sprite in self.all_sprites.sprites():
             sprite.kill()  # will delete all sprites, including any other groups they are also in
 
+    def load_game_data(self):
+        # get the game data to load anything before starting the game loop
+        self.game = self.network.send(self.player)
+        self.current_map = self.game['current map']
+        self.create_map(self.current_map)
+
     def connect(self):
         # connect to the server
-        print(f"\nConnecting To Server At {self.server_ip}:{self.port}")
+        print(f'\nConnecting To Server At {self.server_ip}:{self.port}')
         self.network = Network(self.server_ip, self.port)
         self.player = self.network.get_player()
         # connected if a response was received from the server and the client's data isn't taken
         if self.player and self.verify_client():
             self.connected = True
+            self.load_game_data()
         else:
             self.menu = True
 
     def disconnect(self):
-        print(f"\nDisconnected From Server At {self.network.server_ip}:{self.network.server_port}")
+        print(f'\nDisconnected From Server At {self.network.server_ip}:{self.network.server_port}')
         self.network.client.close()
         self.connected = False
         self.menu = True
@@ -233,9 +241,9 @@ class Client:
         self.player.username = self.username
         verify, reason = self.network.send(self.player)
         if verify:
-            print("Successfully Joined Server")
+            print('Successfully Joined Server')
         else:
-            print("Unable To Connect To Server:", reason)
+            print('Unable To Connect To Server:', reason)
         return verify
 
     def menu_events(self):
@@ -265,16 +273,16 @@ class Client:
             # update buttons with pygame events and mouse position
             for button_name, button in self.buttons.items():
                 if button.events(event, pg.mouse.get_pos()):
-                    if button_name == "connect":
+                    if button_name == 'connect':
                         self.menu = False
-                    elif button_name == "quit":
+                    elif button_name == 'quit':
                         self.menu = False
                         self.running = False
 
     def menu_update(self):
         # update display caption with useful information
         pg.display.set_caption(
-            f"Client - ID: {self.player_id} - Username: {self.username} - FPS: {round(self.clock.get_fps(), 2)}")
+            f'Client - ID: {self.player_id} - Username: {self.username} - FPS: {round(self.clock.get_fps(), 2)}')
 
         # update with the data entered by the user
         self.username = self.entry_boxes['username'].text
@@ -332,13 +340,10 @@ class Client:
     def game_update(self):
         if self.connected:
             # receive the updated game over the network from the server
-            # send the
             self.game = self.network.send(self.player)
-
             # update client's player with data received over the network
             self.player = self.game['players'][self.player_id]
-            # update the client data with the data received over the network
-            self.username = self.player.username
+
             # create new pygame sprites for newly joined players
             for player_id in self.game['players']:
                 if player_id not in self.player_ids:
@@ -365,7 +370,7 @@ class Client:
 
         # update display caption with useful information
         pg.display.set_caption(
-            f"Client - ID: {self.player_id} - Username: {self.username} - FPS: {round(self.clock.get_fps(), 2)}")
+            f'Client - ID: {self.player_id} - Username: {self.username} - FPS: {round(self.clock.get_fps(), 2)}')
 
     def draw_grid(self):
         for x in range(self.camera.x, SCREEN_WIDTH, TILESIZE):

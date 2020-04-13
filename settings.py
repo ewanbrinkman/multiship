@@ -1,5 +1,5 @@
 # server settings
-SERVER_IP = "192.168.86.60"
+SERVER_IP = '192.168.86.60'
 PORT = 4242
 RECEIVE_LIMIT = 2048
 MAX_CLIENTS = 10
@@ -22,12 +22,12 @@ ACTIVE_BLUE = (126, 213, 255)
 PRESSED_BLUE = (148, 224, 255)
 
 # display settings
-GAME_TITLE = "Multiship"
+GAME_TITLE = 'Multiship'
 FPS = 60
 SCREEN_WIDTH = 1440
 SCREEN_HEIGHT = 900
-MENU_BG_IMG = "menubg.tmx"
-ICON_IMG = "watertile.png"
+MENU_BG_IMG = 'menubg.tmx'
+ICON_IMG = 'watertile.png'
 
 # debug settings
 HIT_RECT_COLOR = RED
@@ -42,12 +42,12 @@ USERNAME_SIZE = 40
 USERNAME_HEIGHT = -15
 ENTRY_SIZE = 35
 BUTTON_SIZE = 50
-THEME_FONT = "Booter.ttf"
+THEME_FONT = 'Booter.ttf'
 
 # entry box settings
-VALID_USERNAME = "AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890_-. "
-VALID_IP = "1234567890."
-VALID_PORT = "1234567890"
+VALID_USERNAME = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890_-. '
+VALID_IP = '1234567890.'
+VALID_PORT = '1234567890'
 ENTRY_INACTIVE_COLOR = INACTIVE_BLUE
 ENTRY_ACTIVE_COLOR = ACTIVE_BLUE
 ENTRY_WIDTH = 330
@@ -67,7 +67,7 @@ PLAYER_WATER_FRICTION = -0.01
 PLAYER_SHALLOW_FRICTION = -0.08
 PLAYER_SPAWN_X = 700
 PLAYER_SPAWN_Y = 300
-PLAYER_IMGS = ["shipblue.png", "shipyellow.png"]
+PLAYER_IMGS = ['shipblue.png', 'shipyellow.png']
 PLAYER_HIT_RECT_WIDTH = 66
 PLAYER_HIT_RECT_HEIGHT = 66
 PLAYER_ROT_ACC = 3
@@ -75,8 +75,8 @@ PLAYER_WATER_ROT_FRICTION = -0.01
 PLAYER_SHALLOW_ROT_FRICTION = -0.08
 
 # sound
-MENU_BG_MUSIC = "Dryads Feast.mp3"
-GAME_BG_MUSIC = "Blackmoor Tides Chant.wav"
+MENU_BG_MUSIC = 'Dryads Feast.mp3'
+GAME_BG_MUSIC = 'Blackmoor Tides Chant.wav'
 
 # game settings
 WINDX = 0

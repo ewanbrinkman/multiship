@@ -3,7 +3,7 @@ from settings import *
 
 
 class EntryBox:
-    def __init__(self, x, y, width, font, valid_chars, text=""):
+    def __init__(self, x, y, width, font, valid_chars, text=''):
         font = pg.font.Font(font, ENTRY_SIZE)
         self.font = font
         self.text = text
@@ -55,7 +55,7 @@ class EntryBox:
 
 
 class Button:
-    def __init__(self, x, y, width, height, font, text=""):
+    def __init__(self, x, y, width, height, font, text=''):
         self.rect = pg.Rect(x, y, width, height)
         self.fillcolor = BUTTON_INACTIVE
         self.active = False
