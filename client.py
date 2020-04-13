@@ -82,7 +82,6 @@ class Client:
 
         # load map
         self.render_maps()
-        self.create_map("map1.tmx")
 
     def render_maps(self):
         # menu background
@@ -133,6 +132,7 @@ class Client:
             if self.running:
                 # connect
                 self.connect()
+                self.create_map("map1.tmx")
                 # game loop
                 self.game_loop()
                 # reset client data when the client disconnects
@@ -199,14 +199,15 @@ class Client:
             self.game_draw()
 
     def reset_data(self):
+        # delete data from the game session
         # received over network
         self.game = None
         self.player = None
         self.player_id = None
-        # stored data
+        # client side
         self.player_ids = []
-        # sprite groups
-        self.players = pg.sprite.Group()
+        for sprite in self.all_sprites.sprites():
+            sprite.kill()  # will delete all sprites, including any other groups they are also in
 
     def connect(self):
         # connect to the server
@@ -338,7 +339,6 @@ class Client:
             self.player = self.game['players'][self.player_id]
             # update the client data with the data received over the network
             self.username = self.player.username
-
             # create new pygame sprites for newly joined players
             for player_id in self.game['players']:
                 if player_id not in self.player_ids:

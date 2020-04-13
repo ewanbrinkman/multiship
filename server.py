@@ -28,7 +28,7 @@ class Server:
         self.clock = None
         # create the game
         self.game = {}
-        self.game['current_player'] = 0
+        self.game['current player'] = 0
         self.game['players'] = {}
         # create a socket to host the server
         self.create_socket()
@@ -57,10 +57,10 @@ class Server:
         while self.open:
             conn, addr = self.socket.accept()
 
-            print(f"\nClient {self.game['current_player']} Has Connected From IP: {addr[0]}")
+            print(f"\nClient {self.game['current player']} Has Connected From IP: {addr[0]}")
 
-            start_new_thread(self.threaded_client, (conn, self.game['current_player']))
-            self.game['current_player'] += 1
+            start_new_thread(self.threaded_client, (conn, self.game['current player']))
+            self.game['current player'] += 1
 
     def threaded_game(self):
         while self.open:
@@ -289,7 +289,6 @@ class Server:
                     else:
                         reply = self.game
                         connection.sendall(dumps(reply))
-                        print(len(dumps(reply)))
                 except EOFError:
                     break
 
