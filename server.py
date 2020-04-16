@@ -26,11 +26,11 @@ class Server:
                                 'unfreeze', 'freezeall', 'unfreezeall']
         # game attributes
         self.clock = None
+        self.maps = ['map1.tmx']
         # create the game
         self.game = {'current player': 0,
                      'players': {},
-                     'current map': 'map1.tmx',
-                     'maps': []
+                     'current map': self.maps[0],
                      }
         # create a socket to host the server
         self.create_socket()
@@ -47,7 +47,7 @@ class Server:
         # open the server
         self.socket.listen()
         self.open = True
-        print(f'Server Started On {self.server_name} At {self.server_ip}:{self.server_port}')
+        print(f'Server Started On {self.server_name}:\n\t- IP: {self.server_ip}\n\t- Port: {self.server_port}')
         print('Waiting for a connection...')
 
         # start the game thread
