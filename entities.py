@@ -47,8 +47,8 @@ class NetPlayer:
         self.rot = 0
         self.frozen = False
         # player image
-        self.image_string = 'shipblue.png'
-        self.fillcolor = (randint(0, 255), randint(0, 255), randint(0, 255))
+        self.image_string = 'shipbasic.png'
+        self.fillcolor = TEXT_COLOR
 
 
 class SpritePlayer(pg.sprite.Sprite):

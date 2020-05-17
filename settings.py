@@ -70,7 +70,14 @@ PLAYER_WATER_FRICTION = -0.01
 PLAYER_SHALLOW_FRICTION = -0.08
 PLAYER_SPAWN_X = 700
 PLAYER_SPAWN_Y = 300
-PLAYER_IMGS = ['shipblue.png', 'shipyellow.png']
+PLAYER_IMGS_CYCLE = ['blue', 'green', 'yellow', 'red']
+PLAYER_IMGS = {
+    'basic': 'shipbasic.png',
+    'red': 'shipred.png',
+    'yellow': 'shipyellow.png',
+    'green': 'shipgreen.png',
+    'blue': 'shipblue.png',
+}
 PLAYER_HIT_RECT_WIDTH = 66
 PLAYER_HIT_RECT_HEIGHT = 66
 PLAYER_ROT_ACC = 3

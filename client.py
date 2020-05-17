@@ -15,6 +15,7 @@ class Client:
         self.port = PORT
         # client attributes
         self.username = ''
+        self.image_string = PLAYER_IMGS[PLAYER_IMGS_CYCLE[0]]
         self.running = True
         self.menu = True
         self.connected = False
@@ -45,6 +46,7 @@ class Client:
         self.icon = None
         self.player_imgs = {}
         # start screen
+        self.current_img_cycle = 0
         self.entry_boxes = {}
         self.buttons = {}
         self.menu_bg = None
@@ -73,10 +75,10 @@ class Client:
         self.theme_font = path.join(font_folder, THEME_FONT)
 
         # images
-        for img in PLAYER_IMGS:
-            new_img = pg.image.load(path.join(img_folder, img)).convert_alpha()
+        for filename in PLAYER_IMGS.values():
+            new_img = pg.image.load(path.join(img_folder, filename)).convert_alpha()
             # rotate so the sprite moves in the direction it is pointing
-            self.player_imgs[img] = pg.transform.rotate(new_img, 90)
+            self.player_imgs[filename] = pg.transform.rotate(new_img, 90)
 
         # sounds
         self.menu_music = path.join(snd_folder, MENU_BG_MUSIC)
@@ -137,8 +139,11 @@ class Client:
     def verify_client(self):
         # set client's id to received player id
         self.player_id = self.player.player_id
-        # set player object username to client's chosen username
+
+        # set player data to the settings set by the client at main menu
         self.player.username = self.username
+        self.player.image_string = self.image_string
+
         verify, reason = self.network.send(self.player)
         if verify:
             print('Successfully Joined Server')
@@ -238,6 +243,26 @@ class Client:
                         self.screen = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), FULLSCREEN)
                     else:
                         self.screen = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+                # mute volume
+                if event.key == K_F2:
+                    if pg.mixer.music.get_volume():
+                        pg.mixer.music.set_volume(0)
+                    else:
+                        pg.mixer.music.set_volume(1)
+                # change selected image
+                if event.key == K_RIGHT:
+                    if self.current_img_cycle == (len(PLAYER_IMGS_CYCLE) - 1):
+                        self.current_img_cycle = 0
+                    else:
+                        self.current_img_cycle += 1
+                    self.image_string = PLAYER_IMGS[PLAYER_IMGS_CYCLE[self.current_img_cycle]]
+                # change selected image
+                if event.key == K_LEFT:
+                    if self.current_img_cycle == 0:
+                        self.current_img_cycle = (len(PLAYER_IMGS_CYCLE) - 1)
+                    else:
+                        self.current_img_cycle -= 1
+                    self.image_string = PLAYER_IMGS[PLAYER_IMGS_CYCLE[self.current_img_cycle]]
 
             # update entry boxes with pygame events
             for entry_box in self.entry_boxes.values():
@@ -285,7 +310,7 @@ class Client:
         self.draw_text(GAME_TITLE, TITLE_SIZE, TEXT_COLOR, SCREEN_WIDTH / 2, 70,
                        align='center', font_name=self.theme_font)
         # main menu text
-        self.draw_text(self.main_menu_text, NORMAL_SIZE, TEXT_COLOR, SCREEN_WIDTH / 2, 420,
+        self.draw_text(self.main_menu_text, NORMAL_SIZE, TEXT_COLOR, SCREEN_WIDTH / 2, 450,
                        align='center', font_name=self.theme_font)
 
         # entry boxes
@@ -295,6 +320,15 @@ class Client:
         # buttons
         for button in self.buttons.values():
             button.draw(self.screen)
+
+        # get current player image selection
+        selected_player_image = self.player_imgs[self.image_string]
+        selected_player_image = pg.transform.rotate(selected_player_image, -90)
+        # get rect to set placement
+        selected_player_image_rect = selected_player_image.get_rect()
+        selected_player_image_rect.center = (SCREEN_WIDTH / 2, SCREEN_HEIGHT * 3 / 5)
+        # draw on screen
+        self.screen.blit(selected_player_image, selected_player_image_rect)
 
         # update the client's monitor
         pg.display.flip()
@@ -359,8 +393,14 @@ class Client:
                         self.screen = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), FULLSCREEN)
                     else:
                         self.screen = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-                # debug mode toggle
+                # mute volume
                 if event.key == K_F2:
+                    if pg.mixer.music.get_volume():
+                        pg.mixer.music.set_volume(0)
+                    else:
+                        pg.mixer.music.set_volume(1)
+                # debug mode toggle
+                if event.key == K_F3:
                     self.debug = not self.debug
 
     def game_update(self):
