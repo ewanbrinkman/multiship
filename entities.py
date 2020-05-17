@@ -47,7 +47,7 @@ class NetPlayer:
         self.rot = 0
         self.frozen = False
         # player image
-        self.image_string = 'shipbasic.png'
+        self.image_string = None
         self.fillcolor = TEXT_COLOR
 
 
@@ -131,7 +131,7 @@ class SpritePlayer(pg.sprite.Sprite):
         for hit in hits:
             if hit != self:
                 # update this sprite if it collided
-                self.image_string = 'shipyellow.png'
+                self.image_string = 'shipbasic.png'  # PLAYER_IMGS['broken' + self.image_string[4:-4]]
 
     def apply_friction(self, movement_type):
         # north, south, east, and west movement

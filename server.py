@@ -229,29 +229,27 @@ class Server:
     def threaded_client(self, connection, player_id):
         # save the connection to the server
         self.connections[player_id] = connection
-
-        # create a new player and send it to the new client
-        self.game['players'][player_id] = NetPlayer(player_id, PLAYER_SPAWN_X, PLAYER_SPAWN_Y)
-        connection.send(dumps(self.game['players'][player_id]))
-
+        # client is connected
+        self.threaded_clients[player_id] = True
         # update total player count
         self.count_players()
 
+        # create a new player and send it to the new client
+        # the new player is not added to the players dictionary of the game until (and if) they are verified
+        new_player = NetPlayer(player_id, PLAYER_SPAWN_X, PLAYER_SPAWN_Y)
+        connection.send(dumps(new_player))
+
         # send verification to client
-        verify, reason, username = self.verify_client(connection)
+        verify, reason, player_data = self.verify_client(connection)
         connection.sendall(dumps((verify, reason)))
 
-        # client is connected
-        self.threaded_clients[player_id] = True
-
-        # update the client id to username finder
-        self.client_id_username[player_id] = self.game['players'][player_id].username
-        self.client_id_username[self.game['players'][player_id].username] = player_id
-
         if verify:
+            # create a new player and send it to the new client
+            self.game['players'][player_id] = player_data
 
-            # register username
-            self.game['players'][player_id].username = username
+            # update the client id to username finder
+            self.client_id_username[player_id] = self.game['players'][player_id].username
+            self.client_id_username[self.game['players'][player_id].username] = player_id
 
             # reset overwrite data for this client
             self.client_changes[player_id] = {}
@@ -308,21 +306,21 @@ class Server:
 
     def verify_client(self, connection):
         # verify client has a unique username and the server has room
-        data = loads(connection.recv(RECEIVE_LIMIT))
+        player_data = loads(connection.recv(RECEIVE_LIMIT))
         verify = True
         reason = None
-        if not bool(data.username):
+        if not bool(player_data.username):
             verify = False
             reason = f'Please Enter A Username'
         for player in self.game['players'].values():
             # use .lower() to ensure there are no duplicate usernames by case
-            if player.username == data.username.lower():
+            if player.username == player_data.username.lower():
                 verify = False
-                reason = f'Username Is Already Taken ({data.username})'
+                reason = f'Username Is Already Taken ({player_data.username})'
         if len(self.game['players']) > MAX_CLIENTS:
             verify = False
             reason = f'Too Many Clients Connected To Server ({len(self.game["players"]) - 1}/{MAX_CLIENTS})'
-        return verify, reason, data.username
+        return verify, reason, player_data
 
     def disconnect_client(self, player_id):
         # server message

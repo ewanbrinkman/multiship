@@ -77,6 +77,10 @@ PLAYER_IMGS = {
     'yellow': 'shipyellow.png',
     'green': 'shipgreen.png',
     'blue': 'shipblue.png',
+    'brokenred': 'brokenred.png',
+    'brokenyellow': 'brokenyellow.png',
+    'brokengreen': 'brokengreen.png',
+    'brokenblue': 'brokenblue.png',
 }
 PLAYER_HIT_RECT_WIDTH = 66
 PLAYER_HIT_RECT_HEIGHT = 66
