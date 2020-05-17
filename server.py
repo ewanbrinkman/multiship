@@ -311,6 +311,9 @@ class Server:
         data = loads(connection.recv(RECEIVE_LIMIT))
         verify = True
         reason = None
+        if not bool(data.username):
+            verify = False
+            reason = f'Please Enter A Username'
         for player in self.game['players'].values():
             # use .lower() to ensure there are no duplicate usernames by case
             if player.username == data.username.lower():

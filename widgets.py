@@ -80,6 +80,7 @@ class Button:
         if event.type == pg.MOUSEBUTTONUP and self.pressed:
             if self.rect.collidepoint(event.pos):
                 execute = True
+                self.pressed = False
             else:
                 self.pressed = False
 

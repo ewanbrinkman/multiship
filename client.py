@@ -14,7 +14,7 @@ class Client:
         self.server_ip = SERVER_IP
         self.port = PORT
         # client attributes
-        self.username = 'enter username'
+        self.username = ''
         self.running = True
         self.menu = True
         self.connected = False
@@ -50,6 +50,7 @@ class Client:
         self.menu_bg = None
         self.menu_bg_shiftx = 0
         self.menu_bg_shifty = 0
+        self.main_menu_text = MAIN_MENU_TEXT
         # maps
         self.map = None
         self.current_map = None
@@ -108,6 +109,45 @@ class Client:
                     Obstacle(self, tile_object.x, tile_object.y,
                              tile_object.width, tile_object.height, 'shallow')
 
+    def connect(self):
+        # connect to the server
+        print(f'\nConnecting To Server At {self.server_ip}:{self.port}')
+        self.network = Network(self.server_ip, self.port)
+        self.player = self.network.get_player()
+        # connected if a response was received from the server and the client's data isn't taken
+        if self.player:
+            verify, reason = self.verify_client()
+            if verify:
+                # connection successful
+                self.connected = True
+                return True, reason
+            else:
+                # connection refused due: not verified
+                return False, reason
+        else:
+            # cannot connect to specified address
+            return False, f'Cannot Connect To A Server At {self.server_ip}:{self.port}'
+
+    def disconnect(self):
+        print(f'\nDisconnected From Server At {self.network.server_ip}:{self.network.server_port}')
+        self.network.client.close()
+        self.connected = False
+        self.menu = True
+
+    def verify_client(self):
+        # set client's id to received player id
+        self.player_id = self.player.player_id
+        # set player object username to client's chosen username
+        self.player.username = self.username
+        verify, reason = self.network.send(self.player)
+        if verify:
+            print('Successfully Joined Server')
+        else:
+            reason = 'Unable To Connect To Server: ' + reason
+            print(reason)
+            self.main_menu_text = reason
+        return verify, reason
+
     def run(self):
         # start pygame
         pg.mixer.pre_init(44100, -16, 1, 2048)
@@ -117,7 +157,7 @@ class Client:
         # set up display
         self.screen = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pg.FULLSCREEN)
         pg.display.set_caption(
-            f'Client - ID: {self.player_id} - Username: {self.username} - FPS: {round(self.clock.get_fps(), 2)}')
+            f'Client ID: {self.player_id} - Username: {self.username} - FPS: {round(self.clock.get_fps(), 2)}')
 
         # load data
         self.load()
@@ -131,23 +171,20 @@ class Client:
 
             # connect to a server only if program is running
             if self.running:
-                # connect
-                self.connect()
-                if self.connected:
-                    # game loop
-                    self.game_loop()
-                    # reset client data when the client disconnects
-                    self.reset_data()
-                    # end of server connection, return to main menu
-
+                self.game_loop()
             # quit the program
             else:
-                print('\nQuiting Program')
-                pg.quit()
+                print('\nQuiting Program Loop...')
+
+        print('Quiting Pygame...')
+        pg.quit()
+
+        print('Bye!')
 
     def main_menu(self):
         # allows the user to hold down a key when entering text into an entry box
         pg.key.set_repeat(REPEAT_PAUSE, REPEAT_RATE)
+
         # entry boxes
         self.entry_boxes['username'] = EntryBox(SCREEN_WIDTH / 2 - ENTRY_WIDTH / 2,
                                                 140, ENTRY_WIDTH,
@@ -179,72 +216,8 @@ class Client:
             self.menu_update()
             self.menu_draw()
 
-        # cancels the effect that allows the user to hold down a key
+        # cancels repeat key effect to not mess up key presses during the game
         pg.key.set_repeat()
-
-    def game_loop(self):
-        # background music
-        pg.mixer.music.load(self.game_music)
-        pg.mixer.music.play(loops=-1)
-
-        # create camera to fit map size
-        self.camera = Camera(self.map.width, self.map.height)
-
-        # game loop while connected to the server
-        while self.connected:
-            # pause
-            self.dt = self.clock.tick(FPS) / 1000
-            # events, update, draw
-            self.game_events()
-            self.game_update()
-            self.game_draw()
-
-    def reset_data(self):
-        # delete data from the game session
-        # received over network
-        self.game = None
-        self.player = None
-        self.player_id = None
-        # client side
-        self.player_ids = []
-        for sprite in self.all_sprites.sprites():
-            sprite.kill()  # will delete all sprites, including any other groups they are also in
-
-    def load_game_data(self):
-        # get the game data to load anything before starting the game loop
-        self.game = self.network.send(self.player)
-        self.current_map = self.game['current map']
-        self.create_map(self.current_map)
-
-    def connect(self):
-        # connect to the server
-        print(f'\nConnecting To Server At {self.server_ip}:{self.port}')
-        self.network = Network(self.server_ip, self.port)
-        self.player = self.network.get_player()
-        # connected if a response was received from the server and the client's data isn't taken
-        if self.player and self.verify_client():
-            self.connected = True
-            self.load_game_data()
-        else:
-            self.menu = True
-
-    def disconnect(self):
-        print(f'\nDisconnected From Server At {self.network.server_ip}:{self.network.server_port}')
-        self.network.client.close()
-        self.connected = False
-        self.menu = True
-
-    def verify_client(self):
-        # set client's id to received player id
-        self.player_id = self.player.player_id
-        # set player object username to client's chosen username
-        self.player.username = self.username
-        verify, reason = self.network.send(self.player)
-        if verify:
-            print('Successfully Joined Server')
-        else:
-            print('Unable To Connect To Server:', reason)
-        return verify
 
     def menu_events(self):
         for event in pg.event.get():
@@ -273,8 +246,17 @@ class Client:
             # update buttons with pygame events and mouse position
             for button_name, button in self.buttons.items():
                 if button.events(event, pg.mouse.get_pos()):
+                    # update display to say connecting
                     if button_name == 'connect':
-                        self.menu = False
+                        # try to connect
+                        verify, reason = self.connect()
+                        if verify:
+                            self.main_menu_text = 'Connected!'
+                            self.menu = False
+                        # cannot connect to the specified address
+                        else:
+                            self.main_menu_text = reason
+
                     elif button_name == 'quit':
                         self.menu = False
                         self.running = False
@@ -302,6 +284,9 @@ class Client:
         # title
         self.draw_text(GAME_TITLE, TITLE_SIZE, TEXT_COLOR, SCREEN_WIDTH / 2, 70,
                        align='center', font_name=self.theme_font)
+        # main menu text
+        self.draw_text(self.main_menu_text, NORMAL_SIZE, TEXT_COLOR, SCREEN_WIDTH / 2, 420,
+                       align='center', font_name=self.theme_font)
 
         # entry boxes
         for entry_box in self.entry_boxes.values():
@@ -313,6 +298,47 @@ class Client:
 
         # update the client's monitor
         pg.display.flip()
+
+    def game_loop(self):
+        # load game data based on game data received from the server
+        self.load_game_data()
+
+        # background music
+        pg.mixer.music.load(self.game_music)
+        pg.mixer.music.play(loops=-1)
+
+        # create camera to fit map size
+        self.camera = Camera(self.map.width, self.map.height)
+
+        # game loop while connected to the server
+        while self.connected:
+            # pause
+            self.dt = self.clock.tick(FPS) / 1000
+            # events, update, draw
+            self.game_events()
+            self.game_update()
+            self.game_draw()
+
+        # reset client data when the client disconnects
+        self.reset_data()
+
+    def load_game_data(self):
+        # get the game data to load anything before starting the game loop
+        self.game = self.network.send(self.player)
+        self.current_map = self.game['current map']
+        self.create_map(self.current_map)
+
+    def reset_data(self):
+        # delete data from the game session
+        # received over network
+        self.game = None
+        self.player = None
+        self.player_id = None
+        self.main_menu_text = MAIN_MENU_TEXT
+        # client side
+        self.player_ids = []
+        for sprite in self.all_sprites.sprites():
+            sprite.kill()  # will delete all sprites, including any other groups they are also in
 
     def game_events(self):
         for event in pg.event.get():
@@ -382,13 +408,13 @@ class Client:
         self.draw_grid()
         for sprite in self.all_sprites:
             pg.draw.rect(self.screen, IMAGE_RECT_COLOR, (sprite.rect.x + self.camera.x,
-                                              sprite.rect.y + self.camera.y,
-                                              sprite.rect.width,
-                                              sprite.rect.height), 1)
+                                                         sprite.rect.y + self.camera.y,
+                                                         sprite.rect.width,
+                                                         sprite.rect.height), 1)
             pg.draw.rect(self.screen, HIT_RECT_COLOR, (sprite.hit_rect.x + self.camera.x,
-                                            sprite.hit_rect.y + self.camera.y,
-                                            sprite.hit_rect.width,
-                                            sprite.hit_rect.height), 1)
+                                                       sprite.hit_rect.y + self.camera.y,
+                                                       sprite.hit_rect.width,
+                                                       sprite.hit_rect.height), 1)
 
     def game_draw(self):
         if self.connected:
@@ -409,7 +435,8 @@ class Client:
                 # blit to screen as done below so that the camera can be applied
                 self.screen.blit(sprite_player.image, self.camera.apply_sprite(sprite_player))
                 self.draw_text(sprite_player.username, USERNAME_SIZE, sprite_player.fillcolor,
-                               sprite_player.pos.x + self.camera.x, sprite_player.hit_rect.top + USERNAME_HEIGHT + self.camera.y,
+                               sprite_player.pos.x + self.camera.x,
+                               sprite_player.hit_rect.top + USERNAME_HEIGHT + self.camera.y,
                                align='s', font_name=self.theme_font)
 
             # debug information

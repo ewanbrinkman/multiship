@@ -1,9 +1,9 @@
 # server settings
-SERVER_IP = '192.168.86.60'
+SERVER_IP = '192.168.86.66'
 PORT = 4242
 RECEIVE_LIMIT = 2048
 MAX_CLIENTS = 10
-CONN_TIMEOUT = 5  # in seconds
+CONN_TIMEOUT = 3  # in seconds
 
 # shades
 WHITE = (255, 255, 255)
@@ -19,7 +19,7 @@ MAGENTA = (255, 0, 255)
 # other colors
 INACTIVE_BLUE = (0, 179, 255)
 ACTIVE_BLUE = (126, 213, 255)
-PRESSED_BLUE = (148, 224, 255)
+PRESSED_BLUE = (196, 238, 255)
 
 # display settings
 GAME_TITLE = 'Multiship'
@@ -38,12 +38,15 @@ GRID_COLOR = DARK_GRAY
 # font settings
 TEXT_COLOR = (0, 83, 92)
 TITLE_SIZE = 150
+NORMAL_SIZE = 50
 USERNAME_SIZE = 40
 USERNAME_HEIGHT = -15
 ENTRY_SIZE = 35
 BUTTON_SIZE = 50
 THEME_FONT = 'Booter.ttf'
 
+# main menu settings
+MAIN_MENU_TEXT = 'Please Enter A Username By Clicking The First Entry Box'
 # entry box settings
 VALID_USERNAME = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890_-. '
 VALID_IP = '1234567890.'
