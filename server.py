@@ -345,5 +345,6 @@ class Server:
         self.count_players()
 
 
-s = Server()
-s.open_socket()
+if __name__ == '__main__':
+    s = Server()
+    s.open_socket()

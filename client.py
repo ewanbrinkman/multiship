@@ -19,11 +19,12 @@ class Client:
         self.running = True
         self.menu = True
         self.connected = False
-        # received over network
+        # network data
         self.game = None
         self.network = None
         self.player = None
         self.player_id = None
+        self.kicked = False
         # stored data
         self.player_ids = []
         # game attributes
@@ -133,7 +134,10 @@ class Client:
             return False, f'Cannot Connect To A Server At {self.server_ip}:{self.port}'
 
     def disconnect(self):
-        print(f'\nDisconnected From Server At {self.network.server_ip}:{self.network.server_port}')
+        if self.kicked:
+            print(f'\nKicked From Server At {self.network.server_ip}:{self.network.server_port}')
+        else:
+            print(f'\nDisconnected From Server At {self.network.server_ip}:{self.network.server_port}')
         self.network.client.close()
         self.connected = False
         self.menu = True
@@ -360,6 +364,33 @@ class Client:
         # update the client's monitor
         pg.display.flip()
 
+    def load_game_data(self):
+        # get the game data to load anything before starting the game loop
+        self.game = self.network.send(self.player)
+        self.current_map = self.game['current map']
+
+        # create the map
+        self.create_map(self.current_map)
+        # create camera to fit map size
+        self.camera = Camera(self.map.width, self.map.height)
+
+    def reset_data(self):
+        # reset data after game session
+        # received over network
+        self.game = None
+        self.player = None
+        self.player_id = None
+
+        # client side
+        self.player_ids = []
+        for sprite in self.all_sprites.sprites():
+            sprite.kill()  # will delete all sprites, including any other groups they are also in
+        if self.kicked:
+            self.main_menu_text = 'You Have Been Kicked From The Server'
+        else:
+            self.main_menu_text = MAIN_MENU_TEXT
+
+
     def game_loop(self):
         # load game data based on game data received from the server
         self.load_game_data()
@@ -368,38 +399,30 @@ class Client:
         pg.mixer.music.load(self.game_music)
         pg.mixer.music.play(loops=-1)
 
-        # create camera to fit map size
-        self.camera = Camera(self.map.width, self.map.height)
-
         # game loop while connected to the server
         while self.connected:
             # pause
             self.dt = self.clock.tick(FPS) / 1000
             # events, update, draw
             self.game_events()
-            self.game_update()
-            self.game_draw()
+            if self.update_game_data():
+                self.game_update()
+                self.game_draw()
 
         # reset client data when the client disconnects
         self.reset_data()
 
-    def load_game_data(self):
-        # get the game data to load anything before starting the game loop
-        self.game = self.network.send(self.player)
-        self.current_map = self.game['current map']
-        self.create_map(self.current_map)
-
-    def reset_data(self):
-        # delete data from the game session
-        # received over network
-        self.game = None
-        self.player = None
-        self.player_id = None
-        self.main_menu_text = MAIN_MENU_TEXT
-        # client side
-        self.player_ids = []
-        for sprite in self.all_sprites.sprites():
-            sprite.kill()  # will delete all sprites, including any other groups they are also in
+    def update_game_data(self):
+        # only get the latest data from the server if the client has not disconnected themselves
+        if self.connected:
+            # receive the updated game over the network from the server
+            self.game = self.network.send(self.player)
+            if self.game:
+                return True
+            else:
+                self.kicked = True
+                self.disconnect()
+                return False
 
     def game_events(self):
         for event in pg.event.get():
@@ -431,35 +454,32 @@ class Client:
                     self.debug = not self.debug
 
     def game_update(self):
-        if self.connected:
-            # receive the updated game over the network from the server
-            self.game = self.network.send(self.player)
-            # update client's player with data received over the network
-            self.player = self.game['players'][self.player_id]
+        # update client's player with data received over the network
+        self.player = self.game['players'][self.player_id]
 
-            # create new pygame sprites for newly joined players
-            for player_id in self.game['players']:
-                if player_id not in self.player_ids:
-                    self.player_ids.append(player_id)
-                    SpritePlayer(self, self.game['players'][player_id])
-            # update all sprite data, or kill the sprite if the player has disconnected
-            self.players.update()
+        # create new pygame sprites for newly joined players
+        for player_id in self.game['players']:
+            if player_id not in self.player_ids:
+                self.player_ids.append(player_id)
+                SpritePlayer(self, self.game['players'][player_id])
+        # update all sprite data, or kill the sprite if the player has disconnected
+        self.players.update()
 
-            # update the client's player sprite only, this means checking for key presses and collision detection
-            for sprite_player in self.players:
-                if sprite_player.player_id == self.player_id:
-                    sprite_player.move()
+        # update the client's player sprite only, this means checking for key presses and collision detection
+        for sprite_player in self.players:
+            if sprite_player.player_id == self.player_id:
+                sprite_player.move()
 
-            # update the client's net work player to match the client's sprite player
-            # this is required to send the server the updated data of the client's player
-            for sprite_player in self.players:
-                if sprite_player.player_id == self.player_id:
-                    update_player(self.player, sprite_player)
+        # update the client's net work player to match the client's sprite player
+        # this is required to send the server the updated data of the client's player
+        for sprite_player in self.players:
+            if sprite_player.player_id == self.player_id:
+                update_player(self.player, sprite_player)
 
-            # update camera
-            for sprite_player in self.players:
-                if sprite_player.player_id == self.player_id:
-                    self.camera.update(sprite_player)
+        # update camera
+        for sprite_player in self.players:
+            if sprite_player.player_id == self.player_id:
+                self.camera.update(sprite_player)
 
         # update display caption with useful information
         pg.display.set_caption(
@@ -484,34 +504,32 @@ class Client:
                                                        sprite.hit_rect.height), 1)
 
     def game_draw(self):
-        if self.connected:
+        # background
+        self.screen.fill((255, 255, 255))
 
-            # background
-            self.screen.fill((255, 255, 255))
+        # map image
+        self.screen.blit(self.map.image, self.camera.apply_rect(self.map.rect))
 
-            # map image
-            self.screen.blit(self.map.image, self.camera.apply_rect(self.map.rect))
+        # player images
+        # frozen color effect
+        for sprite_player in self.players:
+            if sprite_player.frozen:
+                sprite_player.image.fill((200, 200, 250, 255), special_flags=pg.BLEND_RGBA_MULT)
+        # player sprite image and username
+        for sprite_player in self.players:
+            # blit to screen as done below so that the camera can be applied
+            self.screen.blit(sprite_player.image, self.camera.apply_sprite(sprite_player))
+            self.draw_text(sprite_player.username, USERNAME_SIZE, sprite_player.fillcolor,
+                           sprite_player.pos.x + self.camera.x,
+                           sprite_player.hit_rect.top + USERNAME_HEIGHT + self.camera.y,
+                           align='s', font_name=self.theme_font)
 
-            # player images
-            # frozen color effect
-            for sprite_player in self.players:
-                if sprite_player.frozen:
-                    sprite_player.image.fill((200, 200, 250, 255), special_flags=pg.BLEND_RGBA_MULT)
-            # player sprite image and username
-            for sprite_player in self.players:
-                # blit to screen as done below so that the camera can be applied
-                self.screen.blit(sprite_player.image, self.camera.apply_sprite(sprite_player))
-                self.draw_text(sprite_player.username, USERNAME_SIZE, sprite_player.fillcolor,
-                               sprite_player.pos.x + self.camera.x,
-                               sprite_player.hit_rect.top + USERNAME_HEIGHT + self.camera.y,
-                               align='s', font_name=self.theme_font)
+        # debug information
+        if self.debug:
+            self.draw_debug()
 
-            # debug information
-            if self.debug:
-                self.draw_debug()
-
-            # update the client's monitor
-            pg.display.flip()
+        # update the client's monitor
+        pg.display.flip()
 
     def draw_text(self, text, size, fillcolor, x, y, align='n', font_name=None, ):
         font = pg.font.Font(font_name, size)
@@ -538,5 +556,6 @@ class Client:
         self.screen.blit(text_surface, text_rect)
 
 
-c = Client()
-c.run()
+if __name__ == '__main__':
+    c = Client()
+    c.run()
