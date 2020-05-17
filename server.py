@@ -20,10 +20,8 @@ class Server:
         self.threaded_clients = {}  # if client id is connected or not
         self.client_id_username = {}  # client id to username finder
         self.client_changes = {}
-        self.server_commands = ['help', 'listall', 'kickall',
-                                'getusername', 'getid', 'kick',
-                                'setusername', 'respawn', 'freeze',
-                                'unfreeze', 'freezeall', 'unfreezeall']
+        self.server_commands = ['help', 'listall', 'getusername', 'getid', 'setusername', 'setcolor', 'kick', 'kickall',
+                                'respawn', 'freeze', 'unfreeze', 'freezeall', 'unfreezeall']
         # game attributes
         self.clock = None
         self.maps = ['map1.tmx']
@@ -126,16 +124,6 @@ class Server:
                     else:
                         print('Command Error: There Are No Clients Currently Connected To The Server')
 
-                # kick all current players from the server
-                # syntax: kickall
-                elif command[0] == 'kickall':
-                    if len(self.game['players']) > 0:
-                        print(f'All {len(self.game["players"])} Clients Have Been Kicked From The Server')
-                        for player_id in self.game['players']:
-                            self.threaded_clients[player_id] = False
-                    else:
-                        print('Command Error: There Are No Clients Currently Connected To The Server')
-
                 # get a player username by id
                 # syntax: getusername <player_id>
                 elif command[0] == 'getusername':
@@ -152,14 +140,6 @@ class Server:
                         player_id = self.client_id_username[username]
                         print(f'Client With The Username {username} Has The ID {player_id}')
 
-                # kick a client from the server
-                # syntax: kick <client_id>
-                elif command[0] == 'kick':
-                    if self.verify_id_command(2, command):
-                        player_id = int(command[1])
-                        self.threaded_clients[player_id] = False
-                        print(f'Kicked Client {player_id}')
-
                 # change the username of a client
                 # syntax: setusername <client_id> <new_player_username>
                 elif command[0] == 'setusername':
@@ -169,6 +149,29 @@ class Server:
 
                         self.overwrite_player_data(player_id, 'username', new_username)
                         print(f'Changed The Username Of Client ID {player_id} To {new_username}')
+
+                # change the username color of a client
+                elif command[0] == 'setcolor':
+                    pass
+                    #if self.verify_id_command()
+
+                # kick a client from the server
+                # syntax: kick <client_id>
+                elif command[0] == 'kick':
+                    if self.verify_id_command(2, command):
+                        player_id = int(command[1])
+                        self.threaded_clients[player_id] = False
+                        print(f'Kicked Client {player_id}')
+
+                # kick all current players from the server
+                # syntax: kickall
+                elif command[0] == 'kickall':
+                    if len(self.game['players']) > 0:
+                        print(f'All {len(self.game["players"])} Clients Have Been Kicked From The Server')
+                        for player_id in self.game['players']:
+                            self.threaded_clients[player_id] = False
+                    else:
+                        print('Command Error: There Are No Clients Currently Connected To The Server')
 
                 # change a player's position to be the spawn location
                 # syntax: respawn <client_id>
@@ -219,9 +222,17 @@ class Server:
         setattr(self.game['players'][player_id], attribute, new_value)
 
         if attribute == 'username':
+            # delete the old username to id link
+            for key, value in self.client_id_username.items():
+                if value == player_id:
+                    old_username = key
+            del self.client_id_username[old_username]
+
             # update stored data to match the new data if a username switch happened
             self.client_id_username[player_id] = new_value
             self.client_id_username[new_value] = player_id
+
+            print(self.client_id_username)
 
         # ensure the server will not ignore this change by accepting what the client sends
         self.client_changes[player_id][attribute] = [True, new_value]
@@ -231,8 +242,6 @@ class Server:
         self.connections[player_id] = connection
         # client is connected
         self.threaded_clients[player_id] = True
-        # update total player count
-        self.count_players()
 
         # create a new player and send it to the new client
         # the new player is not added to the players dictionary of the game until (and if) they are verified
@@ -244,8 +253,11 @@ class Server:
         connection.sendall(dumps((verify, reason)))
 
         if verify:
-            # create a new player and send it to the new client
+            # add the verified player to the dictionary of players for the game
             self.game['players'][player_id] = player_data
+
+            # update total player count
+            self.count_players()
 
             # update the client id to username finder
             self.client_id_username[player_id] = self.game['players'][player_id].username
@@ -323,26 +335,28 @@ class Server:
         return verify, reason, player_data
 
     def disconnect_client(self, player_id):
-        # server message
-        print(f'\nClient {player_id} Has Disconnected')
-
         # close the connection with the client
         self.connections[player_id].close()
 
-        # remove the player from the id to username finder
-        del self.client_id_username[player_id]
-        del self.client_id_username[self.game['players'][player_id].username]
+        try:
+            # remove the player from the id to username finder
+            del self.client_id_username[player_id]
+            del self.client_id_username[self.game['players'][player_id].username]
+            # remove the unverified player from the player dictionary
+            del self.game['players'][player_id]
+
+            # client disconnected server message
+            print(f'\nClient {player_id} Has Disconnected')
+            # update total player count
+            self.count_players()
+        except KeyError:
+            # the client was never verified (clients are only added to client_id_username and game data if verified)
+            print(f'Client {player_id} Has Been Forcefully Disconnected By The Server')
 
         # remove the player from the connections list
         self.threaded_clients[player_id] = False
-
-        # remove the unverified player from the player dictionary
-        del self.game['players'][player_id]
         # remove the disconnected client from the connections dictionary
         del self.connections[player_id]
-
-        # update total player count
-        self.count_players()
 
 
 if __name__ == '__main__':
