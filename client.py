@@ -53,6 +53,8 @@ class Client:
         self.menu_bg_shiftx = 0
         self.menu_bg_shifty = 0
         self.main_menu_text = MAIN_MENU_TEXT
+        self.selected_player_image = None
+        self.selected_player_image_rect = None
         # maps
         self.map = None
         self.current_map = None
@@ -148,7 +150,7 @@ class Client:
         if verify:
             print('Successfully Joined Server')
         else:
-            reason = 'Unable To Connect To Server: ' + reason
+            reason = 'Connection Refused: ' + reason
             print(reason)
             self.main_menu_text = reason
         return verify, reason
@@ -190,6 +192,9 @@ class Client:
         # allows the user to hold down a key when entering text into an entry box
         pg.key.set_repeat(REPEAT_PAUSE, REPEAT_RATE)
 
+        # set the current selected player image
+        self.update_player_image()
+
         # entry boxes
         self.entry_boxes['username'] = EntryBox(SCREEN_WIDTH / 2 - ENTRY_WIDTH / 2,
                                                 140, ENTRY_WIDTH,
@@ -207,6 +212,10 @@ class Client:
         self.buttons['quit'] = Button(SCREEN_WIDTH / 2 + SCREEN_WIDTH / 4 - BUTTON_WIDTH,
                                       TILESIZE * 11 + TILESIZE / 2 - TILESIZE / 8, BUTTON_WIDTH, BUTTON_HEIGHT,
                                       self.theme_font, text='Quit')
+        self.buttons['right'] = Button(SCREEN_WIDTH / 2 + 100, 570 - self.selected_player_image_rect.height / 2,
+                                       BUTTON_WIDTH, BUTTON_HEIGHT, self.theme_font, text='Right')
+        self.buttons['left'] = Button(SCREEN_WIDTH / 2 - 100 - BUTTON_WIDTH, 570 - self.selected_player_image_rect.height / 2,
+                                       BUTTON_WIDTH, BUTTON_HEIGHT, self.theme_font, text='Left')
 
         # background music
         pg.mixer.music.load(self.menu_music)
@@ -251,18 +260,10 @@ class Client:
                         pg.mixer.music.set_volume(1)
                 # change selected image
                 if event.key == K_RIGHT:
-                    if self.current_img_cycle == (len(PLAYER_IMGS_CYCLE) - 1):
-                        self.current_img_cycle = 0
-                    else:
-                        self.current_img_cycle += 1
-                    self.image_string = PLAYER_IMGS[PLAYER_IMGS_CYCLE[self.current_img_cycle]]
+                    self.select_player_image('right')
                 # change selected image
                 if event.key == K_LEFT:
-                    if self.current_img_cycle == 0:
-                        self.current_img_cycle = (len(PLAYER_IMGS_CYCLE) - 1)
-                    else:
-                        self.current_img_cycle -= 1
-                    self.image_string = PLAYER_IMGS[PLAYER_IMGS_CYCLE[self.current_img_cycle]]
+                    self.select_player_image('left')
 
             # update entry boxes with pygame events
             for entry_box in self.entry_boxes.values():
@@ -285,6 +286,38 @@ class Client:
                     elif button_name == 'quit':
                         self.menu = False
                         self.running = False
+
+                    elif button_name == 'right':
+                        self.select_player_image('right')
+
+                    elif button_name == 'left':
+                        self.select_player_image('left')
+
+    def select_player_image(self, direction):
+        # select a new player image by moving right or left through the list
+        if direction == 'right':
+            if self.current_img_cycle == (len(PLAYER_IMGS_CYCLE) - 1):
+                self.current_img_cycle = 0
+            else:
+                self.current_img_cycle += 1
+            self.image_string = PLAYER_IMGS[PLAYER_IMGS_CYCLE[self.current_img_cycle]]
+        elif direction == 'left':
+            if self.current_img_cycle == 0:
+                self.current_img_cycle = (len(PLAYER_IMGS_CYCLE) - 1)
+            else:
+                self.current_img_cycle -= 1
+            self.image_string = PLAYER_IMGS[PLAYER_IMGS_CYCLE[self.current_img_cycle]]
+
+        # update the player image with the new selection
+        self.update_player_image()
+
+    def update_player_image(self):
+        # get current player image selection
+        self.selected_player_image = self.player_imgs[self.image_string]
+        self.selected_player_image = pg.transform.rotate(self.selected_player_image, -90)
+        # get rect to set placement
+        self.selected_player_image_rect = self.selected_player_image.get_rect()
+        self.selected_player_image_rect.center = (SCREEN_WIDTH / 2, 570)
 
     def menu_update(self):
         # update display caption with useful information
@@ -321,14 +354,8 @@ class Client:
         for button in self.buttons.values():
             button.draw(self.screen)
 
-        # get current player image selection
-        selected_player_image = self.player_imgs[self.image_string]
-        selected_player_image = pg.transform.rotate(selected_player_image, -90)
-        # get rect to set placement
-        selected_player_image_rect = selected_player_image.get_rect()
-        selected_player_image_rect.center = (SCREEN_WIDTH / 2, SCREEN_HEIGHT * 3 / 5)
         # draw on screen
-        self.screen.blit(selected_player_image, selected_player_image_rect)
+        self.screen.blit(self.selected_player_image, self.selected_player_image_rect)
 
         # update the client's monitor
         pg.display.flip()
