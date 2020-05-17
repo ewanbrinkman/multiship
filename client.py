@@ -148,6 +148,7 @@ class Client:
 
         # set player data to the settings set by the client at main menu
         self.player.username = self.username
+        self.player.image_color = PLAYER_IMGS_CYCLE[self.current_img_cycle]
         self.player.image_string = self.image_string
 
         verify, reason = self.network.send(self.player)

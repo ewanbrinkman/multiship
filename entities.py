@@ -47,6 +47,7 @@ class NetPlayer:
         self.rot = 0
         self.frozen = False
         # player image
+        self.image_color = None
         self.image_string = None
         self.fillcolor = TEXT_COLOR
 
@@ -70,6 +71,7 @@ class SpritePlayer(pg.sprite.Sprite):
         # save the client, to access data such as the game sent over the network
         self.client = client
         # sprite image
+        self.image_color = net_player.image_color
         self.image_string = net_player.image_string
         self.image = client.player_imgs[net_player.image_string]
         self.image = pg.transform.rotate(self.image, self.rot)
@@ -131,7 +133,7 @@ class SpritePlayer(pg.sprite.Sprite):
         for hit in hits:
             if hit != self:
                 # update this sprite if it collided
-                self.image_string = 'shipbasic.png'  # PLAYER_IMGS['broken' + self.image_string[4:-4]]
+                self.image_string = PLAYER_IMGS['broken' + self.image_color]
 
     def apply_friction(self, movement_type):
         # north, south, east, and west movement
