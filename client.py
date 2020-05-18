@@ -417,13 +417,14 @@ class Client:
         # only get the latest data from the server if the client has not disconnected themselves
         if self.connected:
             # receive the updated game over the network from the server
-            self.game = self.network.send(self.player)
-            if self.game:
-                return True
-            else:
+            received = self.network.send(self.player)
+            if received is EOFError or received is ConnectionResetError:
                 self.kicked = True
                 self.disconnect()
                 return False
+            else:
+                self.game = received
+                return True
 
     def game_events(self):
         for event in pg.event.get():

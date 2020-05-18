@@ -1,7 +1,6 @@
 import pygame as pg
 from pygame.locals import *
 from pygame.math import Vector2 as Vec
-from random import randint
 from settings import *
 
 

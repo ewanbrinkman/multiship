@@ -1,7 +1,8 @@
+from os import path, listdir
 import socket
 from _thread import start_new_thread
 from pickle import dumps, loads
-import pygame as pg
+from time import time, sleep
 from pygame.math import Vector2 as Vec
 from entities import NetPlayer
 from settings import *
@@ -9,29 +10,42 @@ from settings import *
 
 class Server:
     def __init__(self):
+        # start time
+        self.start_time = time()
         # get machine's information to create a server
         self.server_name = socket.gethostname()
         self.server_ip = socket.gethostbyname(self.server_name)
         self.server_port = PORT
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         # server attributes
-        self.open = False
+        self.running = True
+        self.open = True
         self.connections = {}
         self.threaded_clients = {}  # if client id is connected or not
         self.client_id_username = {}  # client id to username finder
         self.client_changes = {}
         self.server_commands = ['help', 'listall', 'getusername', 'getid', 'setusername', 'setcolor', 'kick', 'kickall',
-                                'respawn', 'freeze', 'unfreeze', 'freezeall', 'unfreezeall']
+                                'respawn', 'freeze', 'unfreeze', 'freezeall', 'unfreezeall', 'open', 'close']
         # game attributes
         self.clock = None
-        self.maps = ['map1.tmx']
+        self.maps = []
         # create the game
         self.game = {'current player': 0,
                      'players': {},
-                     'current map': self.maps[0],
+                     'current map': None,
                      }
+        # load data
+        self.load()
         # create a socket to host the server
         self.create_socket()
+
+    def load(self):
+        # get all the maps available
+        game_folder = path.dirname(__file__)
+        map_folder = path.join(game_folder, 'map')
+        for filename in listdir(map_folder):
+            if filename.endswith('.tmx') and filename != MENU_BG_IMG:
+                self.maps.append(filename)
 
     def create_socket(self):
         # try to create a server, port must be unused
@@ -41,32 +55,49 @@ class Server:
             print(e)
             print(f'Error Creating A Server On {self.server_name} At {self.server_ip}:{self.server_port}')
 
-    def open_socket(self):
-        # open the server
-        self.socket.listen()
-        self.open = True
-        print(f'Server Started On {self.server_name}:\n\t- IP: {self.server_ip}\n\t- Port: {self.server_port}')
-        print('Waiting for a connection...')
+    def run(self):
+        # start a thread for input
+        start_new_thread(self.threaded_input, ())
 
         # start the game thread
         start_new_thread(self.threaded_game, ())
 
-        # start a thread for input
-        start_new_thread(self.threaded_input, ())
+        # have the server socket start listening for client connections
+        self.socket.listen()
+        print(f'Server Started On {self.server_name}:\n\t- IP: {self.server_ip}\n\t- Port: {self.server_port}')
+        print('Waiting for a connection...')
 
-        while self.open:
-            conn, addr = self.socket.accept()
+        while self.running:
+            try:
+                conn, addr = self.socket.accept()
 
-            print(f'\nClient {self.game["current player"]} Has Connected From IP: {addr[0]}')
+                print(f'\nClient {self.game["current player"]} Has Connected From IP: {addr[0]}')
 
-            start_new_thread(self.threaded_client, (conn, self.game['current player']))
-            self.game['current player'] += 1
+                start_new_thread(self.threaded_client, (conn, self.game['current player']))
+                self.game['current player'] += 1
+            except ConnectionAbortedError:
+                print('Socket Connection Aborted')
+
+        print('\nProcess Finished')
+
+    def end(self):
+        print('Starting Server Termination')
+        # stop all loops
+        self.open = False
+        self.running = False
+        # close down the socket
+        print('Closing Server Socket...')
+        self.socket.close()
 
     def threaded_game(self):
-        while self.open:
-            # any game data for the server to keep track of
-            self.clock = pg.time.Clock()
-            self.clock.tick(FPS)
+        # setup
+        self.game['current map'] = self.maps[0]
+        # start the game timer
+        while self.running:
+            sleep(1)
+            time_since_start = int(time() - self.start_time)  # in seconds
+            if time_since_start % 2 == 0:
+                print(time_since_start)
 
     def verify_id_command(self, min_length, command):
         if len(command) >= min_length:
@@ -100,7 +131,7 @@ class Server:
             return False
 
     def threaded_input(self):
-        while self.open:
+        while self.running:
             # split the text command received into words
             command = input().split()
             # only execute a command if
@@ -210,6 +241,29 @@ class Server:
                     for player_id in self.game['players']:
                         self.overwrite_player_data(player_id, 'frozen', False)
                     print('All Players Have Been Unfrozen')
+
+                # open the server to new client connections
+                # syntax: open
+                elif command[0] == 'open':
+                    if self.open:
+                        print('Server Is Already Open')
+                    else:
+                        self.open = True
+                        print('Server Will Now Open')
+
+                # close the server to new client connections
+                # syntax: close
+                elif command[0] == 'close':
+                    if not self.open:
+                        print('Server Is Already Closed')
+                    else:
+                        self.open = False
+                        print('Server Will Now Close')
+
+                # end the program
+                # syntax: end
+                elif command[0] == 'end':
+                    self.end()
 
                 else:
                     print('Command Error: Not A Valid Command, Do help For A List Of Valid Commands')
@@ -361,4 +415,4 @@ class Server:
 
 if __name__ == '__main__':
     s = Server()
-    s.open_socket()
+    s.run()

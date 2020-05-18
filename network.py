@@ -27,4 +27,8 @@ class Network:
             self.client.send(dumps(data))
             return loads(self.client.recv(RECEIVE_LIMIT))
         except EOFError:
-            print('Error Sending Data')
+            print('\nConnection Closed: Error Sending Data To The Server')
+            return EOFError
+        except ConnectionResetError:
+            print('\nConnection Closed: Connection Was Reset')
+            return ConnectionResetError
