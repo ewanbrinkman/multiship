@@ -1,9 +1,12 @@
 # server settings
-SERVER_IP = '192.168.86.66'  # '70.68.167.100'
+SERVER_IP = '192.168.86.66'
 PORT = 4242
 RECEIVE_LIMIT = 2048
 MAX_CLIENTS = 10
 CONN_TIMEOUT = 3  # in seconds
+
+# game settings
+GAME_LENGTH = 10#300  # in seconds, therefore 5 minutes
 
 # shades
 WHITE = (255, 255, 255)

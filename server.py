@@ -1,8 +1,9 @@
 from os import path, listdir
+from time import time, sleep
+from random import randint
 import socket
 from _thread import start_new_thread
 from pickle import dumps, loads
-from time import time, sleep
 from pygame.math import Vector2 as Vec
 from entities import NetPlayer
 from settings import *
@@ -11,7 +12,8 @@ from settings import *
 class Server:
     def __init__(self):
         # start time
-        self.start_time = time()
+        self.server_start_time = time()
+        self.game_start_time = None
         # get machine's information to create a server
         self.server_name = socket.gethostname()
         self.server_ip = socket.gethostbyname(self.server_name)
@@ -29,6 +31,7 @@ class Server:
         # game attributes
         self.clock = None
         self.maps = []
+        self.unplayed_maps = []
         # create the game
         self.game = {'current player': 0,
                      'players': {},
@@ -46,6 +49,9 @@ class Server:
         for filename in listdir(map_folder):
             if filename.endswith('.tmx') and filename != MENU_BG_IMG:
                 self.maps.append(filename)
+        # create another list of maps, where random maps will be popped from
+        # this will make sure the same maps aren't chosen, but it is still random
+        self.unplayed_maps = self.maps
 
     def create_socket(self):
         # try to create a server, port must be unused
@@ -62,9 +68,11 @@ class Server:
         # start the game thread
         start_new_thread(self.threaded_game, ())
 
+        sleep(1)
+
         # have the server socket start listening for client connections
         self.socket.listen()
-        print(f'Server Started On {self.server_name}:\n\t- IP: {self.server_ip}\n\t- Port: {self.server_port}')
+        print(f'\nServer Started On {self.server_name}:\n\t- IP: {self.server_ip}\n\t- Port: {self.server_port}')
         print('Waiting for a connection...')
 
         while self.running:
@@ -89,15 +97,37 @@ class Server:
         print('Closing Server Socket...')
         self.socket.close()
 
+    def format_map(self, filename):
+        return filename[:-4].title()
+
+    def new_game(self):
+        # start a new game on the server
+        print('\nStarting A New Game...')
+
+        # select a new map that hasn't been played in the current cycle through all the maps
+        self.game['current map'] = self.unplayed_maps.pop(randint(0, (len(self.unplayed_maps) - 1)))
+        print(f'The Chosen Map Is {self.format_map(self.game["current map"])}')
+        # reset unplayed maps if it is empty
+        if len(self.unplayed_maps) == 0:
+            self.unplayed_maps = self.maps
+
+        # reset players
+        for player_id in self.game['players']:
+            new_pos = Vec(PLAYER_SPAWN_X, PLAYER_SPAWN_Y)
+            self.overwrite_player_data(player_id, 'pos', new_pos)
+
+        # get start time
+        self.game_start_time = time()
+
     def threaded_game(self):
-        # setup
-        self.game['current map'] = self.maps[0]
+        self.new_game()
         # start the game timer
         while self.running:
             sleep(1)
-            time_since_start = int(time() - self.start_time)  # in seconds
-            if time_since_start % 2 == 0:
-                print(time_since_start)
+            time_since_game_start = int(time() - self.game_start_time)  # in seconds
+            if time_since_game_start > GAME_LENGTH:
+                # end current game and start a new game
+                self.new_game()
 
     def verify_id_command(self, min_length, command):
         if len(command) >= min_length:
@@ -178,7 +208,6 @@ class Server:
                         player_id = int(command[1])
                         new_username = ' '.join(command[2:])
 
-                        self.overwrite_player_data(player_id, 'username', new_username)
                         print(f'Changed The Username Of Client ID {player_id} To {new_username}')
 
                 # change the username color of a client
