@@ -4,7 +4,7 @@ from pygame.math import Vector2 as Vec
 from settings import *
 
 
-def update_player(old_player, new_player):
+def update_net_object(old_player, new_player):
     # change all of the old player's attributes to match the corresponding attribute in the new player
     for attr in new_player.__dict__:
         if hasattr(old_player, attr):
@@ -93,7 +93,7 @@ class SpritePlayer(pg.sprite.Sprite):
         # get the correct player to overwrite data
         net_player = self.client.game['players'][self.player_id]
         # overwrite attributes
-        update_player(self, net_player)
+        update_net_object(self, net_player)
         # change the image to match the new data
         self.update_image()
         # change client username to match received username from net player

@@ -6,7 +6,7 @@ from _thread import start_new_thread
 from pickle import dumps, loads
 from pygame.math import Vector2 as Vec
 from entities import NetPlayer
-from settings import *
+from settings import *git
 
 
 class Server:
@@ -22,7 +22,7 @@ class Server:
         # server attributes
         self.running = True
         self.open = True
-        self.connections = {}
+        self.connections = {}  # the connection objects
         self.threaded_clients = {}  # if client id is connected or not
         self.client_id_username = {}  # client id to username finder
         self.client_changes = {}
@@ -51,7 +51,7 @@ class Server:
                 self.maps.append(filename)
         # create another list of maps, where random maps will be popped from
         # this will make sure the same maps aren't chosen, but it is still random
-        self.unplayed_maps = self.maps
+        self.unplayed_maps = self.maps.copy()
 
     def create_socket(self):
         # try to create a server, port must be unused
@@ -98,7 +98,7 @@ class Server:
         self.socket.close()
 
     def format_map(self, filename):
-        return filename[:-4].title()
+        return filename[:-4].replace('_', ' ').title()
 
     def new_game(self):
         # start a new game on the server
@@ -106,10 +106,11 @@ class Server:
 
         # select a new map that hasn't been played in the current cycle through all the maps
         self.game['current map'] = self.unplayed_maps.pop(randint(0, (len(self.unplayed_maps) - 1)))
-        print(f'The Chosen Map Is {self.format_map(self.game["current map"])}')
+        print(f'The Chosen Map Is: {self.format_map(self.game["current map"])}')
         # reset unplayed maps if it is empty
         if len(self.unplayed_maps) == 0:
-            self.unplayed_maps = self.maps
+            self.unplayed_maps = self.maps.copy()
+            print('All Maps Have Been Played, Refilled Map Selection With All Maps')
 
         # reset players
         for player_id in self.game['players']:
@@ -309,13 +310,11 @@ class Server:
             for key, value in self.client_id_username.items():
                 if value == player_id:
                     old_username = key
-            del self.client_id_username[old_username]
+                    del self.client_id_username[old_username]
 
             # update stored data to match the new data if a username switch happened
             self.client_id_username[player_id] = new_value
             self.client_id_username[new_value] = player_id
-
-            print(self.client_id_username)
 
         # ensure the server will not ignore this change by accepting what the client sends
         self.client_changes[player_id][attribute] = [True, new_value]
@@ -415,6 +414,9 @@ class Server:
         if len(self.game['players']) > MAX_CLIENTS:
             verify = False
             reason = f'Too Many Clients Connected To Server ({len(self.game["players"]) - 1}/{MAX_CLIENTS})'
+        if not self.open:
+            verify = False
+            reason = 'The Server Is Currently Not Accepting New Connections'
         return verify, reason, player_data
 
     def disconnect_client(self, player_id):

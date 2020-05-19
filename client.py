@@ -1,8 +1,10 @@
 from os import path
+from random import choice
 import pygame as pg
 from pygame.locals import *
+from pygame.math import Vector2 as Vec
 from network import Network
-from entities import SpritePlayer, update_player, Obstacle
+from entities import SpritePlayer, update_net_object, Obstacle
 from tilemap import Camera, TiledMap
 from widgets import EntryBox, Button
 from settings import *
@@ -27,6 +29,7 @@ class Client:
         self.kicked = False
         # stored data
         self.player_ids = []
+        self.spawn_points = []
         # game attributes
         self.screen = None
         self.clock = None
@@ -46,6 +49,9 @@ class Client:
         self.map_folder = None
         self.icon = None
         self.player_imgs = {}
+        # maps
+        self.map = None
+        self.current_map = None
         # start screen
         self.current_img_cycle = 0
         self.entry_boxes = {}
@@ -56,9 +62,6 @@ class Client:
         self.main_menu_text = MAIN_MENU_TEXT
         self.selected_player_image = None
         self.selected_player_image_rect = None
-        # maps
-        self.map = None
-        self.current_map = None
         # music
         self.menu_music = None
         self.game_music = None
@@ -87,10 +90,10 @@ class Client:
         self.menu_music = path.join(snd_folder, MENU_BG_MUSIC)
         self.game_music = path.join(snd_folder, GAME_BG_MUSIC)
 
-        # load map
-        self.render_maps()
+        # load main menu background map
+        self.create_bg_map()
 
-    def render_maps(self):
+    def create_bg_map(self):
         # menu background
         self.menu_bg = TiledMap(path.join(self.map_folder, MENU_BG_IMG))
         self.menu_bg.make_map()
@@ -103,6 +106,9 @@ class Client:
         self.map = TiledMap(path.join(self.map_folder, filename))
         self.map.make_map()
 
+        # clear the list to hold spawn points
+        self.spawn_points.clear()
+
         # map objects
         for tile_object in self.map.tilemap_data.objects:
             # obstacles
@@ -113,6 +119,8 @@ class Client:
                 if tile_object.name == 'shallow':
                     Obstacle(self, tile_object.x, tile_object.y,
                              tile_object.width, tile_object.height, 'shallow')
+            if tile_object.type == 'spawn':
+                self.spawn_points.append(Vec(tile_object.x + tile_object.width / 2, tile_object.y + tile_object.height / 2))
 
     def connect(self):
         # connect to the server
@@ -164,6 +172,8 @@ class Client:
         # start pygame
         pg.mixer.pre_init(44100, -16, 1, 2048)
         pg.init()
+        if not SOUND:
+            pg.mixer.music.set_volume(0)
         # clock
         self.clock = pg.time.Clock()
         # set up display
@@ -238,6 +248,32 @@ class Client:
         # cancels repeat key effect to not mess up key presses during the game
         pg.key.set_repeat()
 
+    def select_player_image(self, direction):
+        # select a new player image by moving right or left through the list
+        if direction == 'right':
+            if self.current_img_cycle == (len(PLAYER_IMGS_CYCLE) - 1):
+                self.current_img_cycle = 0
+            else:
+                self.current_img_cycle += 1
+            self.image_string = PLAYER_IMGS[PLAYER_IMGS_CYCLE[self.current_img_cycle]]
+        elif direction == 'left':
+            if self.current_img_cycle == 0:
+                self.current_img_cycle = (len(PLAYER_IMGS_CYCLE) - 1)
+            else:
+                self.current_img_cycle -= 1
+            self.image_string = PLAYER_IMGS[PLAYER_IMGS_CYCLE[self.current_img_cycle]]
+
+        # update the player image with the new selection
+        self.update_player_image()
+
+    def update_player_image(self):
+        # get current player image selection
+        self.selected_player_image = self.player_imgs[self.image_string]
+        self.selected_player_image = pg.transform.rotate(self.selected_player_image, -90)
+        # get rect to set placement
+        self.selected_player_image_rect = self.selected_player_image.get_rect()
+        self.selected_player_image_rect.center = (SCREEN_WIDTH / 2, 570)
+
     def menu_events(self):
         for event in pg.event.get():
             # quit the game
@@ -297,32 +333,6 @@ class Client:
 
                     elif button_name == 'left':
                         self.select_player_image('left')
-
-    def select_player_image(self, direction):
-        # select a new player image by moving right or left through the list
-        if direction == 'right':
-            if self.current_img_cycle == (len(PLAYER_IMGS_CYCLE) - 1):
-                self.current_img_cycle = 0
-            else:
-                self.current_img_cycle += 1
-            self.image_string = PLAYER_IMGS[PLAYER_IMGS_CYCLE[self.current_img_cycle]]
-        elif direction == 'left':
-            if self.current_img_cycle == 0:
-                self.current_img_cycle = (len(PLAYER_IMGS_CYCLE) - 1)
-            else:
-                self.current_img_cycle -= 1
-            self.image_string = PLAYER_IMGS[PLAYER_IMGS_CYCLE[self.current_img_cycle]]
-
-        # update the player image with the new selection
-        self.update_player_image()
-
-    def update_player_image(self):
-        # get current player image selection
-        self.selected_player_image = self.player_imgs[self.image_string]
-        self.selected_player_image = pg.transform.rotate(self.selected_player_image, -90)
-        # get rect to set placement
-        self.selected_player_image_rect = self.selected_player_image.get_rect()
-        self.selected_player_image_rect.center = (SCREEN_WIDTH / 2, 570)
 
     def menu_update(self):
         # update display caption with useful information
@@ -413,19 +423,6 @@ class Client:
         # reset client data when the client disconnects
         self.reset_data()
 
-    def update_game_data(self):
-        # only get the latest data from the server if the client has not disconnected themselves
-        if self.connected:
-            # receive the updated game over the network from the server
-            received = self.network.send(self.player)
-            if received is EOFError or received is ConnectionResetError:
-                self.kicked = True
-                self.disconnect()
-                return False
-            else:
-                self.game = received
-                return True
-
     def game_events(self):
         for event in pg.event.get():
             # quit the game
@@ -455,6 +452,19 @@ class Client:
                 if event.key == K_F3:
                     self.debug = not self.debug
 
+    def update_game_data(self):
+        # only get the latest data from the server if the client has not disconnected themselves
+        if self.connected:
+            # receive the updated game over the network from the server
+            received = self.network.send(self.player)
+            if received is EOFError or received is ConnectionResetError:
+                self.kicked = True
+                self.disconnect()
+                return False
+            else:
+                self.game = received
+                return True
+
     def game_update(self):
         # update client's player with data received over the network
         self.player = self.game['players'][self.player_id]
@@ -476,7 +486,7 @@ class Client:
         # this is required to send the server the updated data of the client's player
         for sprite_player in self.players:
             if sprite_player.player_id == self.player_id:
-                update_player(self.player, sprite_player)
+                update_net_object(self.player, sprite_player)
 
         # update camera
         for sprite_player in self.players:
@@ -504,6 +514,10 @@ class Client:
                                                        sprite.hit_rect.y + self.camera.y,
                                                        sprite.hit_rect.width,
                                                        sprite.hit_rect.height), 1)
+        for spawn in self.spawn_points:
+            pg.draw.rect(self.screen, SPAWN_COLOR, (spawn.x + self.camera.x - TILESIZE / 4,
+                                                    spawn.y + self.camera.y - TILESIZE / 4,
+                                                    TILESIZE / 2, TILESIZE / 2), 1)
 
     def game_draw(self):
         # background

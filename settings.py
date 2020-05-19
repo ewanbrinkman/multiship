@@ -1,12 +1,17 @@
-# server settings
+# launch options
+SOUND = False  # you can still toggle sound after starting
+CONN_TIMEOUT = 3  # in seconds
+
+# server
 SERVER_IP = '192.168.86.66'
 PORT = 4242
 RECEIVE_LIMIT = 2048
 MAX_CLIENTS = 10
-CONN_TIMEOUT = 3  # in seconds
 
-# game settings
-GAME_LENGTH = 10#300  # in seconds, therefore 5 minutes
+# game
+GAME_LENGTH = 300  # in seconds, therefore 300 is 5 minutes
+WINDX = 0
+WINDY = 0
 
 # shades
 WHITE = (255, 255, 255)
@@ -24,21 +29,15 @@ INACTIVE_BLUE = (0, 179, 255)
 ACTIVE_BLUE = (126, 213, 255)
 PRESSED_BLUE = (196, 238, 255)
 
-# display settings
+# display
 GAME_TITLE = 'Multiship'
+MAIN_MENU_TEXT = 'Please Enter A Username By Clicking The First Entry Box'
 FPS = 60
 SCREEN_WIDTH = 1440
 SCREEN_HEIGHT = 900
 MENU_BG_IMG = 'menubg.tmx'
 ICON_IMG = 'watertile.png'
-
-# debug settings
-HIT_RECT_COLOR = RED
-IMAGE_RECT_COLOR = GREEN
-TILESIZE = 64
-GRID_COLOR = DARK_GRAY
-
-# font settings
+# font
 TEXT_COLOR = (0, 83, 92)
 TITLE_SIZE = 150
 NORMAL_SIZE = 50
@@ -47,10 +46,14 @@ USERNAME_HEIGHT = -15
 ENTRY_SIZE = 35
 BUTTON_SIZE = 50
 THEME_FONT = 'Booter.ttf'
+# debug
+HIT_RECT_COLOR = RED
+IMAGE_RECT_COLOR = GREEN
+SPAWN_COLOR = MAGENTA
+TILESIZE = 64
+GRID_COLOR = DARK_GRAY
 
-# main menu settings
-MAIN_MENU_TEXT = 'Please Enter A Username By Clicking The First Entry Box'
-# entry box settings
+# entry boxes
 VALID_USERNAME = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890_-. '
 VALID_IP = '1234567890.'
 VALID_PORT = '1234567890'
@@ -60,14 +63,14 @@ ENTRY_WIDTH = 330
 ENTRY_TEXT_OFFSET = 5
 REPEAT_PAUSE = 350
 REPEAT_RATE = 50
-# button settings
+# buttons
 BUTTON_INACTIVE = INACTIVE_BLUE
 BUTTON_ACTIVE = ACTIVE_BLUE
 BUTTON_PRESSED = PRESSED_BLUE
 BUTTON_WIDTH = 190
 BUTTON_HEIGHT = 80
 
-# player settings
+# player
 PLAYER_ACC = 2
 PLAYER_WATER_FRICTION = -0.01
 PLAYER_SHALLOW_FRICTION = -0.08
@@ -91,10 +94,6 @@ PLAYER_ROT_ACC = 3
 PLAYER_WATER_ROT_FRICTION = -0.01
 PLAYER_SHALLOW_ROT_FRICTION = -0.08
 
-# sound
+# sounds
 MENU_BG_MUSIC = 'Dryads Feast.mp3'
 GAME_BG_MUSIC = 'Blackmoor Tides Chant.wav'
-
-# game settings
-WINDX = 0
-WINDY = 0
