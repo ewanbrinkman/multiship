@@ -6,7 +6,7 @@ from _thread import start_new_thread
 from pickle import dumps, loads
 from pygame.math import Vector2 as Vec
 from entities import NetPlayer
-from settings import *git
+from settings import *
 
 
 class Server:
