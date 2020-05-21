@@ -47,6 +47,7 @@ class NetPlayer:
         self.rot = 0
         self.frozen = False
         self.respawn = False
+        self.invincible = False
         # player image
         self.image_color = None
         self.image_string = None
@@ -141,6 +142,9 @@ class SpritePlayer(pg.sprite.Sprite):
             self.acc = Vec(PLAYER_ACC, 0).rotate(-self.rot)
         if keys[K_s] or keys[K_DOWN]:
             self.acc = Vec(-PLAYER_ACC / 3, 0).rotate(-self.rot)
+        if keys[K_t]:
+            # for testing purposes
+            self.invincible = True
 
     def apply_friction(self, movement_type):
         # north, south, east, and west movement
@@ -157,15 +161,6 @@ class SpritePlayer(pg.sprite.Sprite):
                 return PLAYER_SHALLOW_ROT_FRICTION
             else:
                 return PLAYER_WATER_ROT_FRICTION
-
-    def player_collisions(self, group):
-        # test collision
-        hits = pg.sprite.spritecollide(self, group, False, collide_hit_rect_both)
-        for hit in hits:
-            if hit != self and hit.invincible and not self.invincible:
-                # update this sprite if it collided
-                self.image_string = PLAYER_IMGS['broken' + self.image_color]
-                self.crash_time = pg.time.get_ticks()
 
     def respawn_player(self):
         # reset image
@@ -193,10 +188,8 @@ class SpritePlayer(pg.sprite.Sprite):
                     if hit != self:
                         if hit.hit_rect.centerx > self.hit_rect.centerx:
                             self.vel.x = -PLAYER_BOUNCE_VEL
-                            #self.pos.x = hit.hit_rect.left - self.hit_rect.width / 2
                         if hit.hit_rect.centerx < self.hit_rect.centerx:
                             self.vel.x = PLAYER_BOUNCE_VEL
-                            #self.pos.x = hit.hit_rect.right + self.hit_rect.width / 2
         if direction == 'y':
             hits = pg.sprite.spritecollide(self, self.client.players, False, collide_hit_rect_both)
             if hits:
@@ -204,10 +197,17 @@ class SpritePlayer(pg.sprite.Sprite):
                     if hit != self:
                         if hit.hit_rect.centery > self.hit_rect.centery:
                             self.vel.y = -PLAYER_BOUNCE_VEL
-                            #self.pos.y = hit.hit_rect.top - self.hit_rect.height / 2
                         if hit.hit_rect.centery < self.hit_rect.centery:
                             self.vel.y = PLAYER_BOUNCE_VEL
-                            #self.pos.y = hit.hit_rect.bottom + self.hit_rect.height / 2
+
+    def player_collisions(self):
+        # test collision
+        hits = pg.sprite.spritecollide(self, self.client.players, False, collide_hit_rect_both)
+        for hit in hits:
+            if hit != self and hit.invincible and not self.invincible:
+                # update this sprite if it collided
+                self.image_string = PLAYER_IMGS['broken' + self.image_color]
+                self.crash_time = pg.time.get_ticks()
 
     def move(self):
         # do movements
@@ -265,7 +265,7 @@ class SpritePlayer(pg.sprite.Sprite):
 
         # if two players crash into each other
         #if not self.crash_time and not self.invincible:
-        self.player_collisions(self.client.players)
+        self.player_collisions()
 
         # update the image with the correct positioning
         self.update_image()

@@ -26,8 +26,9 @@ class Server:
         self.threaded_clients = {}  # if client id is connected or not
         self.client_id_username = {}  # client id to username finder
         self.client_changes = {}
-        self.server_commands = ['help', 'listall', 'getusername', 'getid', 'setusername', 'setcolor', 'kick', 'kickall',
-                                'respawn', 'freeze', 'unfreeze', 'freezeall', 'unfreezeall', 'open', 'close']
+        self.server_commands = ['help', 'listall', 'getusername', 'getid', 'setattr', 'setusername', 'setcolor',
+                                'kick', 'kickall', 'respawn', 'freeze', 'unfreeze', 'freezeall', 'unfreezeall',
+                                'open', 'close']
         # game attributes
         self.clock = None
         self.maps = []
@@ -201,6 +202,38 @@ class Server:
                         username = ' '.join(command[1:])
                         player_id = self.client_id_username[username]
                         print(f'Client With The Username {username} Has The ID {player_id}')
+
+                # change an attribute of a client's player
+                # syntax: setattr <client_id> <attribute> <new_value>
+                elif command[0] == 'setattr':
+                    pass
+                    '''
+                    if self.verify_id_command(3, command):
+                        player_id = int(command[1])
+                        attr = command[2]
+                        # player ids cannot be modified
+                        if attr != 'player_id':
+                            # check if that attribute exists
+                            if hasattr(self.game['players'][player_id], attr):
+                                new_value = command[3]
+                                if new_value.isdigit():
+                                    new_value = int(new_value)
+                                attr_type = type(getattr(self.game['players'][player_id], attr))
+                                # only change the attribute if the types match, to prevent error
+                                if type(new_value) == attr_type:
+                                    setattr(self.game['players'][player_id], attr, new_value)
+                                    # modify the player data
+                                    self.overwrite_player_data(player_id, attr, new_value)
+                                    print(f'Changed Client ID {player_id}\'s {attr} Attribute To {new_value}')
+                                else:
+                                    # changing the data type will likely cause an error, so the server will not allow it
+                                    print('Attribute Not Changed: '
+                                          f'Attribute Is Of Type {attr_type} But Type {type(new_value)} Was Given')
+                            else:
+                                print(f'The Attribute {attr} Does Not Exist')
+                        else:
+                            print('Player IDs Cannot Be Changed')
+                    '''
 
                 # change the username of a client
                 # syntax: setusername <client_id> <new_player_username>
