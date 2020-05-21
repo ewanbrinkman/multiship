@@ -71,11 +71,15 @@ BUTTON_WIDTH = 190
 BUTTON_HEIGHT = 80
 
 # player
+# north, west, east, and south movement
 PLAYER_ACC = 2
 PLAYER_WATER_FRICTION = -0.01
 PLAYER_SHALLOW_FRICTION = -0.08
-PLAYER_SPAWN_X = 700
-PLAYER_SPAWN_Y = 300
+# rotation movement
+PLAYER_ROT_ACC = 3
+PLAYER_WATER_ROT_FRICTION = -0.01
+PLAYER_SHALLOW_ROT_FRICTION = -0.08
+# images
 PLAYER_IMGS_CYCLE = ['blue', 'green', 'yellow', 'red']
 PLAYER_IMGS = {
     'basic': 'shipbasic.png',
@@ -88,11 +92,11 @@ PLAYER_IMGS = {
     'brokengreen': 'brokengreen.png',
     'brokenblue': 'brokenblue.png',
 }
+# hit rect
 PLAYER_HIT_RECT_WIDTH = 66
 PLAYER_HIT_RECT_HEIGHT = 66
-PLAYER_ROT_ACC = 3
-PLAYER_WATER_ROT_FRICTION = -0.01
-PLAYER_SHALLOW_ROT_FRICTION = -0.08
+# respawn
+PLAYER_CRASH_DURATION = 3000  # in milliseconds
 
 # sounds
 MENU_BG_MUSIC = 'Dryads Feast.mp3'

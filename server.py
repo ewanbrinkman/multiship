@@ -114,8 +114,7 @@ class Server:
 
         # reset players
         for player_id in self.game['players']:
-            new_pos = Vec(PLAYER_SPAWN_X, PLAYER_SPAWN_Y)
-            self.overwrite_player_data(player_id, 'pos', new_pos)
+            self.overwrite_player_data(player_id, 'respawn', True)
 
         # get start time
         self.game_start_time = time()
@@ -239,8 +238,8 @@ class Server:
                 elif command[0] == 'respawn':
                     if self.verify_id_command(2, command):
                         player_id = int(command[1])
-                        new_pos = Vec(PLAYER_SPAWN_X, PLAYER_SPAWN_Y)
-                        self.overwrite_player_data(player_id, 'pos', new_pos)
+                        self.overwrite_player_data(player_id, 'respawn', True)
+                        print(f'Respawned The Player With Client ID {player_id}')
 
                 # stop a player from moving
                 # syntax: freeze <client_id>
@@ -327,7 +326,7 @@ class Server:
 
         # create a new player and send it to the new client
         # the new player is not added to the players dictionary of the game until (and if) they are verified
-        new_player = NetPlayer(player_id, PLAYER_SPAWN_X, PLAYER_SPAWN_Y)
+        new_player = NetPlayer(player_id)
         connection.send(dumps(new_player))
 
         # send verification to client

@@ -385,6 +385,9 @@ class Client:
         # create camera to fit map size
         self.camera = Camera(self.map.width, self.map.height)
 
+        # choose a random spawn point
+        self.player.pos = Vec(choice(self.spawn_points))
+
     def reset_data(self):
         # reset data after game session
         # received over network
@@ -477,21 +480,20 @@ class Client:
         # update all sprite data, or kill the sprite if the player has disconnected
         self.players.update()
 
-        # update the client's player sprite only, this means checking for key presses and collision detection
+        # update the client's player sprite only
         for sprite_player in self.players:
             if sprite_player.player_id == self.player_id:
+                # key presses and collision detection
                 sprite_player.move()
+                # update camera to focus on the client's player
+                self.camera.update(sprite_player)
+
 
         # update the client's net work player to match the client's sprite player
         # this is required to send the server the updated data of the client's player
         for sprite_player in self.players:
             if sprite_player.player_id == self.player_id:
                 update_net_object(self.player, sprite_player)
-
-        # update camera
-        for sprite_player in self.players:
-            if sprite_player.player_id == self.player_id:
-                self.camera.update(sprite_player)
 
         # update display caption with useful information
         pg.display.set_caption(
