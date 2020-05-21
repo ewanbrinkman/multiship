@@ -97,7 +97,7 @@ PLAYER_HIT_RECT_WIDTH = 66
 PLAYER_HIT_RECT_HEIGHT = 66
 # respawn
 PLAYER_BOUNCE_VEL = 25
-PLAYER_CRASH_DURATION = 5000  # in milliseconds
+PLAYER_CRASH_DURATION = 3000  # in milliseconds
 
 # sounds
 MENU_BG_MUSIC = 'Dryads Feast.mp3'

@@ -93,16 +93,15 @@ class SpritePlayer(pg.sprite.Sprite):
 
     def update_image(self):
         self.image = self.client.player_imgs[self.image_string].copy()  # use .copy() to not modify the stored image
-        '''
         if self.crash_time:
             # make the image smaller based on how long the player has been crashed
             current_crash_time = pg.time.get_ticks() - self.crash_time
-            crash_percentage = abs(1 - current_crash_time / PLAYER_CRASH_DURATION)
-            if crash_percentage < 0.05:
-                crash_percentage = 0.05
-            self.image = pg.transform.scale(self.image, (int(self.image_width * crash_percentage),
-                                                         int(self.image_height * crash_percentage)))
-        '''
+            crash_size_decimal = abs(1 - current_crash_time / PLAYER_CRASH_DURATION)
+            print(crash_size_decimal)
+            if crash_size_decimal <= 0.02:
+                crash_size_decimal = 0.02
+            self.image = pg.transform.scale(self.image, (int(self.image_width * crash_size_decimal),
+                                                         int(self.image_height * crash_size_decimal)))
         self.image = pg.transform.rotate(self.image, self.rot)
         self.rect = self.image.get_rect()
         self.rect.center = (self.pos.x, self.pos.y)
