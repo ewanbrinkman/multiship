@@ -10,8 +10,6 @@ MAX_CLIENTS = 10
 
 # game
 GAME_LENGTH = 300  # in seconds, therefore 300 is 5 minutes
-WINDX = 0
-WINDY = 0
 
 # shades
 WHITE = (255, 255, 255)
@@ -101,7 +99,7 @@ PLAYER_CRASH_DURATION = 3000  # in milliseconds
 # respawn invincibility
 TRANSITION_SPEED = 10
 RESPAWN_ALPHA = [i for i in range(0, 255, TRANSITION_SPEED)]
-RESPAWN_ALPHA_REPEATS = 100
+RESPAWN_ALPHA_REPEATS = 15
 
 # sounds
 MENU_BG_MUSIC = 'Dryads Feast.mp3'

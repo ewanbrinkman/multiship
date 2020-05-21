@@ -84,6 +84,7 @@ class SpritePlayer(pg.sprite.Sprite):
         self.respawn = net_player.respawn
         self.respawn_alpha = chain(RESPAWN_ALPHA * RESPAWN_ALPHA_REPEATS)
         self.respawn_invincible = net_player.respawn_invincible
+        self.reset_chain = True
         self.crash_time = False
         self.current_crash_time = net_player.current_crash_time
         self.power_invincible = False
@@ -118,6 +119,9 @@ class SpritePlayer(pg.sprite.Sprite):
         self.hit_rect = pg.Rect(self.rect.x, self.rect.y, PLAYER_HIT_RECT_WIDTH, PLAYER_HIT_RECT_HEIGHT)
         self.hit_rect.center = self.rect.center
         self.fillcolor = self.fillcolor
+        if not self.reset_chain:
+            self.reset_chain = True
+            self.respawn_alpha = chain(RESPAWN_ALPHA * RESPAWN_ALPHA_REPEATS)
         # do the respawn invincibility effect
         if self.respawn_invincible:
             alpha(self, 255, 255, 255)
@@ -191,7 +195,7 @@ class SpritePlayer(pg.sprite.Sprite):
         self.crash_time = False
         self.current_crash_time = False
         self.respawn_invincible = True
-        self.respawn_alpha = chain(RESPAWN_ALPHA * RESPAWN_ALPHA_REPEATS)
+        self.reset_chain = False
 
     def player_hit(self, direction):
         if direction == 'x':
@@ -217,8 +221,6 @@ class SpritePlayer(pg.sprite.Sprite):
         # test collision
         hits = pg.sprite.spritecollide(self, self.client.players, False, collide_hit_rect_both)
         for hit in hits:
-            if hit != self:
-                print(hit.power_invincible, self.power_invincible, self.respawn_invincible)
             if hit != self and hit.power_invincible and not self.power_invincible and not self.respawn_invincible:
                 # update this sprite if it collided
                 self.destroy()
@@ -228,7 +230,7 @@ class SpritePlayer(pg.sprite.Sprite):
         self.crash_time = pg.time.get_ticks()
         self.current_crash_time = pg.time.get_ticks() - self.crash_time
 
-    def update_client(self):
+    def update_client(self, dt):
         # respawn the player
         if self.respawn:
             self.respawn_player()
@@ -252,8 +254,6 @@ class SpritePlayer(pg.sprite.Sprite):
             # equations of motion
             self.vel += self.acc
             self.pos += (self.vel + 0.5 * self.acc) * self.client.dt
-            # add wind
-            self.pos += Vec(WINDX, WINDY)
 
             # change image
             # apply friction

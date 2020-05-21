@@ -239,7 +239,7 @@ class Client:
         # main menu loop
         while self.menu:
             # pause
-            self.dt = self.clock.tick(FPS) / 1000
+            self.dt = self.clock.tick(FPS) / 1000.0
             # events, update, draw
             self.menu_events()
             self.menu_update()
@@ -485,7 +485,7 @@ class Client:
         for sprite_player in self.players:
             if sprite_player.player_id == self.player_id:
                 # key presses and collision detection
-                sprite_player.update_client()
+                sprite_player.update_client(self.dt)
                 # update camera to focus on the client's player
                 self.camera.update(sprite_player)
 
@@ -541,6 +541,11 @@ class Client:
                            sprite_player.pos.x + self.camera.x,
                            sprite_player.hit_rect.top + USERNAME_HEIGHT + self.camera.y,
                            align='s', font_name=self.theme_font)
+            if sprite_player.player_id == self.player.player_id:
+                self.draw_text((str(int(sprite_player.vel.x))), USERNAME_SIZE, sprite_player.fillcolor,
+                               sprite_player.pos.x + self.camera.x,
+                               sprite_player.hit_rect.top + USERNAME_HEIGHT * 2 + self.camera.y,
+                               align='s', font_name=self.theme_font)
 
         # debug information
         if self.debug:
