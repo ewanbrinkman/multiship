@@ -488,7 +488,6 @@ class Client:
                 # update camera to focus on the client's player
                 self.camera.update(sprite_player)
 
-
         # update the client's net work player to match the client's sprite player
         # this is required to send the server the updated data of the client's player
         for sprite_player in self.players:

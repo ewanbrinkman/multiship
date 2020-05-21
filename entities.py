@@ -86,9 +86,22 @@ class SpritePlayer(pg.sprite.Sprite):
         self.hit_rect = pg.Rect(self.rect.x, self.rect.x, PLAYER_HIT_RECT_WIDTH, PLAYER_HIT_RECT_HEIGHT)
         self.hit_rect.center = self.rect.center
         self.fillcolor = net_player.fillcolor
+        # store the original size of the image, to resize the image smaller when crashed
+        self.image_width = self.rect.width
+        self.image_height = self.rect.height
 
     def update_image(self):
         self.image = self.client.player_imgs[self.image_string].copy()  # use .copy() to not modify the stored image
+        '''
+        if self.crash_time:
+            # make the image smaller based on how long the player has been crashed
+            current_crash_time = pg.time.get_ticks() - self.crash_time
+            crash_percentage = abs(1 - current_crash_time / PLAYER_CRASH_DURATION)
+            if crash_percentage < 0.05:
+                crash_percentage = 0.05
+            self.image = pg.transform.scale(self.image, (int(self.image_width * crash_percentage),
+                                                         int(self.image_height * crash_percentage)))
+        '''
         self.image = pg.transform.rotate(self.image, self.rot)
         self.rect = self.image.get_rect()
         self.rect.center = (self.pos.x, self.pos.y)
@@ -157,6 +170,7 @@ class SpritePlayer(pg.sprite.Sprite):
     def respawn_player(self):
         # reset image
         self.image_string = PLAYER_IMGS[self.image_color]
+        self.update_image()
         # reset movement and rotation
         self.acc = Vec(0, 0)
         self.vel = Vec(0, 0)
@@ -170,6 +184,32 @@ class SpritePlayer(pg.sprite.Sprite):
         self.respawn_time = True
         self.crash_time = False
         self.invincible = True
+
+    def player_hit(self, direction):
+        if direction == 'x':
+            hits = pg.sprite.spritecollide(self, self.client.players, False, collide_hit_rect_both)
+            if hits:
+                for hit in hits:
+                    if hit != self:
+                        if hit.hit_rect.centerx > self.hit_rect.centerx:
+                            self.vel.x = -50
+                            #self.pos.x = hit.hit_rect.left - self.hit_rect.width / 2
+                        if hit.hit_rect.centerx < self.hit_rect.centerx:
+                            self.vel.x = 50
+                            #self.pos.x = hit.hit_rect.right + self.hit_rect.width / 2
+                        #self.vel.x = 0
+        if direction == 'y':
+            hits = pg.sprite.spritecollide(self, self.client.players, False, collide_hit_rect_both)
+            if hits:
+                for hit in hits:
+                    if hit != self:
+                        if hit.hit_rect.centery > self.hit_rect.centery:
+                            self.vel.y = -50
+                            #self.pos.y = hit.hit_rect.top - self.hit_rect.height / 2
+                        if hit.hit_rect.centery < self.hit_rect.centery:
+                            self.vel.y = 50
+                            #self.pos.y = hit.hit_rect.bottom + self.hit_rect.height / 2
+                        self.vel.y = 0
 
     def move(self):
         # do movements
@@ -185,8 +225,6 @@ class SpritePlayer(pg.sprite.Sprite):
         # if they are crashed, respawn after they have stayed crashed long enough
         else:
             current_crash_time = pg.time.get_ticks() - self.crash_time
-            # make the image smaller based on how long the player has been crashed
-            crash_percentage = current_crash_time / PLAYER_CRASH_DURATION * 100
             if current_crash_time >= PLAYER_CRASH_DURATION:
                 self.respawn_player()
         # move the sprite player, if there are no restrictions in place (such as being frozen)
@@ -208,16 +246,24 @@ class SpritePlayer(pg.sprite.Sprite):
             self.rot += ((self.rot_vel + 0.5 * self.rot_acc) * self.client.dt) % 360
 
         # collision detection
+        #self.hit_rect.centerx = self.pos.x
+        #collide_group(self, self.client.walls, 'x')
+        #self.hit_rect.centery = self.pos.y
+        #collide_group(self, self.client.walls, 'y')
+        # match the sprite's rect with where it should be based on the hit rect
+        #self.rect.center = self.hit_rect.center
+
+        # collision detection
         self.hit_rect.centerx = self.pos.x
-        collide_group(self, self.client.walls, 'x')
+        self.player_hit('x')
         self.hit_rect.centery = self.pos.y
-        collide_group(self, self.client.walls, 'y')
+        self.player_hit('y')
         # match the sprite's rect with where it should be based on the hit rect
         self.rect.center = self.hit_rect.center
 
         # if two players crash into each other
-        if not self.crash_time and not self.invincible:
-            self.player_collisions(self.client.players)
+        #if not self.crash_time and not self.invincible:
+            #self.player_collisions(self.client.players)
 
         # update the image with the correct positioning
         self.update_image()

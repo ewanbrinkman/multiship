@@ -39,8 +39,6 @@ class Server:
                      }
         # load data
         self.load()
-        # create a socket to host the server
-        self.create_socket()
 
     def load(self):
         # get all the maps available
@@ -69,6 +67,9 @@ class Server:
         start_new_thread(self.threaded_game, ())
 
         sleep(1)
+
+        # create a socket to host the server
+        self.create_socket()
 
         # have the server socket start listening for client connections
         self.socket.listen()
