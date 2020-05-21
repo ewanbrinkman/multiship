@@ -162,7 +162,7 @@ class SpritePlayer(pg.sprite.Sprite):
         # test collision
         hits = pg.sprite.spritecollide(self, group, False, collide_hit_rect_both)
         for hit in hits:
-            if hit != self:
+            if hit != self and hit.invincible and not self.invincible:
                 # update this sprite if it collided
                 self.image_string = PLAYER_IMGS['broken' + self.image_color]
                 self.crash_time = pg.time.get_ticks()
@@ -243,15 +243,19 @@ class SpritePlayer(pg.sprite.Sprite):
             self.rot_vel += self.rot_acc
             self.rot += ((self.rot_vel + 0.5 * self.rot_acc) * self.client.dt) % 360
 
+        # save pos for doing hit rect on players
+        old_pos = Vec(self.pos.x, self.pos.y)
         # collision detection
-        #self.hit_rect.centerx = self.pos.x
-        #collide_group(self, self.client.walls, 'x')
-        #self.hit_rect.centery = self.pos.y
-        #collide_group(self, self.client.walls, 'y')
+        self.hit_rect.centerx = self.pos.x
+        collide_group(self, self.client.walls, 'x')
+        self.hit_rect.centery = self.pos.y
+        collide_group(self, self.client.walls, 'y')
         # match the sprite's rect with where it should be based on the hit rect
-        #self.rect.center = self.hit_rect.center
+        self.rect.center = self.hit_rect.center
 
-        # collision detection
+        # reset hit rect for player hit detection
+        self.hit_rect.center = (old_pos.x, old_pos.y)
+        # player hits collision detection
         self.hit_rect.centerx = self.pos.x
         self.player_hit('x')
         self.hit_rect.centery = self.pos.y
@@ -261,7 +265,7 @@ class SpritePlayer(pg.sprite.Sprite):
 
         # if two players crash into each other
         #if not self.crash_time and not self.invincible:
-            #self.player_collisions(self.client.players)
+        self.player_collisions(self.client.players)
 
         # update the image with the correct positioning
         self.update_image()
