@@ -7,7 +7,7 @@ class Network:
     def __init__(self, server_ip, port):
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.client.settimeout(CONN_TIMEOUT)
-        self.server_ip = socket.gethostbyname(socket.gethostname())  # server_ip
+        self.server_ip = server_ip
         self.server_port = port
         self.address = (self.server_ip, self.server_port)
         self.player = self.connect()

@@ -192,24 +192,22 @@ class SpritePlayer(pg.sprite.Sprite):
                 for hit in hits:
                     if hit != self:
                         if hit.hit_rect.centerx > self.hit_rect.centerx:
-                            self.vel.x = -50
+                            self.vel.x = -PLAYER_BOUNCE_VEL
                             #self.pos.x = hit.hit_rect.left - self.hit_rect.width / 2
                         if hit.hit_rect.centerx < self.hit_rect.centerx:
-                            self.vel.x = 50
+                            self.vel.x = PLAYER_BOUNCE_VEL
                             #self.pos.x = hit.hit_rect.right + self.hit_rect.width / 2
-                        #self.vel.x = 0
         if direction == 'y':
             hits = pg.sprite.spritecollide(self, self.client.players, False, collide_hit_rect_both)
             if hits:
                 for hit in hits:
                     if hit != self:
                         if hit.hit_rect.centery > self.hit_rect.centery:
-                            self.vel.y = -50
+                            self.vel.y = -PLAYER_BOUNCE_VEL
                             #self.pos.y = hit.hit_rect.top - self.hit_rect.height / 2
                         if hit.hit_rect.centery < self.hit_rect.centery:
-                            self.vel.y = 50
+                            self.vel.y = PLAYER_BOUNCE_VEL
                             #self.pos.y = hit.hit_rect.bottom + self.hit_rect.height / 2
-                        self.vel.y = 0
 
     def move(self):
         # do movements
