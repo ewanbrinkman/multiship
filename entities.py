@@ -47,7 +47,8 @@ class NetPlayer:
         self.rot = 0
         self.frozen = False
         self.respawn = False
-        self.invincible = False
+        self.current_crash_time = False
+        self.power_invincible = False
         # player image
         self.image_color = None
         self.image_string = None
@@ -74,7 +75,9 @@ class SpritePlayer(pg.sprite.Sprite):
         self.respawn = net_player.respawn
         self.respawn_time = False
         self.crash_time = False
-        self.invincible = False
+        self.current_crash_time = net_player.current_crash_time
+        self.respawn_invincible = False
+        self.power_invincible = False
         # save the client, to access data such as the game sent over the network
         self.client = client
         # sprite image
@@ -93,11 +96,9 @@ class SpritePlayer(pg.sprite.Sprite):
 
     def update_image(self):
         self.image = self.client.player_imgs[self.image_string].copy()  # use .copy() to not modify the stored image
-        if self.crash_time:
+        if self.current_crash_time:
             # make the image smaller based on how long the player has been crashed
-            current_crash_time = pg.time.get_ticks() - self.crash_time
-            crash_size_decimal = abs(1 - current_crash_time / PLAYER_CRASH_DURATION)
-            print(crash_size_decimal)
+            crash_size_decimal = abs(1 - self.current_crash_time / PLAYER_CRASH_DURATION)
             if crash_size_decimal <= 0.02:
                 crash_size_decimal = 0.02
             self.image = pg.transform.scale(self.image, (int(self.image_width * crash_size_decimal),
@@ -143,7 +144,7 @@ class SpritePlayer(pg.sprite.Sprite):
             self.acc = Vec(-PLAYER_ACC / 3, 0).rotate(-self.rot)
         if keys[K_t]:
             # for testing purposes
-            self.invincible = True
+            self.power_invincible = True
 
     def apply_friction(self, movement_type):
         # north, south, east, and west movement
@@ -175,9 +176,9 @@ class SpritePlayer(pg.sprite.Sprite):
         self.pos = choice(self.client.spawn_points)
         # set respawn attributes
         self.respawn = False
-        self.respawn_time = True
         self.crash_time = False
-        self.invincible = True
+        self.current_crash_time = False
+        self.respawn_invincible = True
 
     def player_hit(self, direction):
         if direction == 'x':
@@ -203,10 +204,13 @@ class SpritePlayer(pg.sprite.Sprite):
         # test collision
         hits = pg.sprite.spritecollide(self, self.client.players, False, collide_hit_rect_both)
         for hit in hits:
-            if hit != self and hit.invincible and not self.invincible:
+            if hit != self:
+                print(hit.power_invincible, self.power_invincible, self.respawn_invincible)
+            if hit != self and hit.power_invincible and not self.power_invincible and not self.respawn_invincible:
                 # update this sprite if it collided
                 self.image_string = PLAYER_IMGS['broken' + self.image_color]
                 self.crash_time = pg.time.get_ticks()
+                self.current_crash_time = pg.time.get_ticks() - self.crash_time
 
     def move(self):
         # do movements
@@ -221,8 +225,8 @@ class SpritePlayer(pg.sprite.Sprite):
             self.apply_keys()
         # if they are crashed, respawn after they have stayed crashed long enough
         else:
-            current_crash_time = pg.time.get_ticks() - self.crash_time
-            if current_crash_time >= PLAYER_CRASH_DURATION:
+            self.current_crash_time = pg.time.get_ticks() - self.crash_time
+            if self.current_crash_time >= PLAYER_CRASH_DURATION:
                 self.respawn_player()
         # move the sprite player, if there are no restrictions in place (such as being frozen)
         if not self.frozen:

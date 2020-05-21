@@ -477,10 +477,11 @@ class Client:
             if player_id not in self.player_ids:
                 self.player_ids.append(player_id)
                 SpritePlayer(self, self.game['players'][player_id])
+
         # update all sprite data, or kill the sprite if the player has disconnected
         self.players.update()
 
-        # update the client's player sprite only
+        # update the client's player sprite only with key presses
         for sprite_player in self.players:
             if sprite_player.player_id == self.player_id:
                 # key presses and collision detection
