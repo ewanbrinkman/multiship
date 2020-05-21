@@ -485,7 +485,7 @@ class Client:
         for sprite_player in self.players:
             if sprite_player.player_id == self.player_id:
                 # key presses and collision detection
-                sprite_player.move()
+                sprite_player.update_client()
                 # update camera to focus on the client's player
                 self.camera.update(sprite_player)
 

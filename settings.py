@@ -98,6 +98,10 @@ PLAYER_HIT_RECT_HEIGHT = 66
 # respawn
 PLAYER_BOUNCE_VEL = 25
 PLAYER_CRASH_DURATION = 3000  # in milliseconds
+# respawn invincibility
+TRANSITION_SPEED = 10
+RESPAWN_ALPHA = [i for i in range(0, 255, TRANSITION_SPEED)]
+RESPAWN_ALPHA_REPEATS = 100
 
 # sounds
 MENU_BG_MUSIC = 'Dryads Feast.mp3'

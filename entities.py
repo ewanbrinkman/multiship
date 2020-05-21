@@ -1,4 +1,5 @@
 from random import choice
+from itertools import chain
 import pygame as pg
 from pygame.locals import *
 from pygame.math import Vector2 as Vec
@@ -37,6 +38,13 @@ def collide_group(sprite, group, direction):
             sprite.hit_rect.centery = sprite.pos.y
 
 
+def alpha(sprite, r, g, b):
+    try:
+        sprite.image.fill((r, g, b, next(sprite.respawn_alpha)), special_flags=pg.BLEND_RGBA_MULT)
+    except StopIteration:
+        sprite.respawn_invincible = False
+
+
 class NetPlayer:
     def __init__(self, player_id):
         # basic data
@@ -48,6 +56,7 @@ class NetPlayer:
         self.frozen = False
         self.respawn = False
         self.current_crash_time = False
+        self.respawn_invincible = True
         self.power_invincible = False
         # player image
         self.image_color = None
@@ -73,10 +82,10 @@ class SpritePlayer(pg.sprite.Sprite):
         self.frozen = net_player.frozen
         # respawn
         self.respawn = net_player.respawn
-        self.respawn_time = False
+        self.respawn_alpha = chain(RESPAWN_ALPHA * RESPAWN_ALPHA_REPEATS)
+        self.respawn_invincible = net_player.respawn_invincible
         self.crash_time = False
         self.current_crash_time = net_player.current_crash_time
-        self.respawn_invincible = False
         self.power_invincible = False
         # save the client, to access data such as the game sent over the network
         self.client = client
@@ -109,6 +118,9 @@ class SpritePlayer(pg.sprite.Sprite):
         self.hit_rect = pg.Rect(self.rect.x, self.rect.y, PLAYER_HIT_RECT_WIDTH, PLAYER_HIT_RECT_HEIGHT)
         self.hit_rect.center = self.rect.center
         self.fillcolor = self.fillcolor
+        # do the respawn invincibility effect
+        if self.respawn_invincible:
+            alpha(self, 255, 255, 255)
 
     def match_net_player(self):
         # get the correct player to overwrite data
@@ -179,6 +191,7 @@ class SpritePlayer(pg.sprite.Sprite):
         self.crash_time = False
         self.current_crash_time = False
         self.respawn_invincible = True
+        self.respawn_alpha = chain(RESPAWN_ALPHA * RESPAWN_ALPHA_REPEATS)
 
     def player_hit(self, direction):
         if direction == 'x':
@@ -208,12 +221,15 @@ class SpritePlayer(pg.sprite.Sprite):
                 print(hit.power_invincible, self.power_invincible, self.respawn_invincible)
             if hit != self and hit.power_invincible and not self.power_invincible and not self.respawn_invincible:
                 # update this sprite if it collided
-                self.image_string = PLAYER_IMGS['broken' + self.image_color]
-                self.crash_time = pg.time.get_ticks()
-                self.current_crash_time = pg.time.get_ticks() - self.crash_time
+                self.destroy()
 
-    def move(self):
-        # do movements
+    def destroy(self):
+        self.image_string = PLAYER_IMGS['broken' + self.image_color]
+        self.crash_time = pg.time.get_ticks()
+        self.current_crash_time = pg.time.get_ticks() - self.crash_time
+
+    def update_client(self):
+        # respawn the player
         if self.respawn:
             self.respawn_player()
         # reset acceleration
