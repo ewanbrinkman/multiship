@@ -242,6 +242,7 @@ class Server:
                         player_id = int(command[1])
                         new_username = ' '.join(command[2:])
 
+                        self.overwrite_player_data(player_id, 'username', new_username)
                         print(f'Changed The Username Of Client ID {player_id} To {new_username}')
 
                 # change the username color of a client
@@ -339,12 +340,6 @@ class Server:
         setattr(self.game['players'][player_id], attribute, new_value)
 
         if attribute == 'username':
-            # delete the old username to id link
-            for key, value in self.client_id_username.items():
-                if value == player_id:
-                    old_username = key
-                    del self.client_id_username[old_username]
-
             # update stored data to match the new data if a username switch happened
             self.client_id_username[player_id] = new_value
             self.client_id_username[new_value] = player_id

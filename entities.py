@@ -43,6 +43,7 @@ def alpha(sprite, r, g, b):
         sprite.image.fill((r, g, b, next(sprite.respawn_alpha)), special_flags=pg.BLEND_RGBA_MULT)
     except StopIteration:
         sprite.respawn_invincible = False
+        sprite.respawn_alpha = chain(RESPAWN_ALPHA * RESPAWN_ALPHA_REPEATS)
 
 
 class NetPlayer:
@@ -84,7 +85,6 @@ class SpritePlayer(pg.sprite.Sprite):
         self.respawn = net_player.respawn
         self.respawn_alpha = chain(RESPAWN_ALPHA * RESPAWN_ALPHA_REPEATS)
         self.respawn_invincible = net_player.respawn_invincible
-        self.reset_chain = True
         self.crash_time = False
         self.current_crash_time = net_player.current_crash_time
         self.power_invincible = False
@@ -119,9 +119,6 @@ class SpritePlayer(pg.sprite.Sprite):
         self.hit_rect = pg.Rect(self.rect.x, self.rect.y, PLAYER_HIT_RECT_WIDTH, PLAYER_HIT_RECT_HEIGHT)
         self.hit_rect.center = self.rect.center
         self.fillcolor = self.fillcolor
-        if not self.reset_chain:
-            self.reset_chain = True
-            self.respawn_alpha = chain(RESPAWN_ALPHA * RESPAWN_ALPHA_REPEATS)
         # do the respawn invincibility effect
         if self.respawn_invincible:
             alpha(self, 255, 255, 255)
@@ -134,7 +131,8 @@ class SpritePlayer(pg.sprite.Sprite):
         # change the image to match the new data
         self.update_image()
         # change client username to match received username from net player
-        self.client.username = self.username
+        if self.player_id == self.client.player.player_id:
+            self.client.username = self.username
 
     def update(self):
         # remove the player if they have disconnected from the server
@@ -195,7 +193,6 @@ class SpritePlayer(pg.sprite.Sprite):
         self.crash_time = False
         self.current_crash_time = False
         self.respawn_invincible = True
-        self.reset_chain = False
 
     def player_hit(self, direction):
         if direction == 'x':

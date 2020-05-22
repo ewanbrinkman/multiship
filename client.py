@@ -541,11 +541,6 @@ class Client:
                            sprite_player.pos.x + self.camera.x,
                            sprite_player.hit_rect.top + USERNAME_HEIGHT + self.camera.y,
                            align='s', font_name=self.theme_font)
-            if sprite_player.player_id == self.player.player_id:
-                self.draw_text((str(int(sprite_player.vel.x))), USERNAME_SIZE, sprite_player.fillcolor,
-                               sprite_player.pos.x + self.camera.x,
-                               sprite_player.hit_rect.top + USERNAME_HEIGHT * 2 + self.camera.y,
-                               align='s', font_name=self.theme_font)
 
         # debug information
         if self.debug:
