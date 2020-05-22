@@ -42,8 +42,8 @@ def alpha(sprite, r, g, b):
     try:
         sprite.image.fill((r, g, b, next(sprite.respawn_alpha)), special_flags=pg.BLEND_RGBA_MULT)
     except StopIteration:
-        sprite.respawn_invincible = False
-        sprite.respawn_alpha = chain(RESPAWN_ALPHA * RESPAWN_ALPHA_REPEATS)
+        sprite.respawn_alpha = chain(RESPAWN_ALPHA)
+        sprite.image.fill((r, g, b, next(sprite.respawn_alpha)), special_flags=pg.BLEND_RGBA_MULT)
 
 
 class NetPlayer:
@@ -57,7 +57,7 @@ class NetPlayer:
         self.frozen = False
         self.respawn = False
         self.current_crash_time = False
-        self.respawn_invincible = True
+        self.current_respawn_time = False
         self.power_invincible = False
         # player image
         self.image_color = None
@@ -83,8 +83,9 @@ class SpritePlayer(pg.sprite.Sprite):
         self.frozen = net_player.frozen
         # respawn
         self.respawn = net_player.respawn
-        self.respawn_alpha = chain(RESPAWN_ALPHA * RESPAWN_ALPHA_REPEATS)
-        self.respawn_invincible = net_player.respawn_invincible
+        self.respawn_alpha = chain(RESPAWN_ALPHA)
+        self.respawn_time = False
+        self.current_respawn_time = net_player.current_respawn_time
         self.crash_time = False
         self.current_crash_time = net_player.current_crash_time
         self.power_invincible = False
@@ -113,14 +114,20 @@ class SpritePlayer(pg.sprite.Sprite):
                 crash_size_decimal = 0.02
             self.image = pg.transform.scale(self.image, (int(self.image_width * crash_size_decimal),
                                                          int(self.image_height * crash_size_decimal)))
+            # make hit rect smaller as well with crash size decimal
+            #
+            #
+            #
+            #
+            #
+            #
         self.image = pg.transform.rotate(self.image, self.rot)
         self.rect = self.image.get_rect()
         self.rect.center = (self.pos.x, self.pos.y)
         self.hit_rect = pg.Rect(self.rect.x, self.rect.y, PLAYER_HIT_RECT_WIDTH, PLAYER_HIT_RECT_HEIGHT)
-        self.hit_rect.center = self.rect.center
         self.fillcolor = self.fillcolor
         # do the respawn invincibility effect
-        if self.respawn_invincible:
+        if self.current_respawn_time:
             alpha(self, 255, 255, 255)
 
     def match_net_player(self):
@@ -192,7 +199,8 @@ class SpritePlayer(pg.sprite.Sprite):
         self.respawn = False
         self.crash_time = False
         self.current_crash_time = False
-        self.respawn_invincible = True
+        self.respawn_time = pg.time.get_ticks()
+        self.current_respawn_time = pg.time.get_ticks() - self.respawn_time
 
     def player_hit(self, direction):
         if direction == 'x':
@@ -218,7 +226,7 @@ class SpritePlayer(pg.sprite.Sprite):
         # test collision
         hits = pg.sprite.spritecollide(self, self.client.players, False, collide_hit_rect_both)
         for hit in hits:
-            if hit != self and hit.power_invincible and not self.power_invincible and not self.respawn_invincible:
+            if hit != self and hit.power_invincible and not self.power_invincible and not self.respawn_time and not self.crash_time:
                 # update this sprite if it collided
                 self.destroy()
 
@@ -231,9 +239,11 @@ class SpritePlayer(pg.sprite.Sprite):
         # respawn the player
         if self.respawn:
             self.respawn_player()
+
         # reset acceleration
         self.acc = Vec(0, 0)
         self.rot_acc = 0
+
         # if the player isn't crashed, they can move
         if not self.crash_time:
             # update the players velocity with key presses
@@ -243,21 +253,39 @@ class SpritePlayer(pg.sprite.Sprite):
             self.current_crash_time = pg.time.get_ticks() - self.crash_time
             if self.current_crash_time >= PLAYER_CRASH_DURATION:
                 self.respawn_player()
+        # remove the respawn invincibility effect after enough time has passed
+        if self.respawn_time:
+            self.current_respawn_time = pg.time.get_ticks() - self.respawn_time
+            if self.current_respawn_time >= RESPAWN_INVINCIBLE_DURATION:
+                self.respawn_time = False
+                self.current_respawn_time = False
+
         # move the sprite player, if there are no restrictions in place (such as being frozen)
         if not self.frozen:
             # change position
+
             # apply friction
             self.acc += self.vel * self.apply_friction('nsew')
-            # equations of motion
-            self.vel += self.acc
-            self.pos += (self.vel + 0.5 * self.acc) * self.client.dt
+
+            # new velocity after
+            self.vel = self.vel + self.acc * self.client.dt
+
+            # displacement
+            displacement = self.vel * self.client.dt + 0.5 * self.acc * self.client.dt ** 2
+            self.pos += displacement
 
             # change image
+
             # apply friction
             self.rot_acc += self.rot_vel * self.apply_friction('rot')
-            # equations of motion
-            self.rot_vel += self.rot_acc
-            self.rot += ((self.rot_vel + 0.5 * self.rot_acc) * self.client.dt) % 360
+
+            # new velocity after
+            self.rot_vel = self.rot_vel + self.rot_acc * self.client.dt
+
+            # displacement
+            rot_displacement = self.rot_vel * self.client.dt + 0.5 * self.rot_acc * self.client.dt ** 2
+            self.rot += rot_displacement % 360
+
 
         # save pos for doing hit rect on players
         old_pos = Vec(self.pos.x, self.pos.y)
@@ -280,7 +308,6 @@ class SpritePlayer(pg.sprite.Sprite):
         self.rect.center = self.hit_rect.center
 
         # if two players crash into each other
-        #if not self.crash_time and not self.invincible:
         self.player_collisions()
 
         # update the image with the correct positioning
