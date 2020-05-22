@@ -35,6 +35,7 @@ class Client:
         self.clock = None
         self.dt = None
         self.camera = None
+        self.new_game = False
         # sprite groups
         self.all_sprites = pg.sprite.Group()
         self.players = pg.sprite.Group()
@@ -387,6 +388,8 @@ class Client:
 
         # choose a random spawn point
         self.player.pos = Vec(choice(self.spawn_points))
+        self.new_game = True
+        self.player.current_respawn_time = 0
 
     def reset_data(self):
         # reset data after game session
@@ -415,6 +418,7 @@ class Client:
 
         # game loop while connected to the server
         while self.connected:
+            print(self.player.pos)
             # pause
             self.dt = self.clock.tick(FPS) / 1000
             # events, update, draw
@@ -485,7 +489,7 @@ class Client:
         for sprite_player in self.players:
             if sprite_player.player_id == self.player_id:
                 # key presses and collision detection
-                sprite_player.update_client(self.dt)
+                sprite_player.update_client()
                 # update camera to focus on the client's player
                 self.camera.update(sprite_player)
 

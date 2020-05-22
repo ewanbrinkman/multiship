@@ -38,12 +38,25 @@ def collide_group(sprite, group, direction):
             sprite.hit_rect.centery = sprite.pos.y
 
 
-def alpha(sprite, r, g, b):
+def alpha(sprite, r, g, b, type):
+    if type == 'respawn':
+        alpha_chain = sprite.respawn_alpha
+        blend_type = pg.BLEND_RGBA_MULT
+    elif type == 'power':
+        alpha_chain = sprite.power_alpha
+        blend_type = pg.BLEND_RGBA_MULT
     try:
-        sprite.image.fill((r, g, b, next(sprite.respawn_alpha)), special_flags=pg.BLEND_RGBA_MULT)
+        sprite.image.fill((r, g, b, next(alpha_chain)), special_flags=blend_type)
     except StopIteration:
-        sprite.respawn_alpha = chain(RESPAWN_ALPHA)
-        sprite.image.fill((r, g, b, next(sprite.respawn_alpha)), special_flags=pg.BLEND_RGBA_MULT)
+        if type == 'respawn':
+            sprite.respawn_alpha = chain(RESPAWN_ALPHA)
+            alpha_chain = sprite.respawn_alpha
+            blend_type = pg.BLEND_RGBA_MULT
+        elif type == 'power':
+            sprite.power_alpha = chain(POWER_ALPHA)
+            alpha_chain = sprite.power_alpha
+            blend_type = pg.BLEND_RGBA_MULT
+        sprite.image.fill((r, g, b, next(alpha_chain)), special_flags=blend_type)
 
 
 class NetPlayer:
@@ -84,6 +97,7 @@ class SpritePlayer(pg.sprite.Sprite):
         # respawn
         self.respawn = net_player.respawn
         self.respawn_alpha = chain(RESPAWN_ALPHA)
+        self.power_alpha = chain(POWER_ALPHA)
         self.respawn_time = False
         self.current_respawn_time = net_player.current_respawn_time
         self.crash_time = False
@@ -107,6 +121,12 @@ class SpritePlayer(pg.sprite.Sprite):
 
     def update_image(self):
         self.image = self.client.player_imgs[self.image_string].copy()  # use .copy() to not modify the stored image
+        self.rect = self.image.get_rect()
+        # store the original size of the image, to resize the image smaller when crashed
+        self.image_width = self.rect.width
+        self.image_height = self.rect.height
+
+        # if the player is current doing the crashing animation
         if self.current_crash_time:
             # make the image smaller based on how long the player has been crashed
             crash_size_decimal = abs(1 - self.current_crash_time / PLAYER_CRASH_DURATION)
@@ -114,21 +134,26 @@ class SpritePlayer(pg.sprite.Sprite):
                 crash_size_decimal = 0.02
             self.image = pg.transform.scale(self.image, (int(self.image_width * crash_size_decimal),
                                                          int(self.image_height * crash_size_decimal)))
-            # make hit rect smaller as well with crash size decimal
-            #
-            #
-            #
-            #
-            #
-            #
+            # make hit rect smaller as well using the crash size decimal
+            self.hit_rect = pg.Rect(self.rect.x, self.rect.y,
+                                    int(PLAYER_HIT_RECT_WIDTH * crash_size_decimal),
+                                    int(PLAYER_HIT_RECT_HEIGHT * crash_size_decimal))
+
+        # image details
         self.image = pg.transform.rotate(self.image, self.rot)
         self.rect = self.image.get_rect()
         self.rect.center = (self.pos.x, self.pos.y)
-        self.hit_rect = pg.Rect(self.rect.x, self.rect.y, PLAYER_HIT_RECT_WIDTH, PLAYER_HIT_RECT_HEIGHT)
+        if not self.current_crash_time:
+            self.hit_rect = pg.Rect(self.rect.x, self.rect.y, PLAYER_HIT_RECT_WIDTH, PLAYER_HIT_RECT_HEIGHT)
+        self.hit_rect.center = self.rect.center
         self.fillcolor = self.fillcolor
-        # do the respawn invincibility effect
+
+        # respawn invincibility effect
         if self.current_respawn_time:
-            alpha(self, 255, 255, 255)
+            alpha(self, 255, 255, 255, 'respawn')
+        # power invincibility effect
+        if self.power_invincible:
+            alpha(self, 242, 255, 114, 'power')
 
     def match_net_player(self):
         # get the correct player to overwrite data
@@ -163,9 +188,12 @@ class SpritePlayer(pg.sprite.Sprite):
             self.acc = Vec(PLAYER_ACC, 0).rotate(-self.rot)
         if keys[K_s] or keys[K_DOWN]:
             self.acc = Vec(-PLAYER_ACC / 3, 0).rotate(-self.rot)
-        if keys[K_t]:
+        if keys[K_p]:
             # for testing purposes
             self.power_invincible = True
+        if keys[K_o]:
+            # for testing purposes
+            self.power_invincible = False
 
     def apply_friction(self, movement_type):
         # north, south, east, and west movement
@@ -235,7 +263,13 @@ class SpritePlayer(pg.sprite.Sprite):
         self.crash_time = pg.time.get_ticks()
         self.current_crash_time = pg.time.get_ticks() - self.crash_time
 
-    def update_client(self, dt):
+    def update_client(self):
+        # new game respawn
+        if self.client.new_game:
+            self.respawn_time = pg.time.get_ticks()
+            self.current_respawn_time = pg.time.get_ticks()
+            self.client.new_game = False
+
         # respawn the player
         if self.respawn:
             self.respawn_player()
