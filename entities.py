@@ -1,5 +1,6 @@
 from random import choice
 from itertools import chain
+from pytweening import easeInOutSine
 import pygame as pg
 from pygame.locals import *
 from pygame.math import Vector2 as Vec
@@ -38,26 +39,16 @@ def collide_group(sprite, group, direction):
             sprite.hit_rect.centery = sprite.pos.y
 
 
-def alpha(sprite, r, g, b, type):
-    if type == "respawn":
-        alpha_chain = sprite.respawn_alpha
-        blend_type = pg.BLEND_RGBA_MULT
-    elif type == "power":
-        alpha_chain = sprite.power_alpha
-        blend_type = pg.BLEND_RGBA_MULT
+def alpha(sprite, r, g, b):
+    alpha_chain = sprite.respawn_alpha
+    blend_type = pg.BLEND_RGBA_MULT
     try:
         sprite.image.fill((r, g, b, next(alpha_chain)), special_flags=blend_type)
     except StopIteration:
-        if type == "respawn":
-            sprite.respawn_alpha = chain(RESPAWN_ALPHA)
-            alpha_chain = sprite.respawn_alpha
-            blend_type = pg.BLEND_RGBA_MULT
-        elif type == "power":
-            sprite.power_alpha = chain(POWER_ALPHA)
-            alpha_chain = sprite.power_alpha
-            blend_type = pg.BLEND_RGBA_MULT
+        sprite.respawn_alpha = chain(RESPAWN_ALPHA)
+        alpha_chain = sprite.respawn_alpha
+        blend_type = pg.BLEND_RGBA_MULT
         sprite.image.fill((r, g, b, next(alpha_chain)), special_flags=blend_type)
-
 
 class NetPlayer:
     def __init__(self, player_id):
@@ -100,7 +91,6 @@ class SpritePlayer(pg.sprite.Sprite):
         self.respawn = net_player.respawn
         self.destroy = net_player.destroy
         self.respawn_alpha = chain(RESPAWN_ALPHA)
-        self.power_alpha = chain(POWER_ALPHA)
         self.respawn_time = False
         self.current_respawn_time = net_player.current_respawn_time
         self.crash_time = False
@@ -152,12 +142,15 @@ class SpritePlayer(pg.sprite.Sprite):
         self.hit_rect.center = self.rect.center
         self.fillcolor = self.fillcolor
 
-        # respawn invincibility effect
+        # flashing respawn invincibility effect
         if self.current_respawn_time:
-            alpha(self, 255, 255, 255, "respawn")
-        # power invincibility effect
+            alpha(self, 255, 255, 255)
+        # yellow power invincibility effect
         if self.power_invincible:
-            alpha(self, 242, 255, 114, "power")
+            self.image.fill((255, 255, 51, 255), special_flags=pg.BLEND_RGBA_MULT)
+        # blue frozen effect
+        if self.frozen:
+            self.image.fill((200, 200, 250, 255), special_flags=pg.BLEND_RGBA_MULT)
 
     def match_net_player(self):
         # get the correct player to overwrite data
@@ -359,6 +352,7 @@ class SpritePlayer(pg.sprite.Sprite):
         # update the image with the correct positioning
         self.update_image()
 
+
 class Obstacle(pg.sprite.Sprite):
     def __init__(self, client, x, y, width, height, type):
         if type == "wall":
@@ -369,3 +363,35 @@ class Obstacle(pg.sprite.Sprite):
         self.rect = pg.Rect(x, y, width, height)
         self.hit_rect = self.rect
         self.type = type
+
+
+class SpriteItem(pg.sprite.Sprite):
+    def __init__(self, client, name, pos, item_id):
+        self.groups = client.all_sprites, client.items
+        pg.sprite.Sprite.__init__(self, self.groups)
+        # image
+        self.image = client.item_imgs[name]
+        self.rect = self.image.get_rect()
+        self.hit_rect = self.rect
+        self.rect.center = pos
+        self.hit_rect.center = pos
+        # data
+        self.client = client
+        self.name = name
+        self.pos = pos
+        self.item_id = item_id
+        self.active = False
+        # item bob
+        self.tween = easeInOutSine
+        self.step = 0
+        self.direction = 1
+
+    def update(self):
+        # bobbing motion (subtract 0.5 to shift halfway)
+        offset = BOB_RANGE * (self.tween(self.step / BOB_RANGE) - 0.5)
+        self.rect.centery = self.pos.y + offset * self.direction
+        self.step += BOB_SPEED
+        # switch and reset if hit maximum
+        if self.step > BOB_RANGE:
+            self.step = 0
+            self.direction *= -1

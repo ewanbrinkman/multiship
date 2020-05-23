@@ -4,10 +4,19 @@ import pygame as pg
 from pygame.locals import *
 from pygame.math import Vector2 as Vec
 from network import Network
-from entities import SpritePlayer, update_net_object, Obstacle
+from entities import update_net_object, SpritePlayer, Obstacle, SpriteItem
 from tilemap import format_map, Camera, TiledMap
 from widgets import EntryBox, Button
 from settings import *
+
+
+def format_time(total_seconds):
+    minutes = int(total_seconds // 60)
+    seconds = int(total_seconds % 60)
+    # if the seconds is a single digit add a 0 before it
+    if seconds < 10:
+        seconds = "0" + str(seconds)
+    return f"{minutes}:{seconds}"
 
 
 class Client:
@@ -29,19 +38,21 @@ class Client:
         self.kicked = False
         # stored data
         self.player_ids = []
-        self.spawn_points = []
         # game attributes
         self.screen = None
         self.clock = None
         self.dt = None
         self.camera = None
         self.new_game = False
+        self.spawn_points = []
+        self.item_spawns = {}
         # sprite groups
         self.all_sprites = pg.sprite.Group()
         self.players = pg.sprite.Group()
         self.obstacles = pg.sprite.Group()
         self.walls = pg.sprite.Group()
         self.shallows = pg.sprite.Group()
+        self.items = pg.sprite.Group()
         # display
         self.theme_font = None
         self.fullscreen = True
@@ -50,6 +61,7 @@ class Client:
         self.map_folder = None
         self.icon = None
         self.player_imgs = {}
+        self.item_imgs = {}
         # maps
         self.map = None
         self.current_map = None
@@ -90,6 +102,11 @@ class Client:
             new_img = pg.image.load(path.join(img_folder, filename)).convert_alpha()
             # rotate so the sprite moves in the direction it is pointing
             self.player_imgs[filename] = pg.transform.rotate(new_img, 90)
+        # images
+        for item_name, filename in ITEM_IMGS.items():
+            new_img = pg.image.load(path.join(img_folder, filename)).convert_alpha()
+            # rotate so the sprite moves in the direction it is pointing
+            self.item_imgs[item_name] = new_img
 
         # sounds
         self.menu_music = path.join(snd_folder, MENU_BG_MUSIC)
@@ -111,11 +128,17 @@ class Client:
         self.map = TiledMap(path.join(self.map_folder, filename))
         self.map.make_map()
 
-        # clear the list to hold spawn points
+        # clear the lists to hold map data
         self.spawn_points.clear()
+        self.item_spawns.clear()
+
+        # item counter to give each item spawn an id
+        current_item_id = 0
 
         # map objects
         for tile_object in self.map.tilemap_data.objects:
+            # the center of the tile
+            object_center = Vec(tile_object.x + tile_object.width / 2, tile_object.y + tile_object.height / 2)
             # obstacles
             if tile_object.type == "obstacle":
                 if tile_object.name == "wall":
@@ -124,8 +147,15 @@ class Client:
                 if tile_object.name == "shallow":
                     Obstacle(self, tile_object.x, tile_object.y,
                              tile_object.width, tile_object.height, "shallow")
+            # spawn points
             if tile_object.type == "spawn":
-                self.spawn_points.append(Vec(tile_object.x + tile_object.width / 2, tile_object.y + tile_object.height / 2))
+                self.spawn_points.append(object_center)
+            # items
+            if tile_object.type == 'item':
+                if tile_object.name == 'power':
+                    self.item_spawns[current_item_id] = SpriteItem(self, tile_object.name, object_center,
+                                                                   current_item_id)
+                current_item_id += 1
 
     def connect(self):
         # connect to the server
@@ -184,7 +214,7 @@ class Client:
         # set up display
         self.screen = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pg.FULLSCREEN)
         pg.display.set_caption(
-            f"Client ID: {self.player_id} - Username: {self.username} - FPS: {round(self.clock.get_fps(), 2)}")
+            f"Client - ID: {self.player_id} - Username: {self.username} - FPS: {round(self.clock.get_fps(), 2)}")
 
         # load data
         self.load()
@@ -345,11 +375,11 @@ class Client:
             f"Client - ID: {self.player_id} - Username: {self.username} - FPS: {round(self.clock.get_fps(), 2)}")
 
         # update with the data entered by the user
-        self.username = self.entry_boxes["username"].text
-        self.server_ip = self.entry_boxes["server ip"].text
-        port_text = self.entry_boxes["port"].text
+        self.username = self.entry_boxes['username'].text
+        self.server_ip = self.entry_boxes['server ip'].text
+        port_text = self.entry_boxes['port'].text
         if port_text:
-            self.port = int(self.entry_boxes["port"].text)
+            self.port = int(self.entry_boxes['port'].text)
         else:
             self.port = 0
 
@@ -383,7 +413,7 @@ class Client:
     def load_game_data(self):
         # get the game data to load anything before starting the game loop
         self.game = self.network.send(self.player)
-        self.current_map = self.game["current map"]
+        self.current_map = self.game['current map']
 
         # create the map
         self.create_map(self.current_map)
@@ -403,7 +433,9 @@ class Client:
         self.player_id = None
 
         # client side
-        self.player_ids = []
+        self.player_ids.clear()
+        self.spawn_points.clear()
+        self.item_spawns.clear()
         for sprite in self.all_sprites.sprites():
             sprite.kill()  # will delete all sprites, including any other groups they are also in
         if self.kicked:
@@ -476,16 +508,18 @@ class Client:
 
     def game_update(self):
         # update client's player with data received over the network
-        self.player = self.game["players"][self.player_id]
+        self.player = self.game['players'][self.player_id]
 
         # create new pygame sprites for newly joined players
-        for player_id in self.game["players"]:
+        for player_id in self.game['players']:
             if player_id not in self.player_ids:
                 self.player_ids.append(player_id)
-                SpritePlayer(self, self.game["players"][player_id])
+                SpritePlayer(self, self.game['players'][player_id])
 
         # update all sprite data, or kill the sprite if the player has disconnected
         self.players.update()
+        # update all items
+        self.items.update()
 
         # update the client's player sprite only with key presses
         for sprite_player in self.players:
@@ -503,7 +537,7 @@ class Client:
 
         # overlay data updates
         self.game_overlay_left = [f"Players: {len(self.game['players'])}/{MAX_CLIENTS}"]
-        self.game_overlay_right = [f"Game Time Left: {self.format_time(self.game['game time'])}"]
+        self.game_overlay_right = [f"Game Time Left: {format_time(self.game['game time'])}"]
         self.debug_overlay = [f"Client ID: {self.player_id}",
                               f"Username: {self.username}",
                               f"FPS: {round(self.clock.get_fps(), 2)}"]
@@ -575,14 +609,6 @@ class Client:
             # add the new height
             text_rect_heights.append(text_rect.height)
 
-    def format_time(self, total_seconds):
-        minutes = int(total_seconds // 60)
-        seconds = int(total_seconds % 60)
-        # if the seconds is a single digit add a 0 before it
-        if seconds < 10:
-            seconds = "0" + str(seconds)
-        return f"{minutes}:{seconds}"
-
     def game_draw(self):
         # background
         self.screen.fill((255, 255, 255))
@@ -590,11 +616,11 @@ class Client:
         # map image
         self.screen.blit(self.map.image, self.camera.apply_rect(self.map.rect))
 
-        # player images
-        # frozen color effect
-        for sprite_player in self.players:
-            if sprite_player.frozen:
-                sprite_player.image.fill((200, 200, 250, 255), special_flags=pg.BLEND_RGBA_MULT)
+        # all sprites except players and walls (players drawn after and walls don't have an image)
+        for sprite in self.all_sprites:
+            if not isinstance(sprite, SpritePlayer) and not isinstance(sprite, Obstacle):
+                self.screen.blit(sprite.image, self.camera.apply_sprite(sprite))
+
         # player sprite image and username
         for sprite_player in self.players:
             # blit to screen as done below so that the camera can be applied

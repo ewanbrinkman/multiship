@@ -5,6 +5,7 @@ from _thread import start_new_thread
 from pickle import dumps, loads
 import pygame as pg
 from pygame.math import Vector2 as Vec
+import pytmx
 from entities import NetPlayer
 from tilemap import format_map
 from settings import *
@@ -15,6 +16,8 @@ class Server:
         # start pygame
         pg.init()
         self.icon = None
+        self.screen = None
+        self.clock = None
         # start time
         self.server_start_time = pg.time.get_ticks() // 1000.0  # in whole seconds
         self.game_start_time = 0
@@ -34,6 +37,7 @@ class Server:
         self.server_commands = ["help", "listall", "getusername", "getid", "setattr", "setusername", "setcolor",
                                 "kick", "kickall", "respawn", "freeze", "unfreeze", "freezeall", "unfreezeall",
                                 "open", "close"]
+        self.current_player = 0  # the current client id
         # game attributes
         self.clock = None
         self.maps = []
@@ -41,18 +45,20 @@ class Server:
         # create the game
         self.game = {"players": {},
                      "current map": None,
-                     "game time": self.game_time_left
+                     "game time": self.game_time_left,
+                     "items": {},
                      }
-        self.current_player = 0
         # load data
         self.load()
 
     def load(self):
-        # load the server icon in the taskbar
+        # folders
         game_folder = path.dirname(__file__)
         img_folder = path.join(game_folder, "img")
+        self.map_folder = path.join(game_folder, "map")
+
+        # server pygame icon
         self.icon = pg.image.load(path.join(img_folder, SERVER_IMG))
-        pg.display.set_icon(self.icon)
 
         # get all the maps available
         game_folder = path.dirname(__file__)
@@ -79,6 +85,34 @@ class Server:
         # start the game thread
         start_new_thread(self.threaded_game, ())
 
+        # start the accept new connections thread
+        start_new_thread(self.threaded_socket, ())
+
+        # start the window
+        self.screen = pg.display.set_mode((SERVER_SCREEN_WIDTH, SERVER_SCREEN_HEIGHT))
+        pg.display.set_icon(self.icon)
+        self.clock = pg.time.Clock()
+
+        while self.running:
+            # pause
+            self.clock.tick(FPS)
+            # events
+            for event in pg.event.get():
+                if event.type == pg.QUIT or event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE:
+                    self.end()
+            # update
+            pg.display.set_caption(
+                f"Server - IP: {self.server_ip} - Port: {self.server_port} - Clients: {len(self.connections)}")
+            # draw
+            self.screen.fill(WHITE)
+            pg.display.flip()
+
+        # quit program
+        print("Quiting Pygame...")
+        pg.quit()
+        print("\nProcess Finished")
+
+    def threaded_socket(self):
         # create a socket to host the server
         self.create_socket()
 
@@ -96,12 +130,10 @@ class Server:
                 start_new_thread(self.threaded_client, (conn, self.current_player))
                 self.current_player += 1
             except ConnectionAbortedError:
-                print("Socket Connection Aborted")
-
-        print("\nProcess Finished")
+                print("Socket Connection Aborted - Server Closed")
 
     def end(self):
-        print("Starting Server Termination")
+        print("\nStarting Server Termination")
         # stop all loops
         self.open = False
         self.running = False
@@ -114,8 +146,22 @@ class Server:
         print("\nStarting A New Game...")
 
         # select a new map that hasn"t been played in the current cycle through all the maps
-        self.game["current map"] = self.unplayed_maps.pop(randint(0, (len(self.unplayed_maps) - 1)))
+        self.game['current map'] = self.unplayed_maps.pop(randint(0, (len(self.unplayed_maps) - 1)))
         print(f"The Chosen Map Is: {format_map(self.game['current map'])}")
+
+        # reset map data
+        self.game['items'].clear()
+        # item counter to give each item spawn an id
+        current_item_id = 0
+
+        # get data about the current map
+        tilemap_data = pytmx.load_pygame(path.join(self.map_folder, self.game['current map']), pixelalpha=True)
+        for tile_object in tilemap_data.objects:
+            # add each item to a dictionary to keep track if it is active or not
+            if tile_object.type == "item":
+                self.game['items'][current_item_id] = True
+                current_item_id += 1
+
         # reset unplayed maps if it is empty
         if len(self.unplayed_maps) == 0:
             self.unplayed_maps = self.maps.copy()
@@ -129,6 +175,7 @@ class Server:
         self.game_start_time = pg.time.get_ticks()
 
     def threaded_game(self):
+        # start a new game
         self.new_game()
         # start the game timer
         while self.running:
@@ -239,7 +286,7 @@ class Server:
                 # kick all current players from the server
                 # syntax: kickall
                 elif command[0] == "kickall":
-                    if len(self.game["players"]) > 0:
+                    if len(self.game['players']) > 0:
                         print(f"All {len(self.game['players'])} Clients Have Been Kicked From The Server")
                         for player_id in self.game['players']:
                             self.threaded_clients[player_id] = False
