@@ -69,9 +69,11 @@ class NetPlayer:
         self.rot = 0
         self.frozen = False
         self.respawn = False
+        self.destroy = False
         self.current_crash_time = False
         self.current_respawn_time = False
         self.power_invincible = False
+        self.collisions = []
         # player image
         self.image_color = None
         self.image_string = None
@@ -96,6 +98,7 @@ class SpritePlayer(pg.sprite.Sprite):
         self.frozen = net_player.frozen
         # respawn
         self.respawn = net_player.respawn
+        self.destroy = net_player.destroy
         self.respawn_alpha = chain(RESPAWN_ALPHA)
         self.power_alpha = chain(POWER_ALPHA)
         self.respawn_time = False
@@ -103,6 +106,7 @@ class SpritePlayer(pg.sprite.Sprite):
         self.crash_time = False
         self.current_crash_time = net_player.current_crash_time
         self.power_invincible = False
+        self.collisions = []
         # save the client, to access data such as the game sent over the network
         self.client = client
         # sprite image
@@ -254,11 +258,15 @@ class SpritePlayer(pg.sprite.Sprite):
         # test collision
         hits = pg.sprite.spritecollide(self, self.client.players, False, collide_hit_rect_both)
         for hit in hits:
-            if hit != self and hit.power_invincible and not self.power_invincible and not self.respawn_time and not self.crash_time:
+            if hit != self and hit.power_invincible and not self.power_invincible and self.current_respawn_time is False and self.current_crash_time is False:
                 # update this sprite if it collided
-                self.destroy()
+                self.destroy_player()
+            # let the server know someone should be destroyed
+            if hit != self and self.power_invincible and not hit.power_invincible and hit.current_respawn_time is False and hit.current_crash_time is False:
+                self.collisions.append(hit.player_id)
 
-    def destroy(self):
+    def destroy_player(self):
+        self.destroy = False
         self.image_string = PLAYER_IMGS['broken' + self.image_color]
         self.crash_time = pg.time.get_ticks()
         self.current_crash_time = pg.time.get_ticks() - self.crash_time
@@ -270,7 +278,11 @@ class SpritePlayer(pg.sprite.Sprite):
             self.current_respawn_time = pg.time.get_ticks()
             self.client.new_game = False
 
-        # respawn the player
+        # destroy the player if told to by the server
+        if self.destroy:
+            self.destroy_player()
+
+        # respawn the player if told to by the server
         if self.respawn:
             self.respawn_player()
 
@@ -279,7 +291,7 @@ class SpritePlayer(pg.sprite.Sprite):
         self.rot_acc = 0
 
         # if the player isn't crashed, they can move
-        if not self.crash_time:
+        if self.crash_time is False:
             # update the players velocity with key presses
             self.apply_keys()
         # if they are crashed, respawn after they have stayed crashed long enough
@@ -288,7 +300,7 @@ class SpritePlayer(pg.sprite.Sprite):
             if self.current_crash_time >= PLAYER_CRASH_DURATION:
                 self.respawn_player()
         # remove the respawn invincibility effect after enough time has passed
-        if self.respawn_time:
+        if self.respawn_time is not False:
             self.current_respawn_time = pg.time.get_ticks() - self.respawn_time
             if self.current_respawn_time >= RESPAWN_INVINCIBLE_DURATION:
                 self.respawn_time = False

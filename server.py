@@ -386,6 +386,14 @@ class Server:
                     # receive data for the client's player
                     data = loads(connection.recv(RECEIVE_LIMIT))
 
+                    # the players that should be destroyed
+                    if data.collisions:
+                        for collision_player_id in data.collisions:
+                            collision_player = self.game['players'][collision_player_id]
+                            if collision_player.respawn is False and collision_player.current_respawn_time is False and collision_player.current_crash_time is False:
+                                self.overwrite_player_data(collision_player_id, 'destroy', True)
+                        data.collisions.clear()
+
                     # update the client id to username finder
                     self.client_id_username[player_id] = self.game['players'][player_id].username
                     self.client_id_username[self.game['players'][player_id].username] = player_id

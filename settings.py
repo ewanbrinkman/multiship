@@ -3,10 +3,10 @@ SOUND = False  # you can still toggle sound after starting
 CONN_TIMEOUT = 3  # in seconds
 
 # server
-SERVER_IP = '192.168.86.66'
+SERVER_IP = '192.168.1.175'
 PORT = 4242
-RECEIVE_LIMIT = 2048
-MAX_CLIENTS = 10
+RECEIVE_LIMIT = 8192
+MAX_CLIENTS = 8
 
 # game
 GAME_LENGTH = 300  # in seconds, therefore 300 is 5 minutes

@@ -418,7 +418,6 @@ class Client:
 
         # game loop while connected to the server
         while self.connected:
-            print(self.player.pos)
             # pause
             self.dt = self.clock.tick(FPS) / 1000
             # events, update, draw
