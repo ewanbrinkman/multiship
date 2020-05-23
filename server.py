@@ -1,9 +1,9 @@
 from os import path, listdir
-from time import time, sleep
 from random import randint
 import socket
 from _thread import start_new_thread
 from pickle import dumps, loads
+import pygame as pg
 from pygame.math import Vector2 as Vec
 from entities import NetPlayer
 from tilemap import format_map
@@ -12,9 +12,13 @@ from settings import *
 
 class Server:
     def __init__(self):
+        # start pygame
+        pg.init()
+        self.icon = None
         # start time
-        self.server_start_time = time()
-        self.game_start_time = None
+        self.server_start_time = pg.time.get_ticks() // 1000.0  # in whole seconds
+        self.game_start_time = 0
+        self.game_time_left = 0
         # get machine's information to create a server
         self.server_name = socket.gethostname()
         self.server_ip = socket.gethostbyname(self.server_name)
@@ -35,14 +39,21 @@ class Server:
         self.maps = []
         self.unplayed_maps = []
         # create the game
-        self.game = {"current player": 0,
-                     "players": {},
+        self.game = {"players": {},
                      "current map": None,
+                     "game time": self.game_time_left
                      }
+        self.current_player = 0
         # load data
         self.load()
 
     def load(self):
+        # load the server icon in the taskbar
+        game_folder = path.dirname(__file__)
+        img_folder = path.join(game_folder, "img")
+        self.icon = pg.image.load(path.join(img_folder, SERVER_IMG))
+        pg.display.set_icon(self.icon)
+
         # get all the maps available
         game_folder = path.dirname(__file__)
         map_folder = path.join(game_folder, "map")
@@ -68,8 +79,6 @@ class Server:
         # start the game thread
         start_new_thread(self.threaded_game, ())
 
-        sleep(1)
-
         # create a socket to host the server
         self.create_socket()
 
@@ -82,10 +91,10 @@ class Server:
             try:
                 conn, addr = self.socket.accept()
 
-                print(f"\nClient {self.game['current player']} Has Connected From IP: {addr[0]}")
+                print(f"\nClient {self.current_player} Has Connected From IP: {addr[0]}")
 
-                start_new_thread(self.threaded_client, (conn, self.game['current player']))
-                self.game['current player'] += 1
+                start_new_thread(self.threaded_client, (conn, self.current_player))
+                self.current_player += 1
             except ConnectionAbortedError:
                 print("Socket Connection Aborted")
 
@@ -117,14 +126,17 @@ class Server:
             self.overwrite_player_data(player_id, "respawn", True)
 
         # get start time
-        self.game_start_time = time()
+        self.game_start_time = pg.time.get_ticks()
 
     def threaded_game(self):
         self.new_game()
         # start the game timer
         while self.running:
-            sleep(1)
-            time_since_game_start = int(time() - self.game_start_time)  # in seconds
+            # current game times
+            time_since_game_start = (pg.time.get_ticks() - self.game_start_time) // 1000.0  # in whole seconds
+            self.game_time_left = GAME_LENGTH - time_since_game_start
+            self.game['game time'] = self.game_time_left
+            # reset the game after enough time has passed
             if time_since_game_start > GAME_LENGTH:
                 # end current game and start a new game
                 self.new_game()

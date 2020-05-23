@@ -9,7 +9,7 @@ RECEIVE_LIMIT = 8192
 MAX_CLIENTS = 8
 
 # game
-GAME_LENGTH = 300  # in seconds, therefore 300 is 5 minutes
+GAME_LENGTH = 310  # in seconds
 
 # shades
 WHITE = (255, 255, 255)
@@ -34,7 +34,8 @@ FPS = 60
 SCREEN_WIDTH = 1440
 SCREEN_HEIGHT = 900
 MENU_BG_IMG = "menubg.tmx"
-ICON_IMG = "watertile.png"
+CLIENT_IMG = "watertile.png"
+SERVER_IMG = "console.png"
 # font
 TEXT_COLOR = (0, 83, 92)
 TITLE_SIZE = 150

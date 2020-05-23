@@ -67,6 +67,8 @@ class Client:
         self.menu_music = None
         self.game_music = None
         # overlay
+        self.game_overlay_left = []
+        self.game_overlay_right = []
         self.debug_overlay = []
 
     def load(self):
@@ -78,7 +80,7 @@ class Client:
         self.map_folder = path.join(game_folder, "map")
 
         # app icon
-        self.icon = pg.image.load(path.join(img_folder, ICON_IMG))
+        self.icon = pg.image.load(path.join(img_folder, CLIENT_IMG))
 
         # fonts
         self.theme_font = path.join(font_folder, THEME_FONT)
@@ -393,11 +395,6 @@ class Client:
         self.new_game = True
         self.player.current_respawn_time = 0
 
-        # overlay data update
-        self.debug_overlay = [f"Client ID: {self.player_id}",
-                              f"Username: {self.username}",
-                              f"FPS: {round(self.clock.get_fps(), 2)}"]
-
     def reset_data(self):
         # reset data after game session
         # received over network
@@ -504,7 +501,9 @@ class Client:
             if sprite_player.player_id == self.player_id:
                 update_net_object(self.player, sprite_player)
 
-        # debug overlay data update
+        # overlay data updates
+        self.game_overlay_left = [f"Players: {len(self.game['players'])}/{MAX_CLIENTS}"]
+        self.game_overlay_right = [f"Game Time Left: {self.format_time(self.game['game time'])}"]
         self.debug_overlay = [f"Client ID: {self.player_id}",
                               f"Username: {self.username}",
                               f"FPS: {round(self.clock.get_fps(), 2)}"]
@@ -538,24 +537,51 @@ class Client:
                                                     spawn.y + self.camera.y - TILESIZE / 4,
                                                     TILESIZE / 2, TILESIZE / 2), 1)
 
+        # draw the debug overlay
+        self.draw_overlay(self.debug_overlay)
+
+    def draw_overlay(self, overlay_list, screen_corner="bottomright"):
         # the heights of the text rects, starts at 0 as the first one has no extra height add-on
         text_rect_heights = [0]
+        distance_x = 0
+        distance_y = 0
         # debug overlay info
-        for i, overlay_text in enumerate(self.debug_overlay):
+        for i, overlay_text in enumerate(overlay_list):
+            # caluclate where the text should be placed on the screen
+            if screen_corner == "topleft":
+                # top left corner
+                text_align = "nw"
+                distance_x = OVERLAY_WIDTH_DISTANCE
+                distance_y = OVERLAY_HEIGHT_DISTANCE + sum(text_rect_heights)
+            elif screen_corner == "topright":
+                # top right corner
+                text_align = "ne"
+                distance_x = SCREEN_WIDTH - OVERLAY_WIDTH_DISTANCE
+                distance_y = OVERLAY_HEIGHT_DISTANCE + sum(text_rect_heights)
+            elif screen_corner == "bottomleft":
+                # bottom left corner
+                text_align = "sw"
+                distance_x = OVERLAY_WIDTH_DISTANCE
+                distance_y = SCREEN_HEIGHT - OVERLAY_HEIGHT_DISTANCE - sum(text_rect_heights)
+            else:
+                # bottom right corner
+                text_align = "se"
+                distance_x = SCREEN_WIDTH - OVERLAY_WIDTH_DISTANCE
+                distance_y = SCREEN_HEIGHT - OVERLAY_HEIGHT_DISTANCE - sum(text_rect_heights)
+
+            # draw the text on the screen
             text_rect = self.draw_text(overlay_text, OVERLAY_SIZE, TEXT_COLOR,
-                                       SCREEN_WIDTH - OVERLAY_WIDTH_DISTANCE,
-                                       SCREEN_HEIGHT - OVERLAY_HEIGHT_DISTANCE - sum(text_rect_heights),
-                                       align="se", font_name=self.theme_font)
+                                       distance_x, distance_y, align=text_align, font_name=self.theme_font)
             # add the new height
             text_rect_heights.append(text_rect.height)
 
-    def draw_overlay(self):
-        self.draw_text(f"Players: {len(self.game['players'])}/{MAX_CLIENTS}", OVERLAY_SIZE, TEXT_COLOR,
-                       OVERLAY_WIDTH_DISTANCE, OVERLAY_HEIGHT_DISTANCE,
-                       align="nw", font_name=self.theme_font)
-        self.draw_text(f"Map Name: {format_map(self.game['current map'])}", OVERLAY_SIZE, TEXT_COLOR,
-                       SCREEN_WIDTH / 2, OVERLAY_HEIGHT_DISTANCE,
-                       align="n", font_name=self.theme_font)
+    def format_time(self, total_seconds):
+        minutes = int(total_seconds // 60)
+        seconds = int(total_seconds % 60)
+        # if the seconds is a single digit add a 0 before it
+        if seconds < 10:
+            seconds = "0" + str(seconds)
+        return f"{minutes}:{seconds}"
 
     def game_draw(self):
         # background
@@ -583,7 +609,11 @@ class Client:
             self.draw_debug()
 
         # draw the game overlay showing information
-        self.draw_overlay()
+        self.draw_overlay(self.game_overlay_left, "topleft")
+        self.draw_overlay(self.game_overlay_right, "topright")
+        self.draw_text(f"Map Name: {format_map(self.game['current map'])}", OVERLAY_SIZE, TEXT_COLOR,
+                       SCREEN_WIDTH / 2, OVERLAY_HEIGHT_DISTANCE,
+                       align="n", font_name=self.theme_font)
 
         # update the client's monitor
         pg.display.flip()
