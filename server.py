@@ -6,6 +6,7 @@ from _thread import start_new_thread
 from pickle import dumps, loads
 from pygame.math import Vector2 as Vec
 from entities import NetPlayer
+from tilemap import format_map
 from settings import *
 
 
@@ -99,16 +100,13 @@ class Server:
         print('Closing Server Socket...')
         self.socket.close()
 
-    def format_map(self, filename):
-        return filename[:-4].replace('_', ' ').title()
-
     def new_game(self):
         # start a new game on the server
         print('\nStarting A New Game...')
 
         # select a new map that hasn't been played in the current cycle through all the maps
         self.game['current map'] = self.unplayed_maps.pop(randint(0, (len(self.unplayed_maps) - 1)))
-        print(f'The Chosen Map Is: {self.format_map(self.game["current map"])}')
+        print(f'The Chosen Map Is: {format_map(self.game["current map"])}')
         # reset unplayed maps if it is empty
         if len(self.unplayed_maps) == 0:
             self.unplayed_maps = self.maps.copy()

@@ -3,6 +3,10 @@ import pytmx
 from settings import *
 
 
+def format_map(filename):
+    return filename[:-4].replace('_', ' ').title()
+
+
 class Camera:
     def __init__(self, map_width, map_height):
         self.rect = pg.Rect(0, 0, map_width, map_height)

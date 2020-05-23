@@ -5,7 +5,7 @@ from pygame.locals import *
 from pygame.math import Vector2 as Vec
 from network import Network
 from entities import SpritePlayer, update_net_object, Obstacle
-from tilemap import Camera, TiledMap
+from tilemap import format_map, Camera, TiledMap
 from widgets import EntryBox, Button
 from settings import *
 
@@ -503,6 +503,7 @@ class Client:
             f'Client - ID: {self.player_id} - Username: {self.username} - FPS: {round(self.clock.get_fps(), 2)}')
 
     def draw_grid(self):
+        # a grid of lines to represent the tiles of the map
         for x in range(self.camera.x, SCREEN_WIDTH, TILESIZE):
             pg.draw.line(self.screen, GRID_COLOR, (x, 0), (x, SCREEN_HEIGHT))
         for y in range(self.camera.y, SCREEN_HEIGHT, TILESIZE):
@@ -510,6 +511,7 @@ class Client:
 
     def draw_debug(self):
         self.draw_grid()
+        # draw the sprite hit rects and image boundaries
         for sprite in self.all_sprites:
             pg.draw.rect(self.screen, IMAGE_RECT_COLOR, (sprite.rect.x + self.camera.x,
                                                          sprite.rect.y + self.camera.y,
@@ -519,10 +521,30 @@ class Client:
                                                        sprite.hit_rect.y + self.camera.y,
                                                        sprite.hit_rect.width,
                                                        sprite.hit_rect.height), 1)
+        # draw rectangles on map spawn points
         for spawn in self.spawn_points:
             pg.draw.rect(self.screen, SPAWN_COLOR, (spawn.x + self.camera.x - TILESIZE / 4,
                                                     spawn.y + self.camera.y - TILESIZE / 4,
                                                     TILESIZE / 2, TILESIZE / 2), 1)
+        # debug overlay info
+        # f'Client ID: {self.player_id} - Username: {self.username} - FPS: {round(self.clock.get_fps(), 2)}')
+        text_rect = self.draw_text(f"Client ID: {self.player_id}", OVERLAY_SIZE, TEXT_COLOR,
+                       SCREEN_WIDTH - OVERLAY_WIDTH_DISTANCE, OVERLAY_HEIGHT_DISTANCE,
+                       align='ne', font_name=self.theme_font)
+        self.draw_text(f"Username: {self.username}", OVERLAY_SIZE, TEXT_COLOR,
+                       SCREEN_WIDTH - OVERLAY_WIDTH_DISTANCE, OVERLAY_HEIGHT_DISTANCE + text_rect.height,
+                       align='ne', font_name=self.theme_font)
+        self.draw_text(f"FPS: {round(self.clock.get_fps(), 2)}", OVERLAY_SIZE, TEXT_COLOR,
+                       SCREEN_WIDTH - OVERLAY_WIDTH_DISTANCE, OVERLAY_HEIGHT_DISTANCE + text_rect.height * 2,
+                       align='ne', font_name=self.theme_font)
+
+    def draw_overlay(self):
+        self.draw_text(f"Players: {len(self.game['players'])}/{MAX_CLIENTS}", OVERLAY_SIZE, TEXT_COLOR,
+                       OVERLAY_WIDTH_DISTANCE, OVERLAY_HEIGHT_DISTANCE,
+                       align='nw', font_name=self.theme_font)
+        self.draw_text(f"Map Name: {format_map(self.game['current map'])}", OVERLAY_SIZE, TEXT_COLOR,
+                       SCREEN_WIDTH / 2, OVERLAY_HEIGHT_DISTANCE,
+                       align='n', font_name=self.theme_font)
 
     def game_draw(self):
         # background
@@ -548,6 +570,9 @@ class Client:
         # debug information
         if self.debug:
             self.draw_debug()
+
+        # draw the game overlay showing information
+        self.draw_overlay()
 
         # update the client's monitor
         pg.display.flip()
@@ -575,6 +600,8 @@ class Client:
         elif align == 'center':
             text_rect.center = (x, y)
         self.screen.blit(text_surface, text_rect)
+
+        return text_rect
 
 
 if __name__ == '__main__':
