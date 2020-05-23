@@ -73,7 +73,7 @@ class NetPlayer:
         self.current_crash_time = False
         self.current_respawn_time = False
         self.power_invincible = False
-        self.collisions = []
+        self.overwrites = {'collisions': []}
         # player image
         self.image_color = None
         self.image_string = None
@@ -106,7 +106,7 @@ class SpritePlayer(pg.sprite.Sprite):
         self.crash_time = False
         self.current_crash_time = net_player.current_crash_time
         self.power_invincible = False
-        self.collisions = []
+        self.overwrites = net_player.overwrites
         # save the client, to access data such as the game sent over the network
         self.client = client
         # sprite image
@@ -263,7 +263,7 @@ class SpritePlayer(pg.sprite.Sprite):
                 self.destroy_player()
             # let the server know someone should be destroyed
             if hit != self and self.power_invincible and not hit.power_invincible and hit.current_respawn_time is False and hit.current_crash_time is False:
-                self.collisions.append(hit.player_id)
+                self.overwrites['collisions'].append(hit.player_id)
 
     def destroy_player(self):
         self.destroy = False

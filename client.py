@@ -66,6 +66,8 @@ class Client:
         # music
         self.menu_music = None
         self.game_music = None
+        # overlay
+        self.debug_overlay = []
 
     def load(self):
         # folders
@@ -391,6 +393,11 @@ class Client:
         self.new_game = True
         self.player.current_respawn_time = 0
 
+        # overlay data update
+        self.debug_overlay = [f"Client ID: {self.player_id}",
+                              f"Username: {self.username}",
+                              f"FPS: {round(self.clock.get_fps(), 2)}"]
+
     def reset_data(self):
         # reset data after game session
         # received over network
@@ -406,7 +413,6 @@ class Client:
             self.main_menu_text = "You Have Been Kicked From The Server"
         else:
             self.main_menu_text = MAIN_MENU_TEXT
-
 
     def game_loop(self):
         # load game data based on game data received from the server
@@ -498,6 +504,11 @@ class Client:
             if sprite_player.player_id == self.player_id:
                 update_net_object(self.player, sprite_player)
 
+        # debug overlay data update
+        self.debug_overlay = [f"Client ID: {self.player_id}",
+                              f"Username: {self.username}",
+                              f"FPS: {round(self.clock.get_fps(), 2)}"]
+
         # update display caption with useful information
         pg.display.set_caption(
             f"Client - ID: {self.player_id} - Username: {self.username} - FPS: {round(self.clock.get_fps(), 2)}")
@@ -526,17 +537,17 @@ class Client:
             pg.draw.rect(self.screen, SPAWN_COLOR, (spawn.x + self.camera.x - TILESIZE / 4,
                                                     spawn.y + self.camera.y - TILESIZE / 4,
                                                     TILESIZE / 2, TILESIZE / 2), 1)
+
+        # the heights of the text rects, starts at 0 as the first one has no extra height add-on
+        text_rect_heights = [0]
         # debug overlay info
-        # f"Client ID: {self.player_id} - Username: {self.username} - FPS: {round(self.clock.get_fps(), 2)}")
-        text_rect = self.draw_text(f"Client ID: {self.player_id}", OVERLAY_SIZE, TEXT_COLOR,
-                       SCREEN_WIDTH - OVERLAY_WIDTH_DISTANCE, OVERLAY_HEIGHT_DISTANCE,
-                       align="ne", font_name=self.theme_font)
-        self.draw_text(f"Username: {self.username}", OVERLAY_SIZE, TEXT_COLOR,
-                       SCREEN_WIDTH - OVERLAY_WIDTH_DISTANCE, OVERLAY_HEIGHT_DISTANCE + text_rect.height,
-                       align="ne", font_name=self.theme_font)
-        self.draw_text(f"FPS: {round(self.clock.get_fps(), 2)}", OVERLAY_SIZE, TEXT_COLOR,
-                       SCREEN_WIDTH - OVERLAY_WIDTH_DISTANCE, OVERLAY_HEIGHT_DISTANCE + text_rect.height * 2,
-                       align="ne", font_name=self.theme_font)
+        for i, overlay_text in enumerate(self.debug_overlay):
+            text_rect = self.draw_text(overlay_text, OVERLAY_SIZE, TEXT_COLOR,
+                                       SCREEN_WIDTH - OVERLAY_WIDTH_DISTANCE,
+                                       SCREEN_HEIGHT - OVERLAY_HEIGHT_DISTANCE - sum(text_rect_heights),
+                                       align="se", font_name=self.theme_font)
+            # add the new height
+            text_rect_heights.append(text_rect.height)
 
     def draw_overlay(self):
         self.draw_text(f"Players: {len(self.game['players'])}/{MAX_CLIENTS}", OVERLAY_SIZE, TEXT_COLOR,
