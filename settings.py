@@ -3,7 +3,7 @@ SOUND = False  # you can still toggle sound after starting
 CONN_TIMEOUT = 3  # in seconds
 
 # server
-SERVER_IP = '192.168.1.175'
+SERVER_IP = "192.168.1.175"
 PORT = 4242
 RECEIVE_LIMIT = 8192
 MAX_CLIENTS = 8
@@ -28,13 +28,13 @@ ACTIVE_BLUE = (126, 213, 255)
 PRESSED_BLUE = (196, 238, 255)
 
 # display
-GAME_TITLE = 'Multiship'
-MAIN_MENU_TEXT = 'Please Enter A Username By Clicking The First Entry Box'
+GAME_TITLE = "Multiship"
+MAIN_MENU_TEXT = "Please Enter A Username By Clicking The First Entry Box"
 FPS = 60
 SCREEN_WIDTH = 1440
 SCREEN_HEIGHT = 900
-MENU_BG_IMG = 'menubg.tmx'
-ICON_IMG = 'watertile.png'
+MENU_BG_IMG = "menubg.tmx"
+ICON_IMG = "watertile.png"
 # font
 TEXT_COLOR = (0, 83, 92)
 TITLE_SIZE = 150
@@ -46,7 +46,7 @@ BUTTON_SIZE = 50
 OVERLAY_SIZE = 40
 OVERLAY_WIDTH_DISTANCE = 20
 OVERLAY_HEIGHT_DISTANCE = 20
-THEME_FONT = 'Booter.ttf'
+THEME_FONT = "Booter.ttf"
 # debug
 HIT_RECT_COLOR = RED
 IMAGE_RECT_COLOR = GREEN
@@ -55,9 +55,9 @@ TILESIZE = 64
 GRID_COLOR = DARK_GRAY
 
 # entry boxes
-VALID_USERNAME = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890_-. '
-VALID_IP = '1234567890.'
-VALID_PORT = '1234567890'
+VALID_USERNAME = "AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890_-. "
+VALID_IP = "1234567890."
+VALID_PORT = "1234567890"
 ENTRY_INACTIVE_COLOR = INACTIVE_BLUE
 ENTRY_ACTIVE_COLOR = ACTIVE_BLUE
 ENTRY_WIDTH = 330
@@ -81,17 +81,17 @@ PLAYER_ROT_ACC = 100
 PLAYER_WATER_ROT_FRICTION = -0.5
 PLAYER_SHALLOW_ROT_FRICTION = -3
 # images
-PLAYER_IMGS_CYCLE = ['blue', 'green', 'yellow', 'red']
+PLAYER_IMGS_CYCLE = ["blue", "green", "yellow", "red"]
 PLAYER_IMGS = {
-    'basic': 'shipbasic.png',
-    'red': 'shipred.png',
-    'yellow': 'shipyellow.png',
-    'green': 'shipgreen.png',
-    'blue': 'shipblue.png',
-    'brokenred': 'brokenred.png',
-    'brokenyellow': 'brokenyellow.png',
-    'brokengreen': 'brokengreen.png',
-    'brokenblue': 'brokenblue.png',
+    "basic": "shipbasic.png",
+    "red": "shipred.png",
+    "yellow": "shipyellow.png",
+    "green": "shipgreen.png",
+    "blue": "shipblue.png",
+    "brokenred": "brokenred.png",
+    "brokenyellow": "brokenyellow.png",
+    "brokengreen": "brokengreen.png",
+    "brokenblue": "brokenblue.png",
 }
 # hit rect
 PLAYER_HIT_RECT_WIDTH = 66
@@ -107,5 +107,5 @@ POWER_ALPHA = [i for i in list(range(175, 255, POWER_TRANSITION_SPEED)) + list(r
 RESPAWN_INVINCIBLE_DURATION = 5000  # in milliseconds
 
 # sounds
-MENU_BG_MUSIC = 'Dryads Feast.mp3'
-GAME_BG_MUSIC = 'Blackmoor Tides Chant.wav'
+MENU_BG_MUSIC = "Dryads Feast.mp3"
+GAME_BG_MUSIC = "Blackmoor Tides Chant.wav"

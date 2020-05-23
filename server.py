@@ -27,17 +27,17 @@ class Server:
         self.threaded_clients = {}  # if client id is connected or not
         self.client_id_username = {}  # client id to username finder
         self.client_changes = {}
-        self.server_commands = ['help', 'listall', 'getusername', 'getid', 'setattr', 'setusername', 'setcolor',
-                                'kick', 'kickall', 'respawn', 'freeze', 'unfreeze', 'freezeall', 'unfreezeall',
-                                'open', 'close']
+        self.server_commands = ["help", "listall", "getusername", "getid", "setattr", "setusername", "setcolor",
+                                "kick", "kickall", "respawn", "freeze", "unfreeze", "freezeall", "unfreezeall",
+                                "open", "close"]
         # game attributes
         self.clock = None
         self.maps = []
         self.unplayed_maps = []
         # create the game
-        self.game = {'current player': 0,
-                     'players': {},
-                     'current map': None,
+        self.game = {"current player": 0,
+                     "players": {},
+                     "current map": None,
                      }
         # load data
         self.load()
@@ -45,9 +45,9 @@ class Server:
     def load(self):
         # get all the maps available
         game_folder = path.dirname(__file__)
-        map_folder = path.join(game_folder, 'map')
+        map_folder = path.join(game_folder, "map")
         for filename in listdir(map_folder):
-            if filename.endswith('.tmx') and filename != MENU_BG_IMG:
+            if filename.endswith(".tmx") and filename != MENU_BG_IMG:
                 self.maps.append(filename)
         # create another list of maps, where random maps will be popped from
         # this will make sure the same maps aren't chosen, but it is still random
@@ -59,7 +59,7 @@ class Server:
             self.socket.bind((self.server_name, self.server_port))
         except socket.error as e:
             print(e)
-            print(f'Error Creating A Server On {self.server_name} At {self.server_ip}:{self.server_port}')
+            print(f"Error Creating A Server On {self.server_name} At {self.server_ip}:{self.server_port}")
 
     def run(self):
         # start a thread for input
@@ -75,46 +75,46 @@ class Server:
 
         # have the server socket start listening for client connections
         self.socket.listen()
-        print(f'\nServer Started On {self.server_name}:\n\t- IP: {self.server_ip}\n\t- Port: {self.server_port}')
-        print('Waiting for a connection...')
+        print(f"\nServer Started On {self.server_name}:\n\t- IP: {self.server_ip}\n\t- Port: {self.server_port}")
+        print("Waiting for a connection...")
 
         while self.running:
             try:
                 conn, addr = self.socket.accept()
 
-                print(f'\nClient {self.game["current player"]} Has Connected From IP: {addr[0]}')
+                print(f"\nClient {self.game['current player']} Has Connected From IP: {addr[0]}")
 
                 start_new_thread(self.threaded_client, (conn, self.game['current player']))
                 self.game['current player'] += 1
             except ConnectionAbortedError:
-                print('Socket Connection Aborted')
+                print("Socket Connection Aborted")
 
-        print('\nProcess Finished')
+        print("\nProcess Finished")
 
     def end(self):
-        print('Starting Server Termination')
+        print("Starting Server Termination")
         # stop all loops
         self.open = False
         self.running = False
         # close down the socket
-        print('Closing Server Socket...')
+        print("Closing Server Socket...")
         self.socket.close()
 
     def new_game(self):
         # start a new game on the server
-        print('\nStarting A New Game...')
+        print("\nStarting A New Game...")
 
-        # select a new map that hasn't been played in the current cycle through all the maps
-        self.game['current map'] = self.unplayed_maps.pop(randint(0, (len(self.unplayed_maps) - 1)))
-        print(f'The Chosen Map Is: {format_map(self.game["current map"])}')
+        # select a new map that hasn"t been played in the current cycle through all the maps
+        self.game["current map"] = self.unplayed_maps.pop(randint(0, (len(self.unplayed_maps) - 1)))
+        print(f"The Chosen Map Is: {format_map(self.game['current map'])}")
         # reset unplayed maps if it is empty
         if len(self.unplayed_maps) == 0:
             self.unplayed_maps = self.maps.copy()
-            print('All Maps Have Been Played, Refilled Map Selection With All Maps')
+            print("All Maps Have Been Played, Refilled Map Selection With All Maps")
 
         # reset players
         for player_id in self.game['players']:
-            self.overwrite_player_data(player_id, 'respawn', True)
+            self.overwrite_player_data(player_id, "respawn", True)
 
         # get start time
         self.game_start_time = time()
@@ -138,26 +138,26 @@ class Server:
                 if player_id in self.threaded_clients and self.threaded_clients[player_id]:
                     return True
                 else:
-                    print(f'Command Error: No Client Is Connected With The ID {player_id}')
+                    print(f"Command Error: No Client Is Connected With The ID {player_id}")
                     return False
             else:
-                print('Command Error: Please Specify A Player ID Connected To The Server')
+                print("Command Error: Please Specify A Player ID Connected To The Server")
                 return False
         else:
-            print(f'Command Error: Requires At Least {min_length} Arguments')
+            print(f"Command Error: Requires At Least {min_length} Arguments")
             return False
 
     def verify_name_command(self, min_length, command):
         if len(command) >= min_length:
             # find player username by id
-            username = ' '.join(command[min_length - 1:])
+            username = " ".join(command[min_length - 1:])
             if username in self.client_id_username:
                 return True
             else:
-                print(f'Command Error: No Client Connected With The Username {username}')
+                print(f"Command Error: No Client Connected With The Username {username}")
                 return False
         else:
-            print(f'Command Error: Requires At Least {min_length} Arguments')
+            print(f"Command Error: Requires At Least {min_length} Arguments")
             return False
 
     def threaded_input(self):
@@ -169,175 +169,143 @@ class Server:
 
                 # show a list of valid commands
                 # syntax: help
-                if command[0] == 'help':
-                    print('Valid Commands Are As Follows:')
+                if command[0] == "help":
+                    print("Valid Commands Are As Follows:")
                     for command in self.server_commands:
-                        print(f'\t- {command}')
+                        print(f"\t- {command}")
 
                 # list all player ids and their respective usernames connected to the server
                 # syntax: listall
-                elif command[0] == 'listall':
+                elif command[0] == "listall":
                     if len(self.game['players']) > 0:
-                        print('All Players Connected Are As Follows:')
+                        print("All Players Connected Are As Follows:")
                         for player_id, username in self.client_id_username.items():
                             if type(player_id) is int:
-                                print(f'\t- ID: {player_id} - Username: {username}')
+                                print(f"\t- ID: {player_id} - Username: {username}")
                     else:
-                        print('Command Error: There Are No Clients Currently Connected To The Server')
+                        print("Command Error: There Are No Clients Currently Connected To The Server")
 
                 # get a player username by id
                 # syntax: getusername <player_id>
-                elif command[0] == 'getusername':
+                elif command[0] == "getusername":
                     if self.verify_id_command(2, command):
                         player_id = int(command[1])
                         print(
-                            f'Client ID {player_id} Has The Username {self.client_id_username[player_id]}')
+                            f"Client ID {player_id} Has The Username {self.client_id_username[player_id]}")
 
                 # get a player id by username
                 # syntax: getid <player_username>
-                elif command[0] == 'getid':
+                elif command[0] == "getid":
                     if self.verify_name_command(2, command):
-                        username = ' '.join(command[1:])
+                        username = " ".join(command[1:])
                         player_id = self.client_id_username[username]
-                        print(f'Client With The Username {username} Has The ID {player_id}')
-
-                # change an attribute of a client's player
-                # syntax: setattr <client_id> <attribute> <new_value>
-                elif command[0] == 'setattr':
-                    pass
-                    '''
-                    if self.verify_id_command(3, command):
-                        player_id = int(command[1])
-                        attr = command[2]
-                        # player ids cannot be modified
-                        if attr != 'player_id':
-                            # check if that attribute exists
-                            if hasattr(self.game['players'][player_id], attr):
-                                new_value = command[3]
-                                if new_value.isdigit():
-                                    new_value = int(new_value)
-                                attr_type = type(getattr(self.game['players'][player_id], attr))
-                                # only change the attribute if the types match, to prevent error
-                                if type(new_value) == attr_type:
-                                    setattr(self.game['players'][player_id], attr, new_value)
-                                    # modify the player data
-                                    self.overwrite_player_data(player_id, attr, new_value)
-                                    print(f'Changed Client ID {player_id}\'s {attr} Attribute To {new_value}')
-                                else:
-                                    # changing the data type will likely cause an error, so the server will not allow it
-                                    print('Attribute Not Changed: '
-                                          f'Attribute Is Of Type {attr_type} But Type {type(new_value)} Was Given')
-                            else:
-                                print(f'The Attribute {attr} Does Not Exist')
-                        else:
-                            print('Player IDs Cannot Be Changed')
-                    '''
+                        print(f"Client With The Username {username} Has The ID {player_id}")
 
                 # change the username of a client
                 # syntax: setusername <client_id> <new_player_username>
-                elif command[0] == 'setusername':
+                elif command[0] == "setusername":
                     if self.verify_id_command(2, command):
                         player_id = int(command[1])
-                        new_username = ' '.join(command[2:])
+                        new_username = " ".join(command[2:])
 
-                        self.overwrite_player_data(player_id, 'username', new_username)
-                        print(f'Changed The Username Of Client ID {player_id} To {new_username}')
+                        self.overwrite_player_data(player_id, "username", new_username)
+                        print(f"Changed The Username Of Client ID {player_id} To {new_username}")
 
                 # change the username color of a client
-                elif command[0] == 'setcolor':
+                elif command[0] == "setcolor":
                     pass
                     #if self.verify_id_command()
 
                 # kick a client from the server
                 # syntax: kick <client_id>
-                elif command[0] == 'kick':
+                elif command[0] == "kick":
                     if self.verify_id_command(2, command):
                         player_id = int(command[1])
                         self.threaded_clients[player_id] = False
-                        print(f'Kicked Client {player_id}')
+                        print(f"Kicked Client {player_id}")
 
                 # kick all current players from the server
                 # syntax: kickall
-                elif command[0] == 'kickall':
-                    if len(self.game['players']) > 0:
-                        print(f'All {len(self.game["players"])} Clients Have Been Kicked From The Server')
+                elif command[0] == "kickall":
+                    if len(self.game["players"]) > 0:
+                        print(f"All {len(self.game['players'])} Clients Have Been Kicked From The Server")
                         for player_id in self.game['players']:
                             self.threaded_clients[player_id] = False
                     else:
-                        print('Command Error: There Are No Clients Currently Connected To The Server')
+                        print("Command Error: There Are No Clients Currently Connected To The Server")
 
-                # change a player's position to be the spawn location
+                # change a player"s position to be the spawn location
                 # syntax: respawn <client_id>
-                elif command[0] == 'respawn':
+                elif command[0] == "respawn":
                     if self.verify_id_command(2, command):
                         player_id = int(command[1])
-                        self.overwrite_player_data(player_id, 'respawn', True)
-                        print(f'Respawned The Player With Client ID {player_id}')
+                        self.overwrite_player_data(player_id, "respawn", True)
+                        print(f"Respawned The Player With Client ID {player_id}")
 
                 # stop a player from moving
                 # syntax: freeze <client_id>
-                elif command[0] == 'freeze':
+                elif command[0] == "freeze":
                     if self.verify_id_command(2, command):
                         player_id = int(command[1])
-                        self.overwrite_player_data(player_id, 'frozen', True)
-                        print(f'Player {player_id} Has Been Frozen')
+                        self.overwrite_player_data(player_id, "frozen", True)
+                        print(f"Player {player_id} Has Been Frozen")
 
                 # allow a player to move again
                 # syntax: unfreeze <client_id>
-                elif command[0] == 'unfreeze':
+                elif command[0] == "unfreeze":
                     if self.verify_id_command(2, command):
                         player_id = int(command[1])
-                        self.overwrite_player_data(player_id, 'frozen', False)
-                        print(f'Player {player_id} Has Been Unfrozen')
+                        self.overwrite_player_data(player_id, "frozen", False)
+                        print(f"Player {player_id} Has Been Unfrozen")
 
                 # freeze all players
                 # syntax: freezeall
-                elif command[0] == 'freezeall':
+                elif command[0] == "freezeall":
                     for player_id in self.game['players']:
-                        self.overwrite_player_data(player_id, 'frozen', True)
-                    print('All Players Have Been Frozen')
+                        self.overwrite_player_data(player_id, "frozen", True)
+                    print("All Players Have Been Frozen")
 
                 # unfreeze all players
                 # syntax: unfreezeall
-                elif command[0] == 'unfreezeall':
+                elif command[0] == "unfreezeall":
                     for player_id in self.game['players']:
-                        self.overwrite_player_data(player_id, 'frozen', False)
-                    print('All Players Have Been Unfrozen')
+                        self.overwrite_player_data(player_id, "frozen", False)
+                    print("All Players Have Been Unfrozen")
 
                 # open the server to new client connections
                 # syntax: open
-                elif command[0] == 'open':
+                elif command[0] == "open":
                     if self.open:
-                        print('Server Is Already Open')
+                        print("Server Is Already Open")
                     else:
                         self.open = True
-                        print('Server Will Now Open')
+                        print("Server Will Now Open")
 
                 # close the server to new client connections
                 # syntax: close
-                elif command[0] == 'close':
+                elif command[0] == "close":
                     if not self.open:
-                        print('Server Is Already Closed')
+                        print("Server Is Already Closed")
                     else:
                         self.open = False
-                        print('Server Will Now Close')
+                        print("Server Will Now Close")
 
                 # end the program
                 # syntax: end
-                elif command[0] == 'end':
+                elif command[0] == "end":
                     self.end()
 
                 else:
-                    print('Command Error: Not A Valid Command, Do help For A List Of Valid Commands')
+                    print("Command Error: Not A Valid Command, Do help For A List Of Valid Commands")
 
             else:
-                print('Command Error: No Command Was Given')
+                print("Command Error: No Command Was Given")
 
     def overwrite_player_data(self, player_id, attribute, new_value):
         # change data that will be sent over the network
         setattr(self.game['players'][player_id], attribute, new_value)
 
-        if attribute == 'username':
+        if attribute == "username":
             # update stored data to match the new data if a username switch happened
             self.client_id_username[player_id] = new_value
             self.client_id_username[new_value] = player_id
@@ -389,7 +357,7 @@ class Server:
                         for collision_player_id in data.collisions:
                             collision_player = self.game['players'][collision_player_id]
                             if collision_player.respawn is False and collision_player.current_respawn_time is False and collision_player.current_crash_time is False:
-                                self.overwrite_player_data(collision_player_id, 'destroy', True)
+                                self.overwrite_player_data(collision_player_id, "destroy", True)
                         data.collisions.clear()
 
                     # update the client id to username finder
@@ -425,12 +393,12 @@ class Server:
 
         else:
             # disconnect the unverified client
-            print(f'Client {player_id} Denied Access:', reason)
+            print(f"Client {player_id} Denied Access:", reason)
 
             self.disconnect_client(player_id)
 
     def count_players(self):
-        print(f'There Are {len(self.game["players"])}/{MAX_CLIENTS} Clients Connected')
+        print(f"There Are {len(self.game['players'])}/{MAX_CLIENTS} Clients Connected")
 
     def verify_client(self, connection):
         # verify client has a unique username and the server has room
@@ -439,18 +407,18 @@ class Server:
         reason = None
         if not bool(player_data.username):
             verify = False
-            reason = f'Please Enter A Username'
+            reason = f"Please Enter A Username"
         for player in self.game['players'].values():
             # use .lower() to ensure there are no duplicate usernames by case
             if player.username == player_data.username.lower():
                 verify = False
-                reason = f'Username Is Already Taken ({player_data.username})'
+                reason = f"Username Is Already Taken ({player_data.username})"
         if len(self.game['players']) > MAX_CLIENTS:
             verify = False
-            reason = f'Too Many Clients Connected To Server ({len(self.game["players"]) - 1}/{MAX_CLIENTS})'
+            reason = f"Too Many Clients Connected To Server ({len(self.game['players']) - 1}/{MAX_CLIENTS})"
         if not self.open:
             verify = False
-            reason = 'The Server Is Currently Not Accepting New Connections'
+            reason = "The Server Is Currently Not Accepting New Connections"
         return verify, reason, player_data
 
     def disconnect_client(self, player_id):
@@ -465,12 +433,12 @@ class Server:
             del self.game['players'][player_id]
 
             # client disconnected server message
-            print(f'\nClient {player_id} Has Disconnected')
+            print(f"\nClient {player_id} Has Disconnected")
             # update total player count
             self.count_players()
         except KeyError:
             # the client was never verified (clients are only added to client_id_username and game data if verified)
-            print(f'Client {player_id} Has Been Forcefully Disconnected By The Server')
+            print(f"Client {player_id} Has Been Forcefully Disconnected By The Server")
 
         # remove the player from the connections list
         self.threaded_clients[player_id] = False
@@ -478,6 +446,6 @@ class Server:
         del self.connections[player_id]
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     s = Server()
     s.run()

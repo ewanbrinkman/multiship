@@ -4,7 +4,7 @@ from settings import *
 
 
 def format_map(filename):
-    return filename[:-4].replace('_', ' ').title()
+    return filename[:-4].replace("_", " ").title()
 
 
 class Camera:

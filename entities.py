@@ -18,7 +18,7 @@ def collide_hit_rect_both(one, two):
 
 
 def collide_group(sprite, group, direction):
-    if direction == 'x':
+    if direction == "x":
         hits = pg.sprite.spritecollide(sprite, group, False, collide_hit_rect_both)
         if hits:
             if hits[0].hit_rect.centerx > sprite.hit_rect.centerx:
@@ -27,7 +27,7 @@ def collide_group(sprite, group, direction):
                 sprite.pos.x = hits[0].hit_rect.right + sprite.hit_rect.width / 2
             sprite.vel.x = 0
             sprite.hit_rect.centerx = sprite.pos.x
-    if direction == 'y':
+    if direction == "y":
         hits = pg.sprite.spritecollide(sprite, group, False, collide_hit_rect_both)
         if hits:
             if hits[0].hit_rect.centery > sprite.hit_rect.centery:
@@ -39,20 +39,20 @@ def collide_group(sprite, group, direction):
 
 
 def alpha(sprite, r, g, b, type):
-    if type == 'respawn':
+    if type == "respawn":
         alpha_chain = sprite.respawn_alpha
         blend_type = pg.BLEND_RGBA_MULT
-    elif type == 'power':
+    elif type == "power":
         alpha_chain = sprite.power_alpha
         blend_type = pg.BLEND_RGBA_MULT
     try:
         sprite.image.fill((r, g, b, next(alpha_chain)), special_flags=blend_type)
     except StopIteration:
-        if type == 'respawn':
+        if type == "respawn":
             sprite.respawn_alpha = chain(RESPAWN_ALPHA)
             alpha_chain = sprite.respawn_alpha
             blend_type = pg.BLEND_RGBA_MULT
-        elif type == 'power':
+        elif type == "power":
             sprite.power_alpha = chain(POWER_ALPHA)
             alpha_chain = sprite.power_alpha
             blend_type = pg.BLEND_RGBA_MULT
@@ -154,10 +154,10 @@ class SpritePlayer(pg.sprite.Sprite):
 
         # respawn invincibility effect
         if self.current_respawn_time:
-            alpha(self, 255, 255, 255, 'respawn')
+            alpha(self, 255, 255, 255, "respawn")
         # power invincibility effect
         if self.power_invincible:
-            alpha(self, 242, 255, 114, 'power')
+            alpha(self, 242, 255, 114, "power")
 
     def match_net_player(self):
         # get the correct player to overwrite data
@@ -201,14 +201,14 @@ class SpritePlayer(pg.sprite.Sprite):
 
     def apply_friction(self, movement_type):
         # north, south, east, and west movement
-        if movement_type == 'nsew':
+        if movement_type == "nsew":
             hits = pg.sprite.spritecollide(self, self.client.shallows, False, collide_hit_rect_both)
             if hits:
                 return PLAYER_SHALLOW_FRICTION
             else:
                 return PLAYER_WATER_FRICTION
         # rotation movement
-        elif movement_type == 'rot':
+        elif movement_type == "rot":
             hits = pg.sprite.spritecollide(self, self.client.shallows, False, collide_hit_rect_both)
             if hits:
                 return PLAYER_SHALLOW_ROT_FRICTION
@@ -235,7 +235,7 @@ class SpritePlayer(pg.sprite.Sprite):
         self.current_respawn_time = pg.time.get_ticks() - self.respawn_time
 
     def player_hit(self, direction):
-        if direction == 'x':
+        if direction == "x":
             hits = pg.sprite.spritecollide(self, self.client.players, False, collide_hit_rect_both)
             if hits:
                 for hit in hits:
@@ -244,7 +244,7 @@ class SpritePlayer(pg.sprite.Sprite):
                             self.vel.x = -PLAYER_BOUNCE_VEL
                         if hit.hit_rect.centerx < self.hit_rect.centerx:
                             self.vel.x = PLAYER_BOUNCE_VEL
-        if direction == 'y':
+        if direction == "y":
             hits = pg.sprite.spritecollide(self, self.client.players, False, collide_hit_rect_both)
             if hits:
                 for hit in hits:
@@ -267,7 +267,7 @@ class SpritePlayer(pg.sprite.Sprite):
 
     def destroy_player(self):
         self.destroy = False
-        self.image_string = PLAYER_IMGS['broken' + self.image_color]
+        self.image_string = PLAYER_IMGS["broken" + self.image_color]
         self.crash_time = pg.time.get_ticks()
         self.current_crash_time = pg.time.get_ticks() - self.crash_time
 
@@ -311,7 +311,7 @@ class SpritePlayer(pg.sprite.Sprite):
             # change position
 
             # apply friction
-            self.acc += self.vel * self.apply_friction('nsew')
+            self.acc += self.vel * self.apply_friction("nsew")
 
             # new velocity after
             self.vel = self.vel + self.acc * self.client.dt
@@ -323,7 +323,7 @@ class SpritePlayer(pg.sprite.Sprite):
             # change image
 
             # apply friction
-            self.rot_acc += self.rot_vel * self.apply_friction('rot')
+            self.rot_acc += self.rot_vel * self.apply_friction("rot")
 
             # new velocity after
             self.rot_vel = self.rot_vel + self.rot_acc * self.client.dt
@@ -337,9 +337,9 @@ class SpritePlayer(pg.sprite.Sprite):
         old_pos = Vec(self.pos.x, self.pos.y)
         # collision detection
         self.hit_rect.centerx = self.pos.x
-        collide_group(self, self.client.walls, 'x')
+        collide_group(self, self.client.walls, "x")
         self.hit_rect.centery = self.pos.y
-        collide_group(self, self.client.walls, 'y')
+        collide_group(self, self.client.walls, "y")
         # match the sprite's rect with where it should be based on the hit rect
         self.rect.center = self.hit_rect.center
 
@@ -347,9 +347,9 @@ class SpritePlayer(pg.sprite.Sprite):
         self.hit_rect.center = (old_pos.x, old_pos.y)
         # player hits collision detection
         self.hit_rect.centerx = self.pos.x
-        self.player_hit('x')
+        self.player_hit("x")
         self.hit_rect.centery = self.pos.y
-        self.player_hit('y')
+        self.player_hit("y")
         # match the sprite's rect with where it should be based on the hit rect
         self.rect.center = self.hit_rect.center
 
@@ -361,9 +361,9 @@ class SpritePlayer(pg.sprite.Sprite):
 
 class Obstacle(pg.sprite.Sprite):
     def __init__(self, client, x, y, width, height, type):
-        if type == 'wall':
+        if type == "wall":
             self.groups = client.all_sprites, client.obstacles, client.walls
-        elif type == 'shallow':
+        elif type == "shallow":
             self.groups = client.all_sprites, client.obstacles, client.shallows
         pg.sprite.Sprite.__init__(self, self.groups)
         self.rect = pg.Rect(x, y, width, height)

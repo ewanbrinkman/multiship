@@ -16,7 +16,7 @@ class Client:
         self.server_ip = SERVER_IP
         self.port = PORT
         # client attributes
-        self.username = ''
+        self.username = ""
         self.image_string = PLAYER_IMGS[PLAYER_IMGS_CYCLE[0]]
         self.running = True
         self.menu = True
@@ -70,10 +70,10 @@ class Client:
     def load(self):
         # folders
         game_folder = path.dirname(__file__)
-        font_folder = path.join(game_folder, 'font')
-        img_folder = path.join(game_folder, 'img')
-        snd_folder = path.join(game_folder, 'snd')
-        self.map_folder = path.join(game_folder, 'map')
+        font_folder = path.join(game_folder, "font")
+        img_folder = path.join(game_folder, "img")
+        snd_folder = path.join(game_folder, "snd")
+        self.map_folder = path.join(game_folder, "map")
 
         # app icon
         self.icon = pg.image.load(path.join(img_folder, ICON_IMG))
@@ -113,19 +113,19 @@ class Client:
         # map objects
         for tile_object in self.map.tilemap_data.objects:
             # obstacles
-            if tile_object.type == 'obstacle':
-                if tile_object.name == 'wall':
+            if tile_object.type == "obstacle":
+                if tile_object.name == "wall":
                     Obstacle(self, tile_object.x, tile_object.y,
-                             tile_object.width, tile_object.height, 'wall')
-                if tile_object.name == 'shallow':
+                             tile_object.width, tile_object.height, "wall")
+                if tile_object.name == "shallow":
                     Obstacle(self, tile_object.x, tile_object.y,
-                             tile_object.width, tile_object.height, 'shallow')
-            if tile_object.type == 'spawn':
+                             tile_object.width, tile_object.height, "shallow")
+            if tile_object.type == "spawn":
                 self.spawn_points.append(Vec(tile_object.x + tile_object.width / 2, tile_object.y + tile_object.height / 2))
 
     def connect(self):
         # connect to the server
-        print(f'\nConnecting To Server At {self.server_ip}:{self.port}')
+        print(f"\nConnecting To Server At {self.server_ip}:{self.port}")
         self.network = Network(self.server_ip, self.port)
         self.player = self.network.get_player()
         # connected if a response was received from the server and the client's data isn't taken
@@ -140,13 +140,13 @@ class Client:
                 return False, reason
         else:
             # cannot connect to specified address
-            return False, f'Cannot Connect To A Server At {self.server_ip}:{self.port}'
+            return False, f"Cannot Connect To A Server At {self.server_ip}:{self.port}"
 
     def disconnect(self):
         if self.kicked:
-            print(f'\nKicked From Server At {self.network.server_ip}:{self.network.server_port}')
+            print(f"\nKicked From Server At {self.network.server_ip}:{self.network.server_port}")
         else:
-            print(f'\nDisconnected From Server At {self.network.server_ip}:{self.network.server_port}')
+            print(f"\nDisconnected From Server At {self.network.server_ip}:{self.network.server_port}")
         self.network.client.close()
         self.connected = False
         self.menu = True
@@ -162,9 +162,9 @@ class Client:
 
         verify, reason = self.network.send(self.player)
         if verify:
-            print('Successfully Joined Server')
+            print("Successfully Joined Server")
         else:
-            reason = 'Connection Refused: ' + reason
+            reason = "Connection Refused: " + reason
             print(reason)
             self.main_menu_text = reason
         return verify, reason
@@ -180,7 +180,7 @@ class Client:
         # set up display
         self.screen = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pg.FULLSCREEN)
         pg.display.set_caption(
-            f'Client ID: {self.player_id} - Username: {self.username} - FPS: {round(self.clock.get_fps(), 2)}')
+            f"Client ID: {self.player_id} - Username: {self.username} - FPS: {round(self.clock.get_fps(), 2)}")
 
         # load data
         self.load()
@@ -197,12 +197,12 @@ class Client:
                 self.game_loop()
             # quit the program
             else:
-                print('\nQuiting Program Loop...')
+                print("\nQuiting Program Loop...")
 
-        print('Quiting Pygame...')
+        print("Quiting Pygame...")
         pg.quit()
 
-        print('Bye!')
+        print("Bye!")
 
     def main_menu(self):
         # allows the user to hold down a key when entering text into an entry box
@@ -212,26 +212,26 @@ class Client:
         self.update_player_image()
 
         # entry boxes
-        self.entry_boxes['username'] = EntryBox(SCREEN_WIDTH / 2 - ENTRY_WIDTH / 2,
+        self.entry_boxes["username"] = EntryBox(SCREEN_WIDTH / 2 - ENTRY_WIDTH / 2,
                                                 140, ENTRY_WIDTH,
                                                 self.theme_font, VALID_USERNAME, text=self.username)
-        self.entry_boxes['server ip'] = EntryBox(SCREEN_WIDTH / 2 - ENTRY_WIDTH / 2,
+        self.entry_boxes["server ip"] = EntryBox(SCREEN_WIDTH / 2 - ENTRY_WIDTH / 2,
                                                  210, ENTRY_WIDTH,
                                                  self.theme_font, VALID_IP, text=self.server_ip)
-        self.entry_boxes['port'] = EntryBox(SCREEN_WIDTH / 2 - ENTRY_WIDTH / 2,
+        self.entry_boxes["port"] = EntryBox(SCREEN_WIDTH / 2 - ENTRY_WIDTH / 2,
                                             280, ENTRY_WIDTH,
                                             self.theme_font, VALID_PORT, text=str(self.port))
         # buttons
-        self.buttons['connect'] = Button(SCREEN_WIDTH / 2 - SCREEN_WIDTH / 4,
+        self.buttons["connect"] = Button(SCREEN_WIDTH / 2 - SCREEN_WIDTH / 4,
                                          TILESIZE * 11 + TILESIZE / 2 - TILESIZE / 8, BUTTON_WIDTH, BUTTON_HEIGHT,
-                                         self.theme_font, text='Connect')
-        self.buttons['quit'] = Button(SCREEN_WIDTH / 2 + SCREEN_WIDTH / 4 - BUTTON_WIDTH,
+                                         self.theme_font, text="Connect")
+        self.buttons["quit"] = Button(SCREEN_WIDTH / 2 + SCREEN_WIDTH / 4 - BUTTON_WIDTH,
                                       TILESIZE * 11 + TILESIZE / 2 - TILESIZE / 8, BUTTON_WIDTH, BUTTON_HEIGHT,
-                                      self.theme_font, text='Quit')
-        self.buttons['right'] = Button(SCREEN_WIDTH / 2 + 100, 570 - self.selected_player_image_rect.height / 2,
-                                       BUTTON_WIDTH, BUTTON_HEIGHT, self.theme_font, text='Right')
-        self.buttons['left'] = Button(SCREEN_WIDTH / 2 - 100 - BUTTON_WIDTH, 570 - self.selected_player_image_rect.height / 2,
-                                       BUTTON_WIDTH, BUTTON_HEIGHT, self.theme_font, text='Left')
+                                      self.theme_font, text="Quit")
+        self.buttons["right"] = Button(SCREEN_WIDTH / 2 + 100, 570 - self.selected_player_image_rect.height / 2,
+                                       BUTTON_WIDTH, BUTTON_HEIGHT, self.theme_font, text="Right")
+        self.buttons["left"] = Button(SCREEN_WIDTH / 2 - 100 - BUTTON_WIDTH, 570 - self.selected_player_image_rect.height / 2,
+                                       BUTTON_WIDTH, BUTTON_HEIGHT, self.theme_font, text="Left")
 
         # background music
         pg.mixer.music.load(self.menu_music)
@@ -251,13 +251,13 @@ class Client:
 
     def select_player_image(self, direction):
         # select a new player image by moving right or left through the list
-        if direction == 'right':
+        if direction == "right":
             if self.current_img_cycle == (len(PLAYER_IMGS_CYCLE) - 1):
                 self.current_img_cycle = 0
             else:
                 self.current_img_cycle += 1
             self.image_string = PLAYER_IMGS[PLAYER_IMGS_CYCLE[self.current_img_cycle]]
-        elif direction == 'left':
+        elif direction == "left":
             if self.current_img_cycle == 0:
                 self.current_img_cycle = (len(PLAYER_IMGS_CYCLE) - 1)
             else:
@@ -302,10 +302,10 @@ class Client:
                         pg.mixer.music.set_volume(1)
                 # change selected image
                 if event.key == K_RIGHT:
-                    self.select_player_image('right')
+                    self.select_player_image("right")
                 # change selected image
                 if event.key == K_LEFT:
-                    self.select_player_image('left')
+                    self.select_player_image("left")
 
             # update entry boxes with pygame events
             for entry_box in self.entry_boxes.values():
@@ -315,37 +315,37 @@ class Client:
             for button_name, button in self.buttons.items():
                 if button.events(event, pg.mouse.get_pos()):
                     # update display to say connecting
-                    if button_name == 'connect':
+                    if button_name == "connect":
                         # try to connect
                         verify, reason = self.connect()
                         if verify:
-                            self.main_menu_text = 'Connected!'
+                            self.main_menu_text = "Connected!"
                             self.menu = False
                         # cannot connect to the specified address
                         else:
                             self.main_menu_text = reason
 
-                    elif button_name == 'quit':
+                    elif button_name == "quit":
                         self.menu = False
                         self.running = False
 
-                    elif button_name == 'right':
-                        self.select_player_image('right')
+                    elif button_name == "right":
+                        self.select_player_image("right")
 
-                    elif button_name == 'left':
-                        self.select_player_image('left')
+                    elif button_name == "left":
+                        self.select_player_image("left")
 
     def menu_update(self):
         # update display caption with useful information
         pg.display.set_caption(
-            f'Client - ID: {self.player_id} - Username: {self.username} - FPS: {round(self.clock.get_fps(), 2)}')
+            f"Client - ID: {self.player_id} - Username: {self.username} - FPS: {round(self.clock.get_fps(), 2)}")
 
         # update with the data entered by the user
-        self.username = self.entry_boxes['username'].text
-        self.server_ip = self.entry_boxes['server ip'].text
-        port_text = self.entry_boxes['port'].text
+        self.username = self.entry_boxes["username"].text
+        self.server_ip = self.entry_boxes["server ip"].text
+        port_text = self.entry_boxes["port"].text
         if port_text:
-            self.port = int(self.entry_boxes['port'].text)
+            self.port = int(self.entry_boxes["port"].text)
         else:
             self.port = 0
 
@@ -357,10 +357,10 @@ class Client:
 
         # title
         self.draw_text(GAME_TITLE, TITLE_SIZE, TEXT_COLOR, SCREEN_WIDTH / 2, 70,
-                       align='center', font_name=self.theme_font)
+                       align="center", font_name=self.theme_font)
         # main menu text
         self.draw_text(self.main_menu_text, NORMAL_SIZE, TEXT_COLOR, SCREEN_WIDTH / 2, 450,
-                       align='center', font_name=self.theme_font)
+                       align="center", font_name=self.theme_font)
 
         # entry boxes
         for entry_box in self.entry_boxes.values():
@@ -379,7 +379,7 @@ class Client:
     def load_game_data(self):
         # get the game data to load anything before starting the game loop
         self.game = self.network.send(self.player)
-        self.current_map = self.game['current map']
+        self.current_map = self.game["current map"]
 
         # create the map
         self.create_map(self.current_map)
@@ -403,7 +403,7 @@ class Client:
         for sprite in self.all_sprites.sprites():
             sprite.kill()  # will delete all sprites, including any other groups they are also in
         if self.kicked:
-            self.main_menu_text = 'You Have Been Kicked From The Server'
+            self.main_menu_text = "You Have Been Kicked From The Server"
         else:
             self.main_menu_text = MAIN_MENU_TEXT
 
@@ -473,13 +473,13 @@ class Client:
 
     def game_update(self):
         # update client's player with data received over the network
-        self.player = self.game['players'][self.player_id]
+        self.player = self.game["players"][self.player_id]
 
         # create new pygame sprites for newly joined players
-        for player_id in self.game['players']:
+        for player_id in self.game["players"]:
             if player_id not in self.player_ids:
                 self.player_ids.append(player_id)
-                SpritePlayer(self, self.game['players'][player_id])
+                SpritePlayer(self, self.game["players"][player_id])
 
         # update all sprite data, or kill the sprite if the player has disconnected
         self.players.update()
@@ -489,18 +489,18 @@ class Client:
             if sprite_player.player_id == self.player_id:
                 # key presses and collision detection
                 sprite_player.update_client()
-                # update camera to focus on the client's player
+                # update camera to focus on the client"s player
                 self.camera.update(sprite_player)
 
-        # update the client's net work player to match the client's sprite player
-        # this is required to send the server the updated data of the client's player
+        # update the client"s net work player to match the client"s sprite player
+        # this is required to send the server the updated data of the client"s player
         for sprite_player in self.players:
             if sprite_player.player_id == self.player_id:
                 update_net_object(self.player, sprite_player)
 
         # update display caption with useful information
         pg.display.set_caption(
-            f'Client - ID: {self.player_id} - Username: {self.username} - FPS: {round(self.clock.get_fps(), 2)}')
+            f"Client - ID: {self.player_id} - Username: {self.username} - FPS: {round(self.clock.get_fps(), 2)}")
 
     def draw_grid(self):
         # a grid of lines to represent the tiles of the map
@@ -527,24 +527,24 @@ class Client:
                                                     spawn.y + self.camera.y - TILESIZE / 4,
                                                     TILESIZE / 2, TILESIZE / 2), 1)
         # debug overlay info
-        # f'Client ID: {self.player_id} - Username: {self.username} - FPS: {round(self.clock.get_fps(), 2)}')
+        # f"Client ID: {self.player_id} - Username: {self.username} - FPS: {round(self.clock.get_fps(), 2)}")
         text_rect = self.draw_text(f"Client ID: {self.player_id}", OVERLAY_SIZE, TEXT_COLOR,
                        SCREEN_WIDTH - OVERLAY_WIDTH_DISTANCE, OVERLAY_HEIGHT_DISTANCE,
-                       align='ne', font_name=self.theme_font)
+                       align="ne", font_name=self.theme_font)
         self.draw_text(f"Username: {self.username}", OVERLAY_SIZE, TEXT_COLOR,
                        SCREEN_WIDTH - OVERLAY_WIDTH_DISTANCE, OVERLAY_HEIGHT_DISTANCE + text_rect.height,
-                       align='ne', font_name=self.theme_font)
+                       align="ne", font_name=self.theme_font)
         self.draw_text(f"FPS: {round(self.clock.get_fps(), 2)}", OVERLAY_SIZE, TEXT_COLOR,
                        SCREEN_WIDTH - OVERLAY_WIDTH_DISTANCE, OVERLAY_HEIGHT_DISTANCE + text_rect.height * 2,
-                       align='ne', font_name=self.theme_font)
+                       align="ne", font_name=self.theme_font)
 
     def draw_overlay(self):
         self.draw_text(f"Players: {len(self.game['players'])}/{MAX_CLIENTS}", OVERLAY_SIZE, TEXT_COLOR,
                        OVERLAY_WIDTH_DISTANCE, OVERLAY_HEIGHT_DISTANCE,
-                       align='nw', font_name=self.theme_font)
+                       align="nw", font_name=self.theme_font)
         self.draw_text(f"Map Name: {format_map(self.game['current map'])}", OVERLAY_SIZE, TEXT_COLOR,
                        SCREEN_WIDTH / 2, OVERLAY_HEIGHT_DISTANCE,
-                       align='n', font_name=self.theme_font)
+                       align="n", font_name=self.theme_font)
 
     def game_draw(self):
         # background
@@ -565,7 +565,7 @@ class Client:
             self.draw_text(sprite_player.username, USERNAME_SIZE, sprite_player.fillcolor,
                            sprite_player.pos.x + self.camera.x,
                            sprite_player.hit_rect.top + USERNAME_HEIGHT + self.camera.y,
-                           align='s', font_name=self.theme_font)
+                           align="s", font_name=self.theme_font)
 
         # debug information
         if self.debug:
@@ -577,33 +577,33 @@ class Client:
         # update the client's monitor
         pg.display.flip()
 
-    def draw_text(self, text, size, fillcolor, x, y, align='n', font_name=None, ):
+    def draw_text(self, text, size, fillcolor, x, y, align="n", font_name=None, ):
         font = pg.font.Font(font_name, size)
         text_surface = font.render(text, True, fillcolor)
         text_rect = text_surface.get_rect()
-        if align == 'nw':
+        if align == "nw":
             text_rect.topleft = (x, y)
-        elif align == 'ne':
+        elif align == "ne":
             text_rect.topright = (x, y)
-        elif align == 'sw':
+        elif align == "sw":
             text_rect.bottomleft = (x, y)
-        elif align == 'se':
+        elif align == "se":
             text_rect.bottomright = (x, y)
-        elif align == 'n':
+        elif align == "n":
             text_rect.midtop = (x, y)
-        elif align == 's':
+        elif align == "s":
             text_rect.midbottom = (x, y)
-        elif align == 'e':
+        elif align == "e":
             text_rect.midright = (x, y)
-        elif align == 'w':
+        elif align == "w":
             text_rect.midleft = (x, y)
-        elif align == 'center':
+        elif align == "center":
             text_rect.center = (x, y)
         self.screen.blit(text_surface, text_rect)
 
         return text_rect
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     c = Client()
     c.run()
