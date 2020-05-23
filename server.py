@@ -36,7 +36,7 @@ class Server:
         self.client_changes = {}
         self.server_commands = ["help", "listall", "getusername", "getid", "setattr", "setusername", "setcolor",
                                 "kick", "kickall", "respawn", "freeze", "unfreeze", "freezeall", "unfreezeall",
-                                "open", "close"]
+                                "setitem", "open", "close"]
         self.current_player = 0  # the current client id
         # game attributes
         self.clock = None
@@ -159,7 +159,7 @@ class Server:
         for tile_object in tilemap_data.objects:
             # add each item to a dictionary to keep track if it is active or not
             if tile_object.type == "item":
-                self.game['items'][current_item_id] = True
+                self.game['items'][current_item_id] = [True, tile_object.name]
                 current_item_id += 1
 
         # reset unplayed maps if it is empty
@@ -330,6 +330,32 @@ class Server:
                     for player_id in self.game['players']:
                         self.overwrite_player_data(player_id, "frozen", False)
                     print("All Players Have Been Unfrozen")
+
+                # set an item to either be active (True) or inactive (False)
+                # syntax: setitem <item_id> <status>
+                elif command[0] == "setitem":
+                    item_id = command[1]
+                    # if the item id passed in is an integer
+                    if item_id.isdigit():
+                        item_id = int(item_id)
+                        # if the item id exisits
+                        if item_id in self.game['items']:
+                            if command[2] == "True" or command[2] == "False":
+                                if command[2] == "True":
+                                    # make the item active
+                                    self.game['items'][item_id][0] = True
+                                    print(f"The Item With ID {item_id} Is Now Active")
+                                else:
+                                    # make the item inactive
+                                    self.game['items'][item_id][0] = False
+                                    print(f"The Item With ID {item_id} Is Now Inactive")
+                            else:
+                                print("You Must Pass In \"True\" or \"False\" After The Item ID To Set The State")
+                        else:
+                            print("Item ID Not Found, "
+                                  f"Item IDs On The Current Map Go From 0-{(len(self.game['items']) - 1)}")
+                    else:
+                        print("Item IDs Must Be An Integer")
 
                 # open the server to new client connections
                 # syntax: open

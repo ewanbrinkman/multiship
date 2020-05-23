@@ -153,8 +153,7 @@ class Client:
             # items
             if tile_object.type == 'item':
                 if tile_object.name == 'power':
-                    self.item_spawns[current_item_id] = SpriteItem(self, tile_object.name, object_center,
-                                                                   current_item_id)
+                    self.item_spawns[current_item_id] = [False, object_center]
                 current_item_id += 1
 
     def connect(self):
@@ -510,11 +509,28 @@ class Client:
         # update client's player with data received over the network
         self.player = self.game['players'][self.player_id]
 
-        # create new pygame sprites for newly joined players
+        # create new pygame player sprites for newly joined players
         for player_id in self.game['players']:
             if player_id not in self.player_ids:
                 self.player_ids.append(player_id)
                 SpritePlayer(self, self.game['players'][player_id])
+        # create and destroy item sprites if they are active or not
+        for item_id, data in self.game['items'].items():
+            # data[0] is active or not, data[1] is the item name
+
+            # create an item that is now active
+            if data[0] and not self.item_spawns[item_id][0]:
+                SpriteItem(self, data[1], self.item_spawns[item_id][1], item_id)
+                # make sure an item is spawned again by setting the client side item active to True
+                self.item_spawns[item_id][0] = True
+
+            # delete an item that is not active anymore
+            if not data[0] and self.item_spawns[item_id][0]:
+                for item_sprite in self.items.sprites():
+                    if item_sprite.item_id == item_id:
+                        item_sprite.kill()
+                        # make sure the deletion process does not trigger again for this item id
+                        self.item_spawns[item_id][0] = False
 
         # update all sprite data, or kill the sprite if the player has disconnected
         self.players.update()
