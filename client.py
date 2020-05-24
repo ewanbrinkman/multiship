@@ -48,6 +48,7 @@ class Client:
         self.item_spawns = {}
         # sprite groups
         self.all_sprites = pg.sprite.Group()
+        self.colliders = pg.sprite.Group()
         self.players = pg.sprite.Group()
         self.obstacles = pg.sprite.Group()
         self.walls = pg.sprite.Group()
@@ -457,8 +458,11 @@ class Client:
             # events, update, draw
             self.game_events()
             if self.update_game_data():
-                self.game_update()
-                self.game_draw()
+                if self.game['game time'] > 0:
+                    self.game_update()
+                    self.game_draw()
+                else:
+                    self.new_game_screen()
 
         # reset client data when the client disconnects
         self.reset_data()
@@ -556,11 +560,22 @@ class Client:
         self.game_overlay_right = [f"Game Time Left: {format_time(self.game['game time'])}"]
         self.debug_overlay = [f"Client ID: {self.player_id}",
                               f"Username: {self.username}",
-                              f"FPS: {round(self.clock.get_fps(), 2)}"]
+                              f"FPS: {round(self.clock.get_fps(), 2)}",
+                              f"Ammo: {self.player.ammo}"]
 
         # update display caption with useful information
         pg.display.set_caption(
             f"Client - ID: {self.player_id} - Username: {self.username} - FPS: {round(self.clock.get_fps(), 2)}")
+
+    def draw_boundary(self, sprite, sprite_color):
+        # image boundary
+        pg.draw.rect(self.screen, sprite_color, self.camera.apply_sprite(sprite), 1)
+        # hit box
+        pg.draw.rect(self.screen, sprite_color, self.camera.apply_rect(sprite.hit_rect), 1)
+        surface = pg.Surface((sprite.hit_rect.width, sprite.hit_rect.height))
+        surface.set_alpha(128)
+        surface.fill(sprite_color)
+        self.screen.blit(surface, self.camera.apply_rect(sprite.hit_rect))
 
     def draw_grid(self):
         # a grid of lines to represent the tiles of the map
@@ -570,22 +585,35 @@ class Client:
             pg.draw.line(self.screen, GRID_COLOR, (0, y), (SCREEN_WIDTH, y))
 
     def draw_debug(self):
+        # draw the grid of tiles
         self.draw_grid()
-        # draw the sprite hit rects and image boundaries
-        for sprite in self.all_sprites:
-            pg.draw.rect(self.screen, IMAGE_RECT_COLOR, (sprite.rect.x + self.camera.x,
-                                                         sprite.rect.y + self.camera.y,
-                                                         sprite.rect.width,
-                                                         sprite.rect.height), 1)
-            pg.draw.rect(self.screen, HIT_RECT_COLOR, (sprite.hit_rect.x + self.camera.x,
-                                                       sprite.hit_rect.y + self.camera.y,
-                                                       sprite.hit_rect.width,
-                                                       sprite.hit_rect.height), 1)
-        # draw rectangles on map spawn points
-        for spawn in self.spawn_points:
-            pg.draw.rect(self.screen, SPAWN_COLOR, (spawn.x + self.camera.x - TILESIZE / 4,
-                                                    spawn.y + self.camera.y - TILESIZE / 4,
-                                                    TILESIZE / 2, TILESIZE / 2), 1)
+
+        # create an alpha layer over colliders
+        for collider in self.colliders:
+            self.draw_boundary(collider, collider.color)
+
+        for player_spawn in self.spawn_points:
+            # draw a rectangle centered on the player spawn point
+            pg.draw.rect(self.screen, PLAYER_SPAWN_COLOR, (player_spawn.x + self.camera.x - TILESIZE / 4,
+                                                           player_spawn.y + self.camera.y - TILESIZE / 4,
+                                                           TILESIZE / 2, TILESIZE / 2), 1)
+            # put text above saying that it is a spawn point
+            self.draw_text("Spawn", USERNAME_SIZE, TEXT_COLOR,
+                           player_spawn.x + self.camera.x,
+                           player_spawn.y - TILESIZE / 2 + USERNAME_HEIGHT + self.camera.y,
+                           align="s", font_name=self.theme_font)
+        for item_id, item_spawn in self.item_spawns.items():
+            item_name = self.game['items'][item_id][1]
+            item_pos = item_spawn[1]
+            # draw a rectangle centered on where the item spawn location is
+            pg.draw.rect(self.screen, ITEM_SPAWN_COLOR, (item_pos.x + self.camera.x - TILESIZE / 4,
+                                                         item_pos.y + self.camera.y - TILESIZE / 4,
+                                                         TILESIZE / 2, TILESIZE / 2), 1)
+            # put text above saying what type of item spawn it is
+            self.draw_text(item_name.title(), USERNAME_SIZE, TEXT_COLOR,
+                           item_pos.x + self.camera.x,
+                           item_pos.y - TILESIZE / 2 + USERNAME_HEIGHT + self.camera.y,
+                           align="s", font_name=self.theme_font)
 
         # draw the debug overlay
         self.draw_overlay(self.debug_overlay)
@@ -634,13 +662,11 @@ class Client:
 
         # all sprites except players and walls (players drawn after and walls don't have an image)
         for sprite in self.all_sprites:
-            if not isinstance(sprite, SpritePlayer) and not isinstance(sprite, Obstacle):
+            if not isinstance(sprite, Obstacle):
                 self.screen.blit(sprite.image, self.camera.apply_sprite(sprite))
 
         # player sprite image and username
         for sprite_player in self.players:
-            # blit to screen as done below so that the camera can be applied
-            self.screen.blit(sprite_player.image, self.camera.apply_sprite(sprite_player))
             self.draw_text(sprite_player.username, USERNAME_SIZE, sprite_player.fillcolor,
                            sprite_player.pos.x + self.camera.x,
                            sprite_player.hit_rect.top + USERNAME_HEIGHT + self.camera.y,
@@ -685,6 +711,13 @@ class Client:
         self.screen.blit(text_surface, text_rect)
 
         return text_rect
+
+    def new_game_screen(self):
+        # background
+        self.screen.fill((255, 255, 255))
+
+        # update the client's monitor
+        pg.display.flip()
 
 
 if __name__ == "__main__":

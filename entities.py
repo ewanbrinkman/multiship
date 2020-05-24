@@ -55,15 +55,18 @@ class NetPlayer:
         # basic data
         self.player_id = player_id  # only data part of the player that is unchangeable
         self.username = None
+        self.ammo = 0
         # position
         self.pos = Vec(0, 0)
         self.rot = 0
+        # effects
         self.frozen = False
         self.respawn = False
         self.destroy = False
         self.current_crash_time = False
         self.current_respawn_time = False
         self.power_invincible = False
+        # data for server to process
         self.overwrites = {'collisions': [],
                            'items': []}
         # player image
@@ -74,12 +77,14 @@ class NetPlayer:
 
 class SpritePlayer(pg.sprite.Sprite):
     def __init__(self, client, net_player):
+        self._layer = PLAYER_LAYER
         # pygame sprite creation with groups
-        self.groups = client.all_sprites, client.players
+        self.groups = client.all_sprites, client.players, client.colliders
         pg.sprite.Sprite.__init__(self, self.groups)
         # basic data
         self.player_id = net_player.player_id
         self.username = net_player.username
+        self.ammo = net_player.ammo
         # position
         self.pos = Vec(net_player.pos.x, net_player.pos.y)
         self.vel = Vec(0, 0)
@@ -87,8 +92,8 @@ class SpritePlayer(pg.sprite.Sprite):
         self.rot = net_player.rot
         self.rot_vel = 0
         self.rot_acc = 0
+        # effects
         self.frozen = net_player.frozen
-        # respawn
         self.respawn = net_player.respawn
         self.destroy = net_player.destroy
         self.respawn_alpha = chain(RESPAWN_ALPHA)
@@ -98,6 +103,7 @@ class SpritePlayer(pg.sprite.Sprite):
         self.current_crash_time = net_player.current_crash_time
         self.power_invincible = False
         self.power_time = False
+        # data for the server to process
         self.overwrites = net_player.overwrites
         # save the client, to access data such as the game sent over the network
         self.client = client
@@ -114,6 +120,8 @@ class SpritePlayer(pg.sprite.Sprite):
         # store the original size of the image, to resize the image smaller when crashed
         self.image_width = self.rect.width
         self.image_height = self.rect.height
+        # debug
+        self.color = PLAYER_SPAWN_COLOR
 
     def update_image(self):
         self.image = self.client.player_imgs[self.image_string].copy()  # use .copy() to not modify the stored image
@@ -383,9 +391,13 @@ class SpritePlayer(pg.sprite.Sprite):
 class Obstacle(pg.sprite.Sprite):
     def __init__(self, client, x, y, width, height, type):
         if type == "wall":
-            self.groups = client.all_sprites, client.obstacles, client.walls
+            self.groups = client.all_sprites, client.obstacles, client.walls, client.colliders
+            # debug
+            self.color = OBSTACLE_COLOR
         elif type == "shallow":
-            self.groups = client.all_sprites, client.obstacles, client.shallows
+            self.groups = client.all_sprites, client.obstacles, client.shallows, client.colliders
+            # debug
+            self.color = SHALLOWS_COLOR
         pg.sprite.Sprite.__init__(self, self.groups)
         self.rect = pg.Rect(x, y, width, height)
         self.hit_rect = self.rect
@@ -394,7 +406,8 @@ class Obstacle(pg.sprite.Sprite):
 
 class SpriteItem(pg.sprite.Sprite):
     def __init__(self, client, name, pos, item_id):
-        self.groups = client.all_sprites, client.items
+        self._layer = ITEM_LAYER
+        self.groups = client.all_sprites, client.items, client.colliders
         pg.sprite.Sprite.__init__(self, self.groups)
         # image
         self.image = client.item_imgs[name]
@@ -412,6 +425,8 @@ class SpriteItem(pg.sprite.Sprite):
         self.tween = easeInOutSine
         self.step = 0
         self.direction = 1
+        # debug
+        self.color = ITEM_SPAWN_COLOR
 
     def update(self):
         # bobbing motion (subtract 0.5 to shift halfway)

@@ -19,6 +19,7 @@ class Server:
         self.icon = None
         self.screen = None
         self.clock = None
+        self.dt = 0.0
         # start time
         self.server_start_time = pg.time.get_ticks() // 1000.0  # in whole seconds
         self.game_start_time = 0
@@ -96,14 +97,17 @@ class Server:
 
         while self.running:
             # pause
-            self.clock.tick(FPS)
+            self.dt = self.clock.tick(FPS)
+
             # events
             for event in pg.event.get():
                 if event.type == pg.QUIT or event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE:
                     self.end()
+
             # update
             pg.display.set_caption(
                 f"Server - IP: {self.server_ip} - Port: {self.server_port} - Clients: {len(self.connections)}")
+
             # draw
             self.screen.fill(WHITE)
             pg.display.flip()
