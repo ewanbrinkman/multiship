@@ -102,7 +102,7 @@ PLAYER_HIT_RECT_HEIGHT = 66
 PLAYER_BOUNCE_VEL = 25
 PLAYER_CRASH_DURATION = 3000  # in milliseconds
 # power invincibility
-POWER_INVINCIBLE_DURATION = 17500  # in milliseconds
+POWER_INVINCIBLE_DURATION = 12500  # in milliseconds
 # respawn invincibility
 TRANSITION_SPEED = 10
 RESPAWN_ALPHA = [i for i in range(0, 255, TRANSITION_SPEED)]
@@ -114,7 +114,8 @@ ITEM_IMGS = {
 }
 BOB_RANGE = 15
 BOB_SPEED = 0.4
-ITEM_RESPAWN_TIME = 25  # in seconds
+NORMAL_ITEM_RESPAWN_TIME = 15  # in seconds
+SPECIAL_ITEM_RESPAWN_TIME = 60  # in seconds
 
 # sounds
 MENU_BG_MUSIC = "Dryads Feast.mp3"

@@ -166,7 +166,7 @@ class Server:
         # reset unplayed maps if it is empty
         if len(self.unplayed_maps) == 0:
             self.unplayed_maps = self.maps.copy()
-            print("All Maps Have Been Played, Refilled Map Selection With All Maps")
+            print("\nAll Maps Have Been Played, Refilled Map Selection With All Maps")
 
         # reset players
         for player_id in self.game['players']:
@@ -177,7 +177,14 @@ class Server:
 
     def threaded_item_respawn(self, item_id):
         # wait until enough time has passed, then set the item's active state back to True
-        sleep(ITEM_RESPAWN_TIME)
+        # the time until the item respawns depends on the item
+        if self.game['items'][item_id][1] == "power":
+            print("special")
+            sleep(SPECIAL_ITEM_RESPAWN_TIME)
+        else:
+            print("normal")
+            sleep(NORMAL_ITEM_RESPAWN_TIME)
+        print("done")
         self.game['items'][item_id][0] = True
 
     def threaded_game(self):
