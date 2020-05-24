@@ -33,8 +33,8 @@ MAIN_MENU_TEXT = "Please Enter A Username By Clicking The First Entry Box"
 FPS = 60
 SCREEN_WIDTH = 1440
 SCREEN_HEIGHT = 900
-SERVER_SCREEN_WIDTH = 800
-SERVER_SCREEN_HEIGHT = 600
+SERVER_SCREEN_WIDTH = 600
+SERVER_SCREEN_HEIGHT = 450
 MENU_BG_IMG = "menubg.tmx"
 CLIENT_IMG = "watertile.png"
 SERVER_IMG = "console.png"
@@ -99,9 +99,10 @@ PLAYER_IMGS = {
 # hit rect
 PLAYER_HIT_RECT_WIDTH = 66
 PLAYER_HIT_RECT_HEIGHT = 66
-# respawn
 PLAYER_BOUNCE_VEL = 25
 PLAYER_CRASH_DURATION = 3000  # in milliseconds
+# power invincibility
+POWER_INVINCIBLE_DURATION = 17500  # in milliseconds
 # respawn invincibility
 TRANSITION_SPEED = 10
 RESPAWN_ALPHA = [i for i in range(0, 255, TRANSITION_SPEED)]
@@ -113,6 +114,7 @@ ITEM_IMGS = {
 }
 BOB_RANGE = 15
 BOB_SPEED = 0.4
+ITEM_RESPAWN_TIME = 25  # in seconds
 
 # sounds
 MENU_BG_MUSIC = "Dryads Feast.mp3"

@@ -64,7 +64,8 @@ class NetPlayer:
         self.current_crash_time = False
         self.current_respawn_time = False
         self.power_invincible = False
-        self.overwrites = {'collisions': []}
+        self.overwrites = {'collisions': [],
+                           'items': []}
         # player image
         self.image_color = None
         self.image_string = None
@@ -96,6 +97,7 @@ class SpritePlayer(pg.sprite.Sprite):
         self.crash_time = False
         self.current_crash_time = net_player.current_crash_time
         self.power_invincible = False
+        self.power_time = False
         self.overwrites = net_player.overwrites
         # save the client, to access data such as the game sent over the network
         self.client = client
@@ -248,7 +250,7 @@ class SpritePlayer(pg.sprite.Sprite):
                             self.vel.y = PLAYER_BOUNCE_VEL
 
     def player_collisions(self):
-        # test collision
+        # test for collision
         hits = pg.sprite.spritecollide(self, self.client.players, False, collide_hit_rect_both)
         for hit in hits:
             if hit != self and hit.power_invincible and not self.power_invincible and self.current_respawn_time is False and self.current_crash_time is False:
@@ -257,6 +259,21 @@ class SpritePlayer(pg.sprite.Sprite):
             # let the server know someone should be destroyed
             if hit != self and self.power_invincible and not hit.power_invincible and hit.current_respawn_time is False and hit.current_crash_time is False:
                 self.overwrites['collisions'].append(hit.player_id)
+
+    def item_collisions(self):
+        # test for collision
+        hits = pg.sprite.spritecollide(self, self.client.items, False, collide_hit_rect_both)
+        for hit in hits:
+            # power items give the power invincibility effect
+            if hit.name == "power":
+                self.power_invincible = True
+                self.power_time = pg.time.get_ticks()
+            # make sure the item is set to inactive on the client side
+            self.client.item_spawns[hit.item_id][0] = False
+            # tell the server the item should be inactive
+            self.overwrites['items'].append(hit.item_id)
+            # destroy the item
+            hit.kill()
 
     def destroy_player(self):
         self.destroy = False
@@ -298,6 +315,12 @@ class SpritePlayer(pg.sprite.Sprite):
             if self.current_respawn_time >= RESPAWN_INVINCIBLE_DURATION:
                 self.respawn_time = False
                 self.current_respawn_time = False
+        # remove the power invincibility effect after enough time has passed
+        if self.power_time is not False:
+            current_power_time = pg.time.get_ticks() - self.power_time
+            if current_power_time >= POWER_INVINCIBLE_DURATION:
+                self.power_invincible = False
+                self.power_time = False
 
         # move the sprite player, if there are no restrictions in place (such as being frozen)
         if not self.frozen:
@@ -328,6 +351,7 @@ class SpritePlayer(pg.sprite.Sprite):
 
         # save pos for doing hit rect on players
         old_pos = Vec(self.pos.x, self.pos.y)
+
         # collision detection
         self.hit_rect.centerx = self.pos.x
         collide_group(self, self.client.walls, "x")
@@ -348,6 +372,9 @@ class SpritePlayer(pg.sprite.Sprite):
 
         # if two players crash into each other
         self.player_collisions()
+
+        # player gets item
+        self.item_collisions()
 
         # update the image with the correct positioning
         self.update_image()

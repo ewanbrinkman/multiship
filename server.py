@@ -1,4 +1,5 @@
 from os import path, listdir
+from time import sleep
 from random import randint
 import socket
 from _thread import start_new_thread
@@ -174,6 +175,11 @@ class Server:
         # get start time
         self.game_start_time = pg.time.get_ticks()
 
+    def threaded_item_respawn(self, item_id):
+        # wait until enough time has passed, then set the item's active state back to True
+        sleep(ITEM_RESPAWN_TIME)
+        self.game['items'][item_id][0] = True
+
     def threaded_game(self):
         # start a new game
         self.new_game()
@@ -348,6 +354,7 @@ class Server:
                                 else:
                                     # make the item inactive
                                     self.game['items'][item_id][0] = False
+                                    start_new_thread(self.threaded_item_respawn, (item_id,))
                                     print(f"The Item With ID {item_id} Is Now Inactive")
                             else:
                                 print("You Must Pass In \"True\" or \"False\" After The Item ID To Set The State")
@@ -447,6 +454,10 @@ class Server:
                                     collision_player = self.game['players'][collision_player_id]
                                     if collision_player.respawn is False and collision_player.current_respawn_time is False and collision_player.current_crash_time is False:
                                         self.overwrite_player_data(collision_player_id, "destroy", True)
+                            elif overwrite_type == "items":
+                                for item_id in overwrite_data:
+                                    self.game['items'][item_id][0] = False
+                                    start_new_thread(self.threaded_item_respawn, (item_id,))
                             # clear the data so on the next loop this data isn't overwritten again
                             overwrite_data.clear()
 
