@@ -195,12 +195,6 @@ class SpritePlayer(pg.sprite.Sprite):
             self.acc = Vec(PLAYER_ACC, 0).rotate(-self.rot)
         if keys[K_s] or keys[K_DOWN]:
             self.acc = Vec(-PLAYER_ACC / 3, 0).rotate(-self.rot)
-        if keys[K_p]:
-            # for testing purposes
-            self.power_invincible = True
-        if keys[K_o]:
-            # for testing purposes
-            self.power_invincible = False
 
     def apply_friction(self, movement_type):
         # north, south, east, and west movement
@@ -219,6 +213,9 @@ class SpritePlayer(pg.sprite.Sprite):
                 return PLAYER_WATER_ROT_FRICTION
 
     def respawn_player(self):
+        # reset effects
+        self.power_invincible = False
+        self.power_time = False
         # reset image
         self.image_string = PLAYER_IMGS[self.image_color]
         self.update_image()
@@ -228,14 +225,17 @@ class SpritePlayer(pg.sprite.Sprite):
         self.rot_acc = 0
         self.rot_vel = 0
         self.rot = 0
-        # go to a random spawn point
-        self.pos = choice(self.client.spawn_points)
+        # go to a random spawn point, if it is a new game, the spawn point has already been chosen
+        if self.client.new_game is False:
+            self.pos = choice(self.client.spawn_points)
         # set respawn attributes
         self.respawn = False
         self.crash_time = False
         self.current_crash_time = False
         self.respawn_time = pg.time.get_ticks()
         self.current_respawn_time = pg.time.get_ticks() - self.respawn_time
+        # make sure a new game respawn isn't done again
+        self.client.new_game = False
 
     def player_hit(self, direction):
         if direction == "x":
@@ -292,9 +292,7 @@ class SpritePlayer(pg.sprite.Sprite):
     def update_client(self):
         # new game respawn
         if self.client.new_game:
-            self.respawn_time = pg.time.get_ticks()
-            self.current_respawn_time = pg.time.get_ticks()
-            self.client.new_game = False
+            self.respawn_player()
 
         # destroy the player if told to by the server
         if self.destroy:

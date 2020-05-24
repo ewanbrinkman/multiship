@@ -1,5 +1,5 @@
 from os import path
-from random import choice
+from random import choice, randint
 import pygame as pg
 from pygame.locals import *
 from pygame.math import Vector2 as Vec
@@ -65,7 +65,8 @@ class Client:
         self.item_imgs = {}
         # maps
         self.map = None
-        self.current_map = None
+        self.current_map = None  # the current map in the game
+        self.end_game_reset = False
         # start screen
         self.current_img_cycle = 0
         self.entry_boxes = {}
@@ -415,6 +416,12 @@ class Client:
         pg.display.flip()
 
     def load_game_data(self):
+        # delete old sprites
+        for sprite in self.items.sprites():
+            sprite.kill()
+        for sprite in self.obstacles.sprites():
+            sprite.kill()
+
         # get the game data to load anything before starting the game loop
         self.game = self.network.send(self.player)
         self.current_map = self.game['current map']
@@ -428,6 +435,10 @@ class Client:
         self.player.pos = Vec(choice(self.spawn_points))
         self.new_game = True
         self.player.current_respawn_time = 0
+
+        # background music
+        pg.mixer.music.load(self.game_music)
+        pg.mixer.music.play(loops=-1)
 
     def reset_data(self):
         # reset data after game session
@@ -451,10 +462,6 @@ class Client:
         # load game data based on game data received from the server
         self.load_game_data()
 
-        # background music
-        pg.mixer.music.load(self.game_music)
-        pg.mixer.music.play(loops=-1)
-
         # game loop while connected to the server
         while self.connected:
             # pause
@@ -464,6 +471,7 @@ class Client:
             if self.update_game_data():
                 # only do game updates and draw if the game is currently active
                 if self.game['active']:
+                    self.end_game_reset = False  # to make sure the game resets only once after a game finishes
                     self.game_update()
                     self.game_draw()
                 else:
@@ -541,10 +549,10 @@ class Client:
                         # make sure the deletion process does not trigger again for this item id
                         self.item_spawns[item_id][0] = False
 
-        # update all sprite data, or kill the sprite if the player has disconnected
-        self.players.update()
         # update all items
         self.items.update()
+        # update all sprite data, or kill the sprite if the player has disconnected
+        self.players.update()
 
         # update the client's player sprite only with key presses
         for sprite_player in self.players:
@@ -688,6 +696,10 @@ class Client:
                        SCREEN_WIDTH / 2, OVERLAY_HEIGHT_DISTANCE,
                        align="n", font_name=self.theme_font)
 
+        self.draw_text(f"FPS: {round(self.clock.get_fps(), 2)}", OVERLAY_SIZE, TEXT_COLOR,
+                       SCREEN_WIDTH / 2, OVERLAY_HEIGHT_DISTANCE * 4,
+                       align="n", font_name=self.theme_font)
+
         # update the client's monitor
         pg.display.flip()
 
@@ -718,14 +730,22 @@ class Client:
         return text_rect
 
     def new_game_screen(self):
+        # update
+        if self.end_game_reset is False:
+            self.load_game_data()
+            self.end_game_reset = True
+
+        # draw
         # background
         self.screen.fill((255, 255, 255))
-
         # game background image in between game sessions
         self.screen.blit(self.game_bg.image, (0 - self.bg_shiftx, 0))
 
         # title
         self.draw_text(GAME_TITLE, TITLE_SIZE, TEXT_COLOR, SCREEN_WIDTH / 2, 70,
+                       align="center", font_name=self.theme_font)
+        # title
+        self.draw_text(str(self.game['players']), 30, TEXT_COLOR, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2,
                        align="center", font_name=self.theme_font)
 
         # update the client's monitor

@@ -6,7 +6,7 @@ CONN_TIMEOUT = 3  # in seconds
 SERVER_IP = "192.168.1.175"
 PORT = 4242
 RECEIVE_LIMIT = 8192
-MAX_CLIENTS = 8
+MAX_CLIENTS = 6
 
 # game
 GAME_LENGTH = 15  # in seconds, 300 seconds = 5 minutes

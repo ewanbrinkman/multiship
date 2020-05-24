@@ -184,9 +184,9 @@ class Server:
             self.unplayed_maps = self.maps.copy()
             print("\nAll Maps Have Been Played, Refilled Map Selection With All Maps")
 
-        # reset players
-        for player_id in self.game['players']:
-            self.overwrite_player_data(player_id, "respawn", True)
+        # # reset players
+        # for player_id in self.game['players']:
+        #     self.overwrite_player_data(player_id, "respawn", True)
 
         print(f"\nWaiting {END_GAME_LENGTH / 1000.0} Seconds Until The Game Is Started...")
 
@@ -498,6 +498,7 @@ class Server:
                     self.client_id_username[self.game['players'][player_id].username] = player_id
 
                     # update the client's player data
+                    # only do this if the game is currently active
                     self.game['players'][player_id] = data
 
                     # override the client's player data changed by the server
