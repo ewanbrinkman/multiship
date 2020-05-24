@@ -3,7 +3,7 @@ SOUND = False  # you can still toggle sound after starting
 CONN_TIMEOUT = 3  # in seconds
 
 # server
-SERVER_IP = "192.168.1.175"
+SERVER_IP = "localhost"
 PORT = 4242
 RECEIVE_LIMIT = 8192
 MAX_CLIENTS = 6
@@ -33,6 +33,7 @@ PRESSED_BLUE = (196, 238, 255)
 
 # display
 GAME_TITLE = "Multiship"
+NEXT_GAME_TEXT = "Get Ready For The Next Game!"
 MAIN_MENU_TEXT = "Please Enter A Username By Clicking The First Entry Box"
 FPS = 60
 SCREEN_WIDTH = 1440
@@ -46,6 +47,7 @@ SERVER_IMG = "console.png"
 # font
 TEXT_COLOR = (0, 83, 92)
 TITLE_SIZE = 150
+SUBTILE_SIZE = 85
 NORMAL_SIZE = 50
 USERNAME_SIZE = 40
 USERNAME_HEIGHT = -15

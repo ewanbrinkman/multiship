@@ -696,10 +696,6 @@ class Client:
                        SCREEN_WIDTH / 2, OVERLAY_HEIGHT_DISTANCE,
                        align="n", font_name=self.theme_font)
 
-        self.draw_text(f"FPS: {round(self.clock.get_fps(), 2)}", OVERLAY_SIZE, TEXT_COLOR,
-                       SCREEN_WIDTH / 2, OVERLAY_HEIGHT_DISTANCE * 4,
-                       align="n", font_name=self.theme_font)
-
         # update the client's monitor
         pg.display.flip()
 
@@ -745,7 +741,7 @@ class Client:
         self.draw_text(GAME_TITLE, TITLE_SIZE, TEXT_COLOR, SCREEN_WIDTH / 2, 70,
                        align="center", font_name=self.theme_font)
         # title
-        self.draw_text(str(self.game['players']), 30, TEXT_COLOR, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2,
+        self.draw_text(NEXT_GAME_TEXT, SUBTILE_SIZE, TEXT_COLOR, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2,
                        align="center", font_name=self.theme_font)
 
         # update the client's monitor
