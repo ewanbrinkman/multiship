@@ -24,6 +24,8 @@ class Server:
         self.server_start_time = pg.time.get_ticks() // 1000.0  # in whole seconds
         self.game_start_time = 0
         self.game_time_left = 0
+        self.game_end_time = 0
+        self.game_end_time_left = 0
         # get machine's information to create a server
         self.server_name = socket.gethostname()
         self.server_ip = socket.gethostbyname(self.server_name)
@@ -49,6 +51,7 @@ class Server:
                      "current map": None,
                      "game time": self.game_time_left,
                      "items": {},
+                     "active": True
                      }
         # load data
         self.load()
@@ -66,7 +69,7 @@ class Server:
         game_folder = path.dirname(__file__)
         map_folder = path.join(game_folder, "map")
         for filename in listdir(map_folder):
-            if filename.endswith(".tmx") and filename != MENU_BG_IMG:
+            if filename.endswith(".tmx") and filename != MENU_BG_IMG and filename != GAME_BG_IMG:
                 self.maps.append(filename)
         # create another list of maps, where random maps will be popped from
         # this will make sure the same maps aren't chosen, but it is still random
@@ -147,6 +150,15 @@ class Server:
         self.socket.close()
 
     def new_game(self):
+        # set the game to inactive
+        self.game['active'] = False
+
+        # get the current time to figure out how long until a new game should start
+        self.game_end_time = pg.time.get_ticks()
+
+        # get the game end time
+        self.game_end_time = pg.time.get_ticks()
+
         # start a new game on the server
         print("\nStarting A New Game...")
 
@@ -176,19 +188,28 @@ class Server:
         for player_id in self.game['players']:
             self.overwrite_player_data(player_id, "respawn", True)
 
-        # get start time
+        print(f"\nWaiting {END_GAME_LENGTH / 1000.0} Seconds Until The Game Is Started...")
+
+        # wait until enough time has passed
+        self.game_end_time_left = pg.time.get_ticks() - self.game_end_time
+        while self.game_end_time_left < END_GAME_LENGTH:
+            sleep(0.5)
+            self.game_end_time_left = pg.time.get_ticks() - self.game_end_time
+
         self.game_start_time = pg.time.get_ticks()
+
+        # turn the game back on
+        self.game['active'] = True
+
+        print("The Game Is Now Active")
 
     def threaded_item_respawn(self, item_id):
         # wait until enough time has passed, then set the item's active state back to True
         # the time until the item respawns depends on the item
         if self.game['items'][item_id][1] == "power":
-            print("special")
             sleep(SPECIAL_ITEM_RESPAWN_TIME)
         else:
-            print("normal")
             sleep(NORMAL_ITEM_RESPAWN_TIME)
-        print("done")
         self.game['items'][item_id][0] = True
 
     def threaded_game(self):

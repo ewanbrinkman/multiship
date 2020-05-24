@@ -9,7 +9,8 @@ RECEIVE_LIMIT = 8192
 MAX_CLIENTS = 8
 
 # game
-GAME_LENGTH = 20  # in seconds, 300 seconds = 5 minutes
+GAME_LENGTH = 15  # in seconds, 300 seconds = 5 minutes
+END_GAME_LENGTH = 5000 # in milliseconds
 
 # shades
 WHITE = (255, 255, 255)
@@ -39,6 +40,7 @@ SCREEN_HEIGHT = 900
 SERVER_SCREEN_WIDTH = 600
 SERVER_SCREEN_HEIGHT = 450
 MENU_BG_IMG = "menubg.tmx"
+GAME_BG_IMG = "gamebg.tmx"
 CLIENT_IMG = "watertile.png"
 SERVER_IMG = "console.png"
 # font
@@ -123,7 +125,7 @@ ITEM_IMGS = {
 BOB_RANGE = 15
 BOB_SPEED = 0.4
 NORMAL_ITEM_RESPAWN_TIME = 10  # in seconds
-SPECIAL_ITEM_RESPAWN_TIME = 60  # in seconds
+SPECIAL_ITEM_RESPAWN_TIME = 5  # in seconds
 
 # cannonballs
 CANNONBALL_VEL = 100

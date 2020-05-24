@@ -71,8 +71,9 @@ class Client:
         self.entry_boxes = {}
         self.buttons = {}
         self.menu_bg = None
-        self.menu_bg_shiftx = 0
-        self.menu_bg_shifty = 0
+        self.game_bg = None
+        self.bg_shiftx = 0
+        self.bg_shifty = 0
         self.main_menu_text = MAIN_MENU_TEXT
         self.selected_player_image = None
         self.selected_player_image_rect = None
@@ -113,16 +114,18 @@ class Client:
         self.menu_music = path.join(snd_folder, MENU_BG_MUSIC)
         self.game_music = path.join(snd_folder, GAME_BG_MUSIC)
 
-        # load main menu background map
-        self.create_bg_map()
+        # load main menu and game background maps
+        self.create_bg_maps()
 
-    def create_bg_map(self):
+    def create_bg_maps(self):
         # menu background
         self.menu_bg = TiledMap(path.join(self.map_folder, MENU_BG_IMG))
         self.menu_bg.make_map()
+        self.game_bg = TiledMap(path.join(self.map_folder, GAME_BG_IMG))
+        self.game_bg.make_map()
         # amount to shift everything, to make up for the background being slightly bigger then the screen size
-        self.menu_bg_shiftx = (self.menu_bg.rect.width - SCREEN_WIDTH) / 2
-        self.menu_bg_shifty = (self.menu_bg.rect.height - SCREEN_HEIGHT) / 2
+        self.bg_shiftx = (self.menu_bg.rect.width - SCREEN_WIDTH) / 2
+        self.bg_shifty = (self.menu_bg.rect.height - SCREEN_HEIGHT) / 2
 
     def create_map(self, filename):
         # basic map background image with data
@@ -387,7 +390,8 @@ class Client:
         # background
         self.screen.fill((255, 255, 255))
 
-        self.screen.blit(self.menu_bg.image, (0 - self.menu_bg_shiftx, 0))
+        # menu background image
+        self.screen.blit(self.menu_bg.image, (0 - self.bg_shiftx, 0))
 
         # title
         self.draw_text(GAME_TITLE, TITLE_SIZE, TEXT_COLOR, SCREEN_WIDTH / 2, 70,
@@ -458,7 +462,8 @@ class Client:
             # events, update, draw
             self.game_events()
             if self.update_game_data():
-                if self.game['game time'] > 0:
+                # only do game updates and draw if the game is currently active
+                if self.game['active']:
                     self.game_update()
                     self.game_draw()
                 else:
@@ -715,6 +720,13 @@ class Client:
     def new_game_screen(self):
         # background
         self.screen.fill((255, 255, 255))
+
+        # game background image in between game sessions
+        self.screen.blit(self.game_bg.image, (0 - self.bg_shiftx, 0))
+
+        # title
+        self.draw_text(GAME_TITLE, TITLE_SIZE, TEXT_COLOR, SCREEN_WIDTH / 2, 70,
+                       align="center", font_name=self.theme_font)
 
         # update the client's monitor
         pg.display.flip()
