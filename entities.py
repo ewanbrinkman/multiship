@@ -196,8 +196,9 @@ class SpritePlayer(pg.sprite.Sprite):
             self.ammo -= 1
             self.last_shoot = pg.time.get_ticks()
             # create a new vector for the bullet so the bullet does not use the player's vector
-            bullet_data = [Vec(self.pos.x, self.pos.y), self.rot, self.player_id]
-            self.overwrites['new bullets'].append(bullet_data)
+            for shoot_angle in NORMAL_SHOOT_ANGLES:
+                bullet_data = [Vec(self.pos.x, self.pos.y), self.rot + shoot_angle, self.player_id]
+                self.overwrites['new bullets'].append(bullet_data)
 
     def apply_keys(self):
         # get key presses
@@ -290,13 +291,9 @@ class SpritePlayer(pg.sprite.Sprite):
                     if pg.time.get_ticks() - self.recent_collisions[hit.player_id] > PLAYER_CRASH_DURATION:
                         self.recent_collisions[hit.player_id] = pg.time.get_ticks()
                         self.overwrites['collisions'].append(hit.player_id)
-                        print("Killed Again")
-                    else:
-                        print("Not Enough Time Waited")
                 else:
                     self.recent_collisions[hit.player_id] = pg.time.get_ticks()
                     self.overwrites['collisions'].append(hit.player_id)
-                    print("First Kill")
 
     def item_collisions(self):
         # test for collision

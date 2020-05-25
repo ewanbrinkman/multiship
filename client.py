@@ -4,7 +4,7 @@ import pygame as pg
 from pygame.locals import *
 from pygame.math import Vector2 as Vec
 from network import Network
-from entities import update_net_object, SpritePlayer, Obstacle, SpriteItem, SpriteBullet
+from entities import collide_hit_rect_both, update_net_object, SpritePlayer, Obstacle, SpriteItem, SpriteBullet
 from tilemap import format_map, Camera, TiledMap
 from widgets import EntryBox, Button
 from settings import *
@@ -59,6 +59,7 @@ class Client:
         # display
         self.theme_font = None
         self.fullscreen = True
+        self.show_fps = False
         self.debug = False
         # data to load
         self.map_folder = None
@@ -87,6 +88,7 @@ class Client:
         # overlay
         self.game_overlay_left = []
         self.game_overlay_right = []
+        self.player_status_overlay = []
         self.debug_overlay = []
 
     def load(self):
@@ -223,8 +225,11 @@ class Client:
         self.clock = pg.time.Clock()
         # set up display
         self.screen = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pg.FULLSCREEN)
-        pg.display.set_caption(
-            f"Client - ID: {self.player_id} - Username: {self.username} - FPS: {round(self.clock.get_fps(), 2)}")
+        if self.debug:
+            pg.display.set_caption(
+                f"Client - ID: {self.player_id} - Username: {self.username} - FPS: {round(self.clock.get_fps(), 2)}")
+        else:
+            pg.display.set_caption(GAME_TITLE)
 
         # load data
         self.load()
@@ -380,9 +385,12 @@ class Client:
                         self.select_player_image("left")
 
     def menu_update(self):
-        # update display caption with useful information
-        pg.display.set_caption(
-            f"Client - ID: {self.player_id} - Username: {self.username} - FPS: {round(self.clock.get_fps(), 2)}")
+        # update display caption
+        if self.debug:
+            pg.display.set_caption(
+                f"Client - ID: {self.player_id} - Username: {self.username} - FPS: {round(self.clock.get_fps(), 2)}")
+        else:
+            pg.display.set_caption(GAME_TITLE)
 
         # update with the data entered by the user
         self.username = self.entry_boxes['username'].text
@@ -516,8 +524,11 @@ class Client:
                         pg.mixer.music.set_volume(0)
                     else:
                         pg.mixer.music.set_volume(1)
-                # debug mode toggle
+                # fps mode toggle
                 if event.key == K_F3:
+                    self.show_fps = not self.show_fps
+                # debug mode toggle
+                if event.key == K_F4:
                     self.debug = not self.debug
 
     def update_game_data(self):
@@ -559,7 +570,7 @@ class Client:
                         item_sprite.kill()
                         # make sure the deletion process does not trigger again for this item id
                         self.item_spawns[item_id][0] = False
-        # create and destroy bullet sprites
+        # create new bullet sprites
         for bullet_id, bullet_data in self.game['bullets'].items():
             # create a new bullet if it hasn't been created yet
             if bullet_id not in self.bullet_ids:
@@ -568,6 +579,21 @@ class Client:
                 bullet_angle = bullet_data[1]
                 bullet_owner_player_id = bullet_data[2]
                 SpriteBullet(self, bullet_id, bullet_pos, bullet_angle, bullet_owner_player_id, False)
+        # destroy bullets that run into each other
+        for bullet in self.bullets.sprites():
+            kill_self = False
+            hits = pg.sprite.spritecollide(bullet, self.bullets, False, collide_hit_rect_both)
+            if hits:
+                for hit in hits:
+                    if hit != bullet and hit.owner_player_id != bullet.owner_player_id:
+                        # destroy the bullets that collided
+                        self.player.overwrites['kill bullets'].append(hit.bullet_id)
+                        hit.kill()
+                        kill_self = True
+                if kill_self:
+                    # kill this bullet
+                    self.player.overwrites['kill bullets'].append(bullet.bullet_id)
+                    bullet.kill()
 
         # update all items
         self.items.update()
@@ -593,14 +619,17 @@ class Client:
         # overlay data updates
         self.game_overlay_left = [f"Players: {len(self.game['players'])}/{MAX_CLIENTS}"]
         self.game_overlay_right = [f"Game Time Left: {format_time(self.game['game time'])}"]
+        self.player_status_overlay = [f"Ammo: {self.player.ammo}"]
         self.debug_overlay = [f"Client ID: {self.player_id}",
                               f"Username: {self.username}",
-                              f"FPS: {round(self.clock.get_fps(), 2)}",
-                              f"Ammo: {self.player.ammo}"]
+                              f"FPS: {round(self.clock.get_fps(), 2)}"]
 
-        # update display caption with useful information
-        pg.display.set_caption(
-            f"Client - ID: {self.player_id} - Username: {self.username} - FPS: {round(self.clock.get_fps(), 2)}")
+        # update display caption
+        if self.debug:
+            pg.display.set_caption(
+                f"Client - ID: {self.player_id} - Username: {self.username} - FPS: {round(self.clock.get_fps(), 2)}")
+        else:
+            pg.display.set_caption(GAME_TITLE)
 
     def draw_boundary(self, sprite, sprite_color):
         # image boundary
@@ -714,9 +743,14 @@ class Client:
         # draw the game overlay showing information
         self.draw_overlay(self.game_overlay_left, "topleft")
         self.draw_overlay(self.game_overlay_right, "topright")
+        self.draw_overlay(self.player_status_overlay, "bottomleft")
         self.draw_text(f"Map Name: {format_map(self.game['current map'])}", OVERLAY_SIZE, TEXT_COLOR,
                        SCREEN_WIDTH / 2, OVERLAY_HEIGHT_DISTANCE,
                        align="n", font_name=self.theme_font)
+        if self.show_fps:
+            self.draw_text(f"FPS: {round(self.clock.get_fps(), 2)}", OVERLAY_SIZE, TEXT_COLOR,
+                           SCREEN_WIDTH / 2, OVERLAY_HEIGHT_DISTANCE * 3,
+                           align="n", font_name=self.theme_font)
 
         for sprite_bullet in self.bullets.sprites():
             self.screen.blit(sprite_bullet.image, self.camera.apply_sprite(sprite_bullet))

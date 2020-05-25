@@ -155,7 +155,11 @@ BULLET_VEL = 300  # pixels per second
 =======
 BULLET_IMGS = {"basic": "cannonball.png",
                }
+<<<<<<< HEAD
 >>>>>>> 5d05003... bullet sprites that die when they hit walls
+=======
+NORMAL_SHOOT_ANGLES = [90, -90]
+>>>>>>> dfa2af0... bullets now collide and destory themselves
 
 # sounds
 MENU_BG_MUSIC = "Dryads Feast.mp3"
