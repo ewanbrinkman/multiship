@@ -502,9 +502,9 @@ class Server:
                                 for collision_player_id in overwrite_data:
                                     collision_player = self.game['players'][collision_player_id]
                                     if collision_player.respawn is False and collision_player.current_respawn_time is False and collision_player.current_crash_time is False:
-                                        self.overwrite_player_data(collision_player_id, "destroy", True)
+                                        self.overwrite_player_data(collision_player_id, "destroy", (True, player_id))
                             # the player picked up an item
-                            elif overwrite_type == "items":
+                            if overwrite_type == "items":
                                 for item_id in overwrite_data:
                                     self.game['items'][item_id][0] = False
                                     start_new_thread(self.threaded_item_respawn, (item_id,))
@@ -518,6 +518,10 @@ class Server:
                                 for kill_bullet_id in overwrite_data:
                                     if kill_bullet_id in self.game['bullets'].keys():
                                         del self.game['bullets'][kill_bullet_id]
+                            # the player was killied by another player
+                            elif overwrite_type == "deaths by":
+                                for killed_by_player_id in overwrite_data:
+                                    print(f"Player ID {player_id} Was Killed By Player ID {killed_by_player_id}")
                             # clear the data so on the next loop this data isn't overwritten again
                             overwrite_data.clear()
 

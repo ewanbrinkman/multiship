@@ -143,7 +143,8 @@ SPECIAL_ITEM_RESPAWN_TIME = 5  # in seconds
 CANNONBALL_VEL = 100
 =======
 # bullets
-SHOOT_RATE = 500  # in milliseconds
+SHOOT_RATE = 750  # in milliseconds
+BULLET_RANGE = 1500  # in pixels
 BULLET_VEL = 300  # pixels per second
 <<<<<<< HEAD
 >>>>>>> 5d22f34... basic square bullets with no effect

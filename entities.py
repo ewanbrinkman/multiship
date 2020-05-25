@@ -62,15 +62,17 @@ class NetPlayer:
         # effects
         self.frozen = False
         self.respawn = False
-        self.destroy = False
+        # destroy[0] is if the player should be destroyed, destroy[1] is which player id destroyed them
+        self.destroy = (False, None)
         self.current_crash_time = False
         self.current_respawn_time = False
         self.power_invincible = False
         # data for server to process
-        self.overwrites = {"collisions": [],
-                           "items": [],
-                           "new bullets": [],
-                           "kill bullets": [],
+        self.overwrites = {"collisions": [],  # the player collided with a player should should be killed
+                           "items": [],  # the player picked up an item
+                           "new bullets": [],  # the server should make a new bullet
+                           "kill bullets": [],  # which bullet ids the server should remove
+                           "deaths by": [],  # which player id killed the player
                            }
         # player image
         self.image_color = None
@@ -192,7 +194,7 @@ class SpritePlayer(pg.sprite.Sprite):
             self.ammo -= 1
             self.last_shoot = pg.time.get_ticks()
             # create a new vector for the bullet so the bullet does not use the player's vector
-            bullet_data = [Vec(self.pos.x, self.pos.y), self.rot]
+            bullet_data = [Vec(self.pos.x, self.pos.y), self.rot, self.player_id]
             self.overwrites['new bullets'].append(bullet_data)
 
     def apply_keys(self):
@@ -278,7 +280,7 @@ class SpritePlayer(pg.sprite.Sprite):
         for hit in hits:
             if hit != self and hit.power_invincible and not self.power_invincible and self.current_respawn_time is False and self.current_crash_time is False:
                 # update this sprite if it collided
-                self.destroy_player()
+                self.destroy_player(hit.player_id)
             # let the server know someone should be destroyed
             if hit != self and self.power_invincible and not hit.power_invincible and hit.current_respawn_time is False and hit.current_crash_time is False:
                 self.overwrites['collisions'].append(hit.player_id)
@@ -298,8 +300,24 @@ class SpritePlayer(pg.sprite.Sprite):
             # destroy the item
             hit.kill()
 
-    def destroy_player(self):
-        self.destroy = False
+    def bullet_collisions(self):
+        # test for collision
+        hits = pg.sprite.spritecollide(self, self.client.bullets, False, collide_hit_rect_both)
+        for hit in hits:
+            # only count as a kill if it wasn't a bullet made by the client player
+            if hit.owner_player_id != self.player_id:
+                # destroy the bullet
+                self.overwrites['kill bullets'].append(hit.bullet_id)
+                hit.kill()
+                # only count it as a kill if the player can be legally killed
+                if not self.power_invincible and self.current_crash_time is False and self.current_respawn_time is False:
+                    # destroy the player
+                    self.destroy_player(hit.owner_player_id)
+
+    def destroy_player(self, killed_by_player_id):
+        print(killed_by_player_id)
+        self.overwrites['deaths by'].append(killed_by_player_id)
+        self.destroy = (False, None)
         self.image_string = PLAYER_IMGS["broken" + self.image_color]
         self.crash_time = pg.time.get_ticks()
         self.current_crash_time = pg.time.get_ticks() - self.crash_time
@@ -308,14 +326,17 @@ class SpritePlayer(pg.sprite.Sprite):
         # new game respawn
         if self.client.new_game:
             self.respawn_player()
-
         # destroy the player if told to by the server
-        if self.destroy:
-            self.destroy_player()
-
+        if self.destroy[0]:
+            self.destroy_player(self.destroy[1])
         # respawn the player if told to by the server
         if self.respawn:
             self.respawn_player()
+        # destroy the player if collided with a bullet
+        self.bullet_collisions()
+
+        # if two players crash into each other
+        self.player_collisions()
 
         # reset acceleration
         self.acc = Vec(0, 0)
@@ -392,9 +413,10 @@ class SpritePlayer(pg.sprite.Sprite):
 
         # if two players crash into each other
         self.player_collisions()
-
         # player gets item
         self.item_collisions()
+        # bullet collisions
+        self.bullet_collisions()
 
         # update the image with the correct positioning
         self.update_image()
@@ -452,17 +474,22 @@ class SpriteItem(pg.sprite.Sprite):
 
 
 class SpriteBullet(pg.sprite.Sprite):
-    def __init__(self, client, bullet_id, pos, angle):
+    def __init__(self, client, bullet_id, pos, angle, owner_player_id, do_rot):
         self.groups = client.all_sprites, client.bullets, client.colliders
         pg.sprite.Sprite.__init__(self, self.groups)
         self.image = client.bullet_imgs['basic']
-        self.image = pg.transform.rotate(self.image, angle)
+        # rotate the image in the direction is is facing or not
+        if do_rot:
+            self.image = pg.transform.rotate(self.image, angle)
         self.rect = self.image.get_rect()
         self.hit_rect = self.rect
         self.pos = pos
         self.rect.center = pos
-        # save data to access later for deleting
+        # keeps track of how far the bullet has gone to know when to kill it
+        self.total_distance = Vec(0, 0)
+        # save data to access later
         self.bullet_id = bullet_id
+        self.owner_player_id = owner_player_id
         self.client = client
         # debug
         self.color = ORANGE
@@ -470,15 +497,24 @@ class SpriteBullet(pg.sprite.Sprite):
     def update(self):
         # remove the bullet if it no longer exists in the game
         if self.bullet_id not in self.client.game['bullets']:
-            self.kill()
+            self.kill()  # there is no need to tell the server to delete it, as it has already been deleted server-side
         # if the bullet still exists, check if it should be killed
         elif pg.sprite.spritecollideany(self, self.client.walls):
-            # tell the server to delete the sprite if it hits a wall
-            self.client.player.overwrites['kill bullets'].append(self.bullet_id)
-            self.kill()
+            self.destroy()
         # update the bullet with the latest position
         else:
-            self.pos = self.client.game['bullets'][self.bullet_id][0]
-            self.rect = self.image.get_rect()
-            self.hit_rect = self.rect
-            self.rect.center = self.pos
+            new_pos = self.client.game['bullets'][self.bullet_id][0]
+            self.total_distance += self.pos - new_pos
+            # kill the bullet if it has moved as far as it can, use squares as it is faster to calculate
+            if self.total_distance.length_squared() >= BULLET_RANGE ** 2:
+                self.destroy()
+            else:
+                self.pos = new_pos
+                self.rect = self.image.get_rect()
+                self.hit_rect = self.rect
+                self.rect.center = self.pos
+
+    def destroy(self):
+        # tell the server to delete the sprite if it hits a wall
+        self.client.player.overwrites['kill bullets'].append(self.bullet_id)
+        self.kill()

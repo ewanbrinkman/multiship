@@ -566,7 +566,8 @@ class Client:
                 self.bullet_ids.append(bullet_id)
                 bullet_pos = bullet_data[0]
                 bullet_angle = bullet_data[1]
-                SpriteBullet(self, bullet_id, bullet_pos, bullet_angle)
+                bullet_owner_player_id = bullet_data[2]
+                SpriteBullet(self, bullet_id, bullet_pos, bullet_angle, bullet_owner_player_id, False)
 
         # update all items
         self.items.update()
