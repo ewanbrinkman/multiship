@@ -48,6 +48,7 @@ class Server:
         self.maps = []
         self.unplayed_maps = []
         self.current_bullet_id = 0
+        self.current_game_id = 0
         # create the game
         self.game = {"players": {},
                      "current map": None,
@@ -156,6 +157,9 @@ class Server:
         # set the game to inactive
         self.game['active'] = False
 
+        # a new game is started so changed the id up one
+        self.current_game_id += 1
+
         # get the current time to figure out how long until a new game should start
         self.game_end_time = pg.time.get_ticks()
 
@@ -189,10 +193,6 @@ class Server:
             self.unplayed_maps = self.maps.copy()
             print("\nAll Maps Have Been Played, Refilled Map Selection With All Maps")
 
-        # # reset players
-        # for player_id in self.game['players']:
-        #     self.overwrite_player_data(player_id, "respawn", True)
-
         print(f"\nWaiting {END_GAME_LENGTH / 1000.0} Seconds Until The Game Is Started...")
 
         # wait until enough time has passed
@@ -208,14 +208,17 @@ class Server:
 
         print("The Game Is Now Active")
 
-    def threaded_item_respawn(self, item_id):
+    def threaded_item_respawn(self, item_id, game_id):
         # wait until enough time has passed, then set the item's active state back to True
         # the time until the item respawns depends on the item
+        # the game_id makes sure this thread doesn't respawn an item from a different game
+        # if this function is called right before a game ends, it would sleep through the eng game screen
         if self.game['items'][item_id][1] == "power":
             sleep(SPECIAL_ITEM_RESPAWN_TIME)
         else:
             sleep(NORMAL_ITEM_RESPAWN_TIME)
-        self.game['items'][item_id][0] = True
+        if self.current_game_id == game_id:
+            self.game['items'][item_id][0] = True
 
     def threaded_game(self):
         # setup
@@ -403,7 +406,7 @@ class Server:
                                 else:
                                     # make the item inactive
                                     self.game['items'][item_id][0] = False
-                                    start_new_thread(self.threaded_item_respawn, (item_id,))
+                                    start_new_thread(self.threaded_item_respawn, (item_id, self.current_game_id))
                                     print(f"The Item With ID {item_id} Is Now Inactive")
                             else:
                                 print("You Must Pass In \"True\" or \"False\" After The Item ID To Set The State")
@@ -507,7 +510,7 @@ class Server:
                             if overwrite_type == "items":
                                 for item_id in overwrite_data:
                                     self.game['items'][item_id][0] = False
-                                    start_new_thread(self.threaded_item_respawn, (item_id,))
+                                    start_new_thread(self.threaded_item_respawn, (item_id, self.current_game_id))
                             # the player launched a bullet
                             elif overwrite_type == "new bullets":
                                 for new_bullet in overwrite_data:

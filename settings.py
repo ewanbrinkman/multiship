@@ -136,7 +136,11 @@ ITEM_IMGS = {
 BOB_RANGE = 15
 BOB_SPEED = 0.4
 NORMAL_ITEM_RESPAWN_TIME = 10  # in seconds
+<<<<<<< HEAD
 SPECIAL_ITEM_RESPAWN_TIME = 5  # in seconds
+=======
+SPECIAL_ITEM_RESPAWN_TIME = 10  # in seconds
+>>>>>>> 036bf0e... fixed multiple kill messages and items respawning across games
 
 <<<<<<< HEAD
 # cannonballs

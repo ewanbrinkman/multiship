@@ -109,6 +109,8 @@ class SpritePlayer(pg.sprite.Sprite):
         self.current_crash_time = net_player.current_crash_time
         self.power_invincible = False
         self.power_time = False
+        # keep track of which players the client has killed recently to not send multiple kill messages to the server
+        self.recent_collisions = dict([(player_id, False) for player_id in client.player_ids])
         # data for the server to process
         self.overwrites = net_player.overwrites
         # save the client, to access data such as the game sent over the network
@@ -283,7 +285,18 @@ class SpritePlayer(pg.sprite.Sprite):
                 self.destroy_player(hit.player_id)
             # let the server know someone should be destroyed
             if hit != self and self.power_invincible and not hit.power_invincible and hit.current_respawn_time is False and hit.current_crash_time is False:
-                self.overwrites['collisions'].append(hit.player_id)
+                # only send a collisions notice to the server if the client player hasn't already recently
+                if self.recent_collisions[hit.player_id]:
+                    if pg.time.get_ticks() - self.recent_collisions[hit.player_id] > PLAYER_CRASH_DURATION:
+                        self.recent_collisions[hit.player_id] = pg.time.get_ticks()
+                        self.overwrites['collisions'].append(hit.player_id)
+                        print("Killed Again")
+                    else:
+                        print("Not Enough Time Waited")
+                else:
+                    self.recent_collisions[hit.player_id] = pg.time.get_ticks()
+                    self.overwrites['collisions'].append(hit.player_id)
+                    print("First Kill")
 
     def item_collisions(self):
         # test for collision
@@ -315,7 +328,6 @@ class SpritePlayer(pg.sprite.Sprite):
                     self.destroy_player(hit.owner_player_id)
 
     def destroy_player(self, killed_by_player_id):
-        print(killed_by_player_id)
         self.overwrites['deaths by'].append(killed_by_player_id)
         self.destroy = (False, None)
         self.image_string = PLAYER_IMGS["broken" + self.image_color]
