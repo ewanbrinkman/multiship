@@ -164,8 +164,10 @@ class Client:
             if tile_object.type == "spawn":
                 self.spawn_points.append(object_center)
             # items
-            if tile_object.type == 'item':
-                if tile_object.name == 'power':
+            if tile_object.type == "item":
+                if tile_object.name == "power":
+                    self.item_spawns[current_item_id] = [False, object_center]
+                if tile_object.name == "bullet":
                     self.item_spawns[current_item_id] = [False, object_center]
                 current_item_id += 1
 
@@ -619,7 +621,9 @@ class Client:
         # overlay data updates
         self.game_overlay_left = [f"Players: {len(self.game['players'])}/{MAX_CLIENTS}"]
         self.game_overlay_right = [f"Game Time Left: {format_time(self.game['game time'])}"]
-        self.player_status_overlay = [f"Ammo: {self.player.ammo}"]
+        self.player_status_overlay = [f"Ammo: {self.player.ammo}",
+                                      f"Deaths: {self.player.deaths}",
+                                      f"Kills: {self.player.kills}"]
         self.debug_overlay = [f"Client ID: {self.player_id}",
                               f"Username: {self.username}",
                               f"FPS: {round(self.clock.get_fps(), 2)}"]

@@ -131,16 +131,21 @@ RESPAWN_INVINCIBLE_DURATION = 3000  # in milliseconds
 
 # items
 ITEM_IMGS = {
-    "power": "power.png"
+    "power": "itempower.png",
+    "bullet": "itembullet.png",
 }
 BOB_RANGE = 15
 BOB_SPEED = 0.4
 NORMAL_ITEM_RESPAWN_TIME = 10  # in seconds
 <<<<<<< HEAD
+<<<<<<< HEAD
 SPECIAL_ITEM_RESPAWN_TIME = 5  # in seconds
 =======
 SPECIAL_ITEM_RESPAWN_TIME = 10  # in seconds
 >>>>>>> 036bf0e... fixed multiple kill messages and items respawning across games
+=======
+SPECIAL_ITEM_RESPAWN_TIME = 60  # in seconds
+>>>>>>> 4d68141... ammo item and player kills and death counter
 
 <<<<<<< HEAD
 # cannonballs

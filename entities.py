@@ -55,7 +55,11 @@ class NetPlayer:
         # basic data
         self.player_id = player_id  # only data part of the player that is unchangeable
         self.username = None
-        self.ammo = 999
+        # shooting
+        self.ammo = 0
+        # kills and deaths
+        self.kills = 0
+        self.deaths = 0
         # position
         self.pos = Vec(0, 0)
         self.rot = 0
@@ -89,8 +93,12 @@ class SpritePlayer(pg.sprite.Sprite):
         # basic data
         self.player_id = net_player.player_id
         self.username = net_player.username
+        # shooting
         self.ammo = net_player.ammo
         self.last_shoot = 0
+        # kills and deaths
+        self.kills = 0
+        self.deaths = 0
         # position
         self.pos = Vec(net_player.pos.x, net_player.pos.y)
         self.vel = Vec(0, 0)
@@ -303,6 +311,8 @@ class SpritePlayer(pg.sprite.Sprite):
             if hit.name == "power":
                 self.power_invincible = True
                 self.power_time = pg.time.get_ticks()
+            if hit.name == "bullet":
+                self.ammo += 1
             # make sure the item is set to inactive on the client side
             self.client.item_spawns[hit.item_id][0] = False
             # tell the server the item should be inactive

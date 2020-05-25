@@ -445,14 +445,17 @@ class Server:
             else:
                 print("Command Error: No Command Was Given")
 
-    def overwrite_player_data(self, player_id, attribute, new_value):
-        # change data that will be sent over the network
-        setattr(self.game['players'][player_id], attribute, new_value)
-
-        if attribute == "username":
-            # update stored data to match the new data if a username switch happened
-            self.client_id_username[player_id] = new_value
-            self.client_id_username[new_value] = player_id
+    def overwrite_player_data(self, player_id, attribute, new_value, overwrite_method="replace"):
+        # replace the existing attribute value with the provided value
+        if overwrite_method == "replace":
+            if attribute == "username":
+                # update stored data to match the new data if a username switch happened
+                self.client_id_username[player_id] = new_value
+                self.client_id_username[new_value] = player_id
+        # add the provided value to the existing attribute value
+        elif overwrite_method == "add":
+            old_value = getattr(self.game['players'][player_id], attribute)
+            new_value = old_value + new_value
 
         # ensure the server will not ignore this change by accepting what the client sends
         self.client_changes[player_id][attribute] = [True, new_value]
@@ -521,10 +524,12 @@ class Server:
                                 for kill_bullet_id in overwrite_data:
                                     if kill_bullet_id in self.game['bullets'].keys():
                                         del self.game['bullets'][kill_bullet_id]
-                            # the player was killied by another player
+                            # this client's player was killed by another client's player
                             elif overwrite_type == "deaths by":
                                 for killed_by_player_id in overwrite_data:
-                                    print(f"Player ID {player_id} Was Killed By Player ID {killed_by_player_id}")
+                                    self.overwrite_player_data(player_id, "deaths", 1, "add")
+                                    self.overwrite_player_data(killed_by_player_id, "kills", 1, "add")
+                                    print(f"\nPlayer ID {player_id} Was Killed By Player ID {killed_by_player_id}")
                             # clear the data so on the next loop this data isn't overwritten again
                             overwrite_data.clear()
 
