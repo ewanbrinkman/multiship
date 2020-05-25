@@ -18,8 +18,10 @@ class Server:
         pg.init()
         self.icon = None
         self.screen = None
-        self.clock = None
-        self.dt = 0.0
+        self.window_clock = None
+        self.game_clock = None
+        self.window_dt = 0.0
+        self.game_dt = 0.0
         # start time
         self.server_start_time = pg.time.get_ticks() // 1000.0  # in whole seconds
         self.game_start_time = 0
@@ -43,14 +45,15 @@ class Server:
                                 "setitem", "open", "close"]
         self.current_player = 0  # the current client id
         # game attributes
-        self.clock = None
         self.maps = []
         self.unplayed_maps = []
+        self.current_bullet_id = 0
         # create the game
         self.game = {"players": {},
                      "current map": None,
                      "game time": self.game_time_left,
                      "items": {},
+                     "bullets": {},
                      "active": True
                      }
         # load data
@@ -96,11 +99,11 @@ class Server:
         # start the window
         self.screen = pg.display.set_mode((SERVER_SCREEN_WIDTH, SERVER_SCREEN_HEIGHT))
         pg.display.set_icon(self.icon)
-        self.clock = pg.time.Clock()
+        self.window_clock = pg.time.Clock()
 
         while self.running:
             # pause
-            self.dt = self.clock.tick(FPS)
+            self.window_dt = self.window_clock.tick(FPS) / 1000.0
 
             # events
             for event in pg.event.get():
@@ -166,10 +169,12 @@ class Server:
         self.game['current map'] = self.unplayed_maps.pop(randint(0, (len(self.unplayed_maps) - 1)))
         print(f"The Chosen Map Is: {format_map(self.game['current map'])}")
 
-        # reset map data
+        # reset game data
         self.game['items'].clear()
-        # item counter to give each item spawn an id
+        self.game['bullets'].clear()
+        # counters to give each item spawn and bullet a unique id for their group
         current_item_id = 0
+        self.current_bullet_id = 0
 
         # get data about the current map
         tilemap_data = pytmx.load_pygame(path.join(self.map_folder, self.game['current map']), pixelalpha=True)
@@ -213,14 +218,26 @@ class Server:
         self.game['items'][item_id][0] = True
 
     def threaded_game(self):
+        # setup
+        self.game_clock = pg.time.Clock()
         # start a new game
         self.new_game()
         # start the game timer
         while self.running:
+            # pause
+            self.game_dt = self.game_clock.tick(FPS) / 1000.0
+
+            # update
+            # move bullets
+            for bullet_id, bullet_data in self.game['bullets'].items():
+                angle = self.game['bullets'][bullet_id][1]
+                self.game['bullets'][bullet_id][0] += Vec(BULLET_VEL, 0).rotate(-angle) * self.game_dt
+
             # current game times
             time_since_game_start = (pg.time.get_ticks() - self.game_start_time) // 1000.0  # in whole seconds
             self.game_time_left = GAME_LENGTH - time_since_game_start
             self.game['game time'] = self.game_time_left
+
             # reset the game after enough time has passed
             if time_since_game_start > GAME_LENGTH:
                 # end current game and start a new game
@@ -486,10 +503,16 @@ class Server:
                                     collision_player = self.game['players'][collision_player_id]
                                     if collision_player.respawn is False and collision_player.current_respawn_time is False and collision_player.current_crash_time is False:
                                         self.overwrite_player_data(collision_player_id, "destroy", True)
+                            # the player picked up an item
                             elif overwrite_type == "items":
                                 for item_id in overwrite_data:
                                     self.game['items'][item_id][0] = False
                                     start_new_thread(self.threaded_item_respawn, (item_id,))
+                            # the player launched a bullet
+                            elif overwrite_type == "new bullets":
+                                for new_bullet in overwrite_data:
+                                    self.game['bullets'][self.current_bullet_id] = new_bullet
+                                    self.current_bullet_id += 1
                             # clear the data so on the next loop this data isn't overwritten again
                             overwrite_data.clear()
 

@@ -55,7 +55,7 @@ class NetPlayer:
         # basic data
         self.player_id = player_id  # only data part of the player that is unchangeable
         self.username = None
-        self.ammo = 0
+        self.ammo = 999
         # position
         self.pos = Vec(0, 0)
         self.rot = 0
@@ -67,8 +67,10 @@ class NetPlayer:
         self.current_respawn_time = False
         self.power_invincible = False
         # data for server to process
-        self.overwrites = {'collisions': [],
-                           'items': []}
+        self.overwrites = {"collisions": [],
+                           "items": [],
+                           "new bullets": [],
+                           }
         # player image
         self.image_color = None
         self.image_string = None
@@ -85,6 +87,7 @@ class SpritePlayer(pg.sprite.Sprite):
         self.player_id = net_player.player_id
         self.username = net_player.username
         self.ammo = net_player.ammo
+        self.last_shoot = 0
         # position
         self.pos = Vec(net_player.pos.x, net_player.pos.y)
         self.vel = Vec(0, 0)
@@ -182,6 +185,14 @@ class SpritePlayer(pg.sprite.Sprite):
             # update the sprite with the latest data
             self.match_net_player()
 
+    def shoot(self):
+        if pg.time.get_ticks() - self.last_shoot > SHOOT_RATE and self.ammo:
+            self.ammo -= 1
+            self.last_shoot = pg.time.get_ticks()
+            # create a new vector for the bullet so the bullet does not use the player's vector
+            bullet_data = [Vec(self.pos.x, self.pos.y), self.rot]
+            self.overwrites['new bullets'].append(bullet_data)
+
     def apply_keys(self):
         # get key presses
         keys = pg.key.get_pressed()
@@ -195,6 +206,8 @@ class SpritePlayer(pg.sprite.Sprite):
             self.acc = Vec(PLAYER_ACC, 0).rotate(-self.rot)
         if keys[K_s] or keys[K_DOWN]:
             self.acc = Vec(-PLAYER_ACC / 3, 0).rotate(-self.rot)
+        if keys[K_SPACE]:
+            self.shoot()
 
     def apply_friction(self, movement_type):
         # north, south, east, and west movement
@@ -353,7 +366,6 @@ class SpritePlayer(pg.sprite.Sprite):
             # displacement
             rot_displacement = self.rot_vel * self.client.dt + 0.5 * self.rot_acc * self.client.dt ** 2
             self.rot += rot_displacement % 360
-
 
         # save pos for doing hit rect on players
         old_pos = Vec(self.pos.x, self.pos.y)

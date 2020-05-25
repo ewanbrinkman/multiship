@@ -3,7 +3,7 @@ SOUND = False  # you can still toggle sound after starting
 CONN_TIMEOUT = 3  # in seconds
 
 # server
-SERVER_IP = "localhost"
+SERVER_IP = "192.168.86.66"
 PORT = 4242
 RECEIVE_LIMIT = 8192
 MAX_CLIENTS = 6
@@ -13,8 +13,12 @@ MAX_CLIENTS = 6
 GAME_LENGTH = 15  # in seconds, 300 seconds = 5 minutes
 =======
 GAME_LENGTH = 60  # in seconds, 300 seconds = 5 minutes
+<<<<<<< HEAD
 >>>>>>> 6c1a11f... changed settings
 END_GAME_LENGTH = 5000 # in milliseconds
+=======
+END_GAME_LENGTH = 5000  # in milliseconds
+>>>>>>> 5d22f34... basic square bullets with no effect
 
 # shades
 WHITE = (255, 255, 255)
@@ -133,8 +137,14 @@ BOB_SPEED = 0.4
 NORMAL_ITEM_RESPAWN_TIME = 10  # in seconds
 SPECIAL_ITEM_RESPAWN_TIME = 5  # in seconds
 
+<<<<<<< HEAD
 # cannonballs
 CANNONBALL_VEL = 100
+=======
+# bullets
+SHOOT_RATE = 500  # in milliseconds
+BULLET_VEL = 300  # pixels per second
+>>>>>>> 5d22f34... basic square bullets with no effect
 
 # sounds
 MENU_BG_MUSIC = "Dryads Feast.mp3"

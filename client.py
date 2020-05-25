@@ -696,6 +696,12 @@ class Client:
                        SCREEN_WIDTH / 2, OVERLAY_HEIGHT_DISTANCE,
                        align="n", font_name=self.theme_font)
 
+        for bullet in self.game['bullets'].values():
+            pos = bullet[0]
+            pg.draw.rect(self.screen, PLAYER_SPAWN_COLOR, (pos.x + self.camera.x,
+                                                           pos.y + self.camera.y,
+                                                           TILESIZE / 2, TILESIZE / 2), 1)
+
         # update the client's monitor
         pg.display.flip()
 
