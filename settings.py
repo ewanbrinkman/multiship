@@ -71,6 +71,7 @@ OBSTACLE_COLOR = RED
 SHALLOWS_COLOR = PINK
 PLAYER_SPAWN_COLOR = MAGENTA
 ITEM_SPAWN_COLOR = YELLOW
+BULLET_COLOR = ORANGE
 TILESIZE = 64
 GRID_COLOR = DARK_GRAY
 # layers
@@ -144,7 +145,12 @@ CANNONBALL_VEL = 100
 # bullets
 SHOOT_RATE = 500  # in milliseconds
 BULLET_VEL = 300  # pixels per second
+<<<<<<< HEAD
 >>>>>>> 5d22f34... basic square bullets with no effect
+=======
+BULLET_IMGS = {"basic": "cannonball.png",
+               }
+>>>>>>> 5d05003... bullet sprites that die when they hit walls
 
 # sounds
 MENU_BG_MUSIC = "Dryads Feast.mp3"

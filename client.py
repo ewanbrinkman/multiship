@@ -4,7 +4,7 @@ import pygame as pg
 from pygame.locals import *
 from pygame.math import Vector2 as Vec
 from network import Network
-from entities import update_net_object, SpritePlayer, Obstacle, SpriteItem
+from entities import update_net_object, SpritePlayer, Obstacle, SpriteItem, SpriteBullet
 from tilemap import format_map, Camera, TiledMap
 from widgets import EntryBox, Button
 from settings import *
@@ -38,6 +38,7 @@ class Client:
         self.kicked = False
         # stored data
         self.player_ids = []
+        self.bullet_ids = []
         # game attributes
         self.screen = None
         self.clock = None
@@ -54,6 +55,7 @@ class Client:
         self.walls = pg.sprite.Group()
         self.shallows = pg.sprite.Group()
         self.items = pg.sprite.Group()
+        self.bullets = pg.sprite.Group()
         # display
         self.theme_font = None
         self.fullscreen = True
@@ -63,6 +65,7 @@ class Client:
         self.icon = None
         self.player_imgs = {}
         self.item_imgs = {}
+        self.bullet_imgs = {}
         # maps
         self.map = None
         self.current_map = None  # the current map in the game
@@ -100,16 +103,19 @@ class Client:
         # fonts
         self.theme_font = path.join(font_folder, THEME_FONT)
 
-        # images
+        # player images
         for filename in PLAYER_IMGS.values():
             new_img = pg.image.load(path.join(img_folder, filename)).convert_alpha()
             # rotate so the sprite moves in the direction it is pointing
             self.player_imgs[filename] = pg.transform.rotate(new_img, 90)
-        # images
+        # item images
         for item_name, filename in ITEM_IMGS.items():
             new_img = pg.image.load(path.join(img_folder, filename)).convert_alpha()
-            # rotate so the sprite moves in the direction it is pointing
             self.item_imgs[item_name] = new_img
+        # bullet images
+        for bullet_name, filename in BULLET_IMGS.items():
+            new_img = pg.image.load(path.join(img_folder, filename)).convert_alpha()
+            self.bullet_imgs[bullet_name] = new_img
 
         # sounds
         self.menu_music = path.join(snd_folder, MENU_BG_MUSIC)
@@ -421,6 +427,11 @@ class Client:
             sprite.kill()
         for sprite in self.obstacles.sprites():
             sprite.kill()
+        for sprite in self.bullets.sprites():
+            sprite.kill()
+
+        # clear bullet id list
+        self.bullet_ids.clear()
 
         # get the game data to load anything before starting the game loop
         self.game = self.network.send(self.player)
@@ -514,7 +525,7 @@ class Client:
         if self.connected:
             # receive the updated game over the network from the server
             received = self.network.send(self.player)
-            if received is EOFError or received is ConnectionResetError:
+            if type(received) is str:
                 self.kicked = True
                 self.disconnect()
                 return False
@@ -548,9 +559,19 @@ class Client:
                         item_sprite.kill()
                         # make sure the deletion process does not trigger again for this item id
                         self.item_spawns[item_id][0] = False
+        # create and destroy bullet sprites
+        for bullet_id, bullet_data in self.game['bullets'].items():
+            # create a new bullet if it hasn't been created yet
+            if bullet_id not in self.bullet_ids:
+                self.bullet_ids.append(bullet_id)
+                bullet_pos = bullet_data[0]
+                bullet_angle = bullet_data[1]
+                SpriteBullet(self, bullet_id, bullet_pos, bullet_angle)
 
         # update all items
         self.items.update()
+        # update all bullets
+        self.bullets.update()
         # update all sprite data, or kill the sprite if the player has disconnected
         self.players.update()
 
@@ -675,7 +696,7 @@ class Client:
 
         # all sprites except players and walls (players drawn after and walls don't have an image)
         for sprite in self.all_sprites:
-            if not isinstance(sprite, Obstacle):
+            if not isinstance(sprite, Obstacle) and not isinstance(sprite, SpriteBullet):
                 self.screen.blit(sprite.image, self.camera.apply_sprite(sprite))
 
         # player sprite image and username
@@ -696,11 +717,8 @@ class Client:
                        SCREEN_WIDTH / 2, OVERLAY_HEIGHT_DISTANCE,
                        align="n", font_name=self.theme_font)
 
-        for bullet in self.game['bullets'].values():
-            pos = bullet[0]
-            pg.draw.rect(self.screen, PLAYER_SPAWN_COLOR, (pos.x + self.camera.x,
-                                                           pos.y + self.camera.y,
-                                                           TILESIZE / 2, TILESIZE / 2), 1)
+        for sprite_bullet in self.bullets.sprites():
+            self.screen.blit(sprite_bullet.image, self.camera.apply_sprite(sprite_bullet))
 
         # update the client's monitor
         pg.display.flip()

@@ -513,6 +513,11 @@ class Server:
                                 for new_bullet in overwrite_data:
                                     self.game['bullets'][self.current_bullet_id] = new_bullet
                                     self.current_bullet_id += 1
+                            # the player launched a bullet
+                            elif overwrite_type == "kill bullets":
+                                for kill_bullet_id in overwrite_data:
+                                    if kill_bullet_id in self.game['bullets'].keys():
+                                        del self.game['bullets'][kill_bullet_id]
                             # clear the data so on the next loop this data isn't overwritten again
                             overwrite_data.clear()
 

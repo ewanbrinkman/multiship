@@ -28,7 +28,10 @@ class Network:
             return loads(self.client.recv(RECEIVE_LIMIT))
         except EOFError:
             print("\nConnection Closed: Error Sending Data To The Server")
-            return EOFError
+            return "Error: Error Sending Data To The Server"
         except ConnectionResetError:
             print("\nConnection Closed: Connection Was Reset")
-            return ConnectionResetError
+            return "Error: Connection Was Reset"
+        except socket.timeout:
+            print("\nConnection Timed Out")
+            return "Error: Connection Timed Out"

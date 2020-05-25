@@ -70,6 +70,7 @@ class NetPlayer:
         self.overwrites = {"collisions": [],
                            "items": [],
                            "new bullets": [],
+                           "kill bullets": [],
                            }
         # player image
         self.image_color = None
@@ -186,6 +187,7 @@ class SpritePlayer(pg.sprite.Sprite):
             self.match_net_player()
 
     def shoot(self):
+        # only shoot a bullet if enough time has passed since the last shot and the player has ammo
         if pg.time.get_ticks() - self.last_shoot > SHOOT_RATE and self.ammo:
             self.ammo -= 1
             self.last_shoot = pg.time.get_ticks()
@@ -447,3 +449,36 @@ class SpriteItem(pg.sprite.Sprite):
         if self.step > BOB_RANGE:
             self.step = 0
             self.direction *= -1
+
+
+class SpriteBullet(pg.sprite.Sprite):
+    def __init__(self, client, bullet_id, pos, angle):
+        self.groups = client.all_sprites, client.bullets, client.colliders
+        pg.sprite.Sprite.__init__(self, self.groups)
+        self.image = client.bullet_imgs['basic']
+        self.image = pg.transform.rotate(self.image, angle)
+        self.rect = self.image.get_rect()
+        self.hit_rect = self.rect
+        self.pos = pos
+        self.rect.center = pos
+        # save data to access later for deleting
+        self.bullet_id = bullet_id
+        self.client = client
+        # debug
+        self.color = ORANGE
+
+    def update(self):
+        # remove the bullet if it no longer exists in the game
+        if self.bullet_id not in self.client.game['bullets']:
+            self.kill()
+        # if the bullet still exists, check if it should be killed
+        elif pg.sprite.spritecollideany(self, self.client.walls):
+            # tell the server to delete the sprite if it hits a wall
+            self.client.player.overwrites['kill bullets'].append(self.bullet_id)
+            self.kill()
+        # update the bullet with the latest position
+        else:
+            self.pos = self.client.game['bullets'][self.bullet_id][0]
+            self.rect = self.image.get_rect()
+            self.hit_rect = self.rect
+            self.rect.center = self.pos
