@@ -153,17 +153,19 @@ RESPAWN_INVINCIBLE_DURATION = 3000  # in milliseconds
 ITEM_IMGS = {
     "power": "itempower.png",
     "bullet": "itembullet.png",
+    "largebullet": "itembulletsilver.png",
 }
 ITEM_WEIGHTS_DICT = {
-    "power": 2,
-    "bullet": 5,
+    "bullet": 10,
+    "largebullet": 1,
+    "power": 1,
 }
-
 ITEM_WEIGHTS_LIST = []
 for item in list(ITEM_WEIGHTS_DICT.keys()):
     for i in range(ITEM_WEIGHTS_DICT[item]):
         ITEM_WEIGHTS_LIST.append(item)
-
+BULLET_AMOUNT = 1
+LARGE_BULLET_AMOUNT = 3
 BOB_RANGE = 15
 BOB_SPEED = 0.4
 <<<<<<< HEAD

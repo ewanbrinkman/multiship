@@ -314,7 +314,9 @@ class SpritePlayer(pg.sprite.Sprite):
                 self.power_invincible = True
                 self.power_time = pg.time.get_ticks()
             if hit.current_item == "bullet":
-                self.ammo += 1
+                self.ammo += BULLET_AMOUNT
+            if hit.current_item == "largebullet":
+                self.ammo += LARGE_BULLET_AMOUNT
             # make sure the item is set to inactive on the client side
             self.client.item_spawns[hit.item_id][0] = False
             # tell the server the item should be inactive

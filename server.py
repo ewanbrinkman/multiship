@@ -434,6 +434,19 @@ class Server:
                     else:
                         print("Item IDs Must Be An Integer")
 
+                # give or remove ammo from a player
+                # syntax: addammo <client_id> <amount>
+                elif command[0] == "addammo":
+                    if self.verify_id_command(2, command):
+                        player_id = int(command[1])
+                        amount = command[2]
+                        if amount.isdigit():
+                            amount = int(amount)
+                            self.overwrite_player_data(player_id, "ammo", amount, "add")
+                            print(f"Player {player_id} Has Been Given {amount} Ammo")
+                        else:
+                            print("The Amount Of Ammo Must Be An Integer")
+
                 # open the server to new client connections
                 # syntax: open
                 elif command[0] == "open":

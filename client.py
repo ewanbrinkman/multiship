@@ -167,12 +167,10 @@ class Client:
             # items
             if tile_object.type == "item":
                 # [0] is active or not, [1] is the item spawn type, [2] is the actual current item, [3] is the position
-                if tile_object.name == "power":
-                    self.item_spawns[current_item_id] = [False, tile_object.name, tile_object.name, object_center]
-                if tile_object.name == "bullet":
-                    self.item_spawns[current_item_id] = [False, tile_object.name, tile_object.name, object_center]
                 if tile_object.name == "random":
                     self.item_spawns[current_item_id] = [False, tile_object.name, "None", object_center]
+                else:
+                    self.item_spawns[current_item_id] = [False, tile_object.name, tile_object.name, object_center]
                 current_item_id += 1
 
     def connect(self):
