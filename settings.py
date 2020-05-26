@@ -1,5 +1,5 @@
 # launch options
-SOUND = False  # you can still toggle sound after starting
+SOUND = True  # you can still toggle sound after starting
 CONN_TIMEOUT = 3  # in seconds
 
 # server
