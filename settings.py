@@ -3,12 +3,13 @@ SOUND = False  # you can still toggle sound after starting
 CONN_TIMEOUT = 3  # in seconds
 
 # server
-SERVER_IP = "localhost"
+SERVER_IP = "192.168.86.66"
 PORT = 4242
 RECEIVE_LIMIT = 8192
 MAX_CLIENTS = 6
 
 # game
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 GAME_LENGTH = 15  # in seconds, 300 seconds = 5 minutes
@@ -22,6 +23,9 @@ END_GAME_LENGTH = 5000  # in milliseconds
 >>>>>>> 5d22f34... basic square bullets with no effect
 =======
 GAME_LENGTH = 5  # in seconds, 300 seconds = 5 minutes
+=======
+GAME_LENGTH = 15  # in seconds, 300 seconds = 5 minutes
+>>>>>>> a67ca5c... scoreboard shows all data and total players
 END_GAME_LENGTH = 14000  # in milliseconds
 >>>>>>> ca4d69a... basic scoreboard
 

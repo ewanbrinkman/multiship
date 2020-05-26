@@ -800,6 +800,10 @@ class Client:
             # only show the top players
             if len(self.game_end_score) > MAX_SCOREBOARD_PLAYERS:
                 self.game_end_score = self.game_end_score[:MAX_SCOREBOARD_PLAYERS]
+            self.game_end_score = [(score_data[1],
+                                    self.game['players'][score_data[0]].deaths,
+                                    self.game['players'][score_data[0]].username) for
+                                   score_data in self.game_end_score]
             # make sure the end game reset is not done again
             self.end_game_reset = True
 
@@ -815,22 +819,44 @@ class Client:
 
         # score title
         total_players = len(self.game_end_score)
+
         players_shown = f" - {total_players}/{total_players} Players Shown"
-        if total_players > MAX_SCOREBOARD_PLAYERS:
-            players_shown = f" - {MAX_SCOREBOARD_PLAYERS}/{total_players} Players Shown"
+        if total_players < len(self.game['players']):
+            players_shown = f" - {MAX_SCOREBOARD_PLAYERS}/{len(self.game['players'])} Players Shown"
         text_rect = self.draw_text(SCORE_TITLE + players_shown, SCORE_TITLE_SIZE,
                                    TEXT_COLOR, SCREEN_WIDTH / 2, SCORE_TITLE_HEIGHT_DISTANCE,
                                    align="center", font_name=self.theme_font)
 
         # game end score board
         text_rect_heights = [text_rect.height]
-        for i, score_data in enumerate(self.game_end_score):
+        for i, score_data in enumerate(self.game_end_score, 1):
+            # find which ordinal indicator to use (1st, 2nd, 3rd, or 4th etc.)
+            ordinal_indicator = ""
+            if i == 1:
+                ordinal_indicator = "st"
+            elif i == 2:
+                ordinal_indicator = "nd"
+            elif i == 3:
+                ordinal_indicator = "rd"
+            else:
+                ordinal_indicator = "th"
+
             # calculate where the text should be placed on the screen
             distance_x = SCREEN_WIDTH / 2
             distance_y = SCORE_TITLE_HEIGHT_DISTANCE + sum(text_rect_heights)
+
+            # get the score data of the player
+            player_kills = score_data[0]
+            player_deaths = score_data[1]
+            player_name = score_data[2]
+
+            scoreboard_text = (f"{i}{ordinal_indicator} Place: {player_name} "
+                               f"- {player_kills} Kills - {player_deaths} Deaths")
+
             # draw the text on the screen
-            text_rect = self.draw_text(f"1: {score_data}", SCORE_INFO_SIZE, TEXT_COLOR,
-                                       distance_x, distance_y, align="center", font_name=self.theme_font)
+            text_rect = self.draw_text(scoreboard_text, SCORE_INFO_SIZE, TEXT_COLOR,
+                                       distance_x, distance_y,
+                                       align="center", font_name=self.theme_font)
             # add the new height
             text_rect_heights.append(text_rect.height)
 
