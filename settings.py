@@ -12,6 +12,7 @@ MAX_CLIENTS = 6
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 GAME_LENGTH = 15  # in seconds, 300 seconds = 5 minutes
 =======
 GAME_LENGTH = 60  # in seconds, 300 seconds = 5 minutes
@@ -26,6 +27,9 @@ GAME_LENGTH = 5  # in seconds, 300 seconds = 5 minutes
 =======
 GAME_LENGTH = 15  # in seconds, 300 seconds = 5 minutes
 >>>>>>> a67ca5c... scoreboard shows all data and total players
+=======
+GAME_LENGTH = 300  # in seconds, 300 seconds = 5 minutes
+>>>>>>> da32415... fixed bug where recent collisions would not update
 END_GAME_LENGTH = 14000  # in milliseconds
 >>>>>>> ca4d69a... basic scoreboard
 

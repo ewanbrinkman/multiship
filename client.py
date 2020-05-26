@@ -789,21 +789,31 @@ class Client:
 
         return text_rect
 
+    def new_game_player_reset(self):
+        # reset game data for the next game
+        self.player.ammo = 0
+        self.player.kills = 0
+        self.player.deaths = 0
+        self.player.score = 0
+        for data in self.player.overwrites.values():
+            data.clear()
+
     def new_game_screen(self):
         # update
         if self.end_game_reset is False:
             # load new game data if it has not been done already
             self.load_game_data()
             # get the scoreboard data
-            self.game_end_score = dict([(player.player_id, player.kills) for player in self.game['players'].values()])
+            self.game_end_score = dict([(player.player_id, player.score) for player in self.game['players'].values()])
             self.game_end_score = sorted(self.game_end_score.items(), key=lambda kv: kv[1], reverse=True)
             # only show the top players
             if len(self.game_end_score) > MAX_SCOREBOARD_PLAYERS:
                 self.game_end_score = self.game_end_score[:MAX_SCOREBOARD_PLAYERS]
-            self.game_end_score = [(score_data[1],
-                                    self.game['players'][score_data[0]].deaths,
-                                    self.game['players'][score_data[0]].username) for
+            self.game_end_score = [(self.game['players'][score_data[0]].username,
+                                    score_data[1]) for
                                    score_data in self.game_end_score]
+            # reset the net player data for the next game
+            self.new_game_player_reset()
             # make sure the end game reset is not done again
             self.end_game_reset = True
 
@@ -845,13 +855,8 @@ class Client:
             distance_x = SCREEN_WIDTH / 2
             distance_y = SCORE_TITLE_HEIGHT_DISTANCE + sum(text_rect_heights)
 
-            # get the score data of the player
-            player_kills = score_data[0]
-            player_deaths = score_data[1]
-            player_name = score_data[2]
-
-            scoreboard_text = (f"{i}{ordinal_indicator} Place: {player_name} "
-                               f"- {player_kills} Kills - {player_deaths} Deaths")
+            scoreboard_text = (f"{i}{ordinal_indicator} Place: {score_data[0]} "
+                               f"- {score_data[1]} Points")
 
             # draw the text on the screen
             text_rect = self.draw_text(scoreboard_text, SCORE_INFO_SIZE, TEXT_COLOR,

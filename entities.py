@@ -60,6 +60,7 @@ class NetPlayer:
         # kills and deaths
         self.kills = 0
         self.deaths = 0
+        self.score = 0
         # position
         self.pos = Vec(0, 0)
         self.rot = 0
@@ -99,6 +100,7 @@ class SpritePlayer(pg.sprite.Sprite):
         # kills and deaths
         self.kills = 0
         self.deaths = 0
+        self.score = net_player.score
         # position
         self.pos = Vec(net_player.pos.x, net_player.pos.y)
         self.vel = Vec(0, 0)
@@ -341,9 +343,15 @@ class SpritePlayer(pg.sprite.Sprite):
         self.crash_time = pg.time.get_ticks()
         self.current_crash_time = pg.time.get_ticks() - self.crash_time
 
+    def new_game_player_reset(self):
+        self.last_shoot = 0
+        self.image_string = PLAYER_IMGS[self.image_color]
+        self.recent_collisions = dict([(player_id, False) for player_id in self.client.player_ids])
+
     def update_client(self):
         # new game respawn
         if self.client.new_game:
+            self.new_game_player_reset()
             self.respawn_player()
         # destroy the player if told to by the server
         if self.destroy[0]:
@@ -353,6 +361,9 @@ class SpritePlayer(pg.sprite.Sprite):
             self.respawn_player()
         # destroy the player if collided with a bullet
         self.bullet_collisions()
+
+        # update the recent collisions dictionary with the latest players
+        self.recent_collisions = dict([(player_id, False) for player_id in self.client.player_ids])
 
         # if two players crash into each other
         self.player_collisions()

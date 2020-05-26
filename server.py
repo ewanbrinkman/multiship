@@ -535,6 +535,7 @@ class Server:
                                 for killed_by_player_id in overwrite_data:
                                     self.overwrite_player_data(player_id, "deaths", 1, "add")
                                     self.overwrite_player_data(killed_by_player_id, "kills", 1, "add")
+                                    self.overwrite_player_data(killed_by_player_id, "score", 100, "add")
                                     print(f"\nPlayer ID {player_id} Was Killed By Player ID {killed_by_player_id}")
                             # clear the data so on the next loop this data isn't overwritten again
                             overwrite_data.clear()
