@@ -9,3 +9,6 @@ This software was developed by Ewan Brinkman and is available under the GNU Gene
 - Now, open up the file settings.py. There will be a bunch of variables. The first one should be called SERVER_IP. Replace the IP address already here with you local IP address (the one that printed out when server.py started.
 - Now, you can start as many instances of client.py as you want. Make sure you choose a unique username every time you connect to the server. Also, it should automatically be set to connect to your local IP address if you replaced the IP address in settings.py in the previous step.
 - When you want the client.py to quit, press the Escape key to exit. If you were connected to the server, press it a second time to quit the program.
+
+# Creating a Standalone Application
+On a Mac, run the file setupApp.py in the terminal using: python setup.py py2app
