@@ -11,4 +11,4 @@ This software was developed by Ewan Brinkman and is available under the GNU Gene
 - When you want the client.py to quit, press the Escape key to exit. If you were connected to the server, press it a second time to quit the program.
 
 # Creating a Standalone Application
-On a Mac, run the file setupApp.py in the terminal using: python setup.py py2app
+On a Mac, run the file setupApp.py in the terminal using: `python setup.py py2app`
