@@ -501,6 +501,10 @@ class SpriteBullet(pg.sprite.Sprite):
         if do_rot:
             self.image = pg.transform.rotate(self.image, angle)
         self.rect = self.image.get_rect()
+        # adjust the image size
+        self.image = pg.transform.scale(self.image, (self.rect.width * BULLET_SIZE_MULTIPLIER,
+                                                     self.rect.height * BULLET_SIZE_MULTIPLIER))
+        self.rect = self.image.get_rect()
         self.hit_rect = self.rect
         self.pos = pos
         self.rect.center = pos

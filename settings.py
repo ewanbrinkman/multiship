@@ -3,12 +3,13 @@ SOUND = False  # you can still toggle sound after starting
 CONN_TIMEOUT = 3  # in seconds
 
 # server
-SERVER_IP = "192.168.86.66"
+SERVER_IP = "localhost"
 PORT = 4242
 RECEIVE_LIMIT = 8192
 MAX_CLIENTS = 6
 
 # game
+<<<<<<< HEAD
 <<<<<<< HEAD
 GAME_LENGTH = 15  # in seconds, 300 seconds = 5 minutes
 =======
@@ -19,6 +20,10 @@ END_GAME_LENGTH = 5000 # in milliseconds
 =======
 END_GAME_LENGTH = 5000  # in milliseconds
 >>>>>>> 5d22f34... basic square bullets with no effect
+=======
+GAME_LENGTH = 5  # in seconds, 300 seconds = 5 minutes
+END_GAME_LENGTH = 14000  # in milliseconds
+>>>>>>> ca4d69a... basic scoreboard
 
 # shades
 WHITE = (255, 255, 255)
@@ -41,7 +46,8 @@ PRESSED_BLUE = (196, 238, 255)
 
 # display
 GAME_TITLE = "Multiship"
-NEXT_GAME_TEXT = "Get Ready For The Next Game!"
+SCORE_TITLE = "Game Scoreboard"
+NEXT_GAME_TEXT = "Next Game In: "
 MAIN_MENU_TEXT = "Please Enter A Username By Clicking The First Entry Box"
 FPS = 60
 SCREEN_WIDTH = 1440
@@ -52,19 +58,25 @@ MENU_BG_IMG = "menubg.tmx"
 GAME_BG_IMG = "gamebg.tmx"
 CLIENT_IMG = "watertile.png"
 SERVER_IMG = "console.png"
+MAX_SCOREBOARD_PLAYERS = 5
 # font
+THEME_FONT = "Booter.ttf"
 TEXT_COLOR = (0, 83, 92)
 TITLE_SIZE = 150
 SUBTILE_SIZE = 85
+SCORE_TITLE_SIZE = 80
+SCORE_INFO_SIZE = 60
 NORMAL_SIZE = 50
-USERNAME_SIZE = 40
-USERNAME_HEIGHT = -15
-ENTRY_SIZE = 35
 BUTTON_SIZE = 50
+USERNAME_SIZE = 40
 OVERLAY_SIZE = 40
+ENTRY_SIZE = 35
+# distances
+SCORE_TITLE_HEIGHT_DISTANCE = 300
+NEXT_GAME_HEIGHT_DISTANCE = SCREEN_HEIGHT - 50
 OVERLAY_WIDTH_DISTANCE = 20
 OVERLAY_HEIGHT_DISTANCE = 20
-THEME_FONT = "Booter.ttf"
+USERNAME_HEIGHT = -15
 # debug
 PLAYER_COLOR = CYAN
 OBSTACLE_COLOR = RED
@@ -161,8 +173,12 @@ BULLET_VEL = 300  # pixels per second
 BULLET_IMGS = {"basic": "cannonball.png",
                }
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 5d05003... bullet sprites that die when they hit walls
 =======
+=======
+BULLET_SIZE_MULTIPLIER = 2
+>>>>>>> ca4d69a... basic scoreboard
 NORMAL_SHOOT_ANGLES = [90, -90]
 >>>>>>> dfa2af0... bullets now collide and destory themselves
 

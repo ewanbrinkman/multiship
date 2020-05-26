@@ -27,6 +27,7 @@ class Server:
         self.game_start_time = 0
         self.game_time_left = 0
         self.game_end_time = 0
+        self.current_game_end_time = 0
         self.game_end_time_left = 0
         # get machine's information to create a server
         self.server_name = socket.gethostname()
@@ -53,6 +54,7 @@ class Server:
         self.game = {"players": {},
                      "current map": None,
                      "game time": self.game_time_left,
+                     "score time": self.game_end_time_left,
                      "items": {},
                      "bullets": {},
                      "active": True
@@ -196,10 +198,14 @@ class Server:
         print(f"\nWaiting {END_GAME_LENGTH / 1000.0} Seconds Until The Game Is Started...")
 
         # wait until enough time has passed
-        self.game_end_time_left = pg.time.get_ticks() - self.game_end_time
-        while self.game_end_time_left < END_GAME_LENGTH:
+        self.current_game_end_time = pg.time.get_ticks() - self.game_end_time
+        self.game_end_time_left = (END_GAME_LENGTH - self.current_game_end_time) / 1000.0
+        self.game['score time'] = self.game_end_time_left
+        while self.current_game_end_time < END_GAME_LENGTH:
             sleep(0.5)
-            self.game_end_time_left = pg.time.get_ticks() - self.game_end_time
+            self.current_game_end_time = pg.time.get_ticks() - self.game_end_time
+            self.game_end_time_left = (END_GAME_LENGTH - self.current_game_end_time) / 1000.0
+            self.game['score time'] = self.game_end_time_left
 
         self.game_start_time = pg.time.get_ticks()
 

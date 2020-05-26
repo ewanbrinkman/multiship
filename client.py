@@ -47,6 +47,7 @@ class Client:
         self.new_game = False
         self.spawn_points = []
         self.item_spawns = {}
+        self.game_end_score = {}
         # sprite groups
         self.all_sprites = pg.sprite.Group()
         self.colliders = pg.sprite.Group()
@@ -693,7 +694,7 @@ class Client:
         distance_y = 0
         # debug overlay info
         for i, overlay_text in enumerate(overlay_list):
-            # caluclate where the text should be placed on the screen
+            # calculate where the text should be placed on the screen
             if screen_corner == "topleft":
                 # top left corner
                 text_align = "nw"
@@ -791,7 +792,15 @@ class Client:
     def new_game_screen(self):
         # update
         if self.end_game_reset is False:
+            # load new game data if it has not been done already
             self.load_game_data()
+            # get the scoreboard data
+            self.game_end_score = dict([(player.player_id, player.kills) for player in self.game['players'].values()])
+            self.game_end_score = sorted(self.game_end_score.items(), key=lambda kv: kv[1], reverse=True)
+            # only show the top players
+            if len(self.game_end_score) > MAX_SCOREBOARD_PLAYERS:
+                self.game_end_score = self.game_end_score[:MAX_SCOREBOARD_PLAYERS]
+            # make sure the end game reset is not done again
             self.end_game_reset = True
 
         # draw
@@ -800,12 +809,35 @@ class Client:
         # game background image in between game sessions
         self.screen.blit(self.game_bg.image, (0 - self.bg_shiftx, 0))
 
-        # title
+        # game title
         self.draw_text(GAME_TITLE, TITLE_SIZE, TEXT_COLOR, SCREEN_WIDTH / 2, 70,
                        align="center", font_name=self.theme_font)
-        # title
-        self.draw_text(NEXT_GAME_TEXT, SUBTILE_SIZE, TEXT_COLOR, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2,
-                       align="center", font_name=self.theme_font)
+
+        # score title
+        total_players = len(self.game_end_score)
+        players_shown = f" - {total_players}/{total_players} Players Shown"
+        if total_players > MAX_SCOREBOARD_PLAYERS:
+            players_shown = f" - {MAX_SCOREBOARD_PLAYERS}/{total_players} Players Shown"
+        text_rect = self.draw_text(SCORE_TITLE + players_shown, SCORE_TITLE_SIZE,
+                                   TEXT_COLOR, SCREEN_WIDTH / 2, SCORE_TITLE_HEIGHT_DISTANCE,
+                                   align="center", font_name=self.theme_font)
+
+        # game end score board
+        text_rect_heights = [text_rect.height]
+        for i, score_data in enumerate(self.game_end_score):
+            # calculate where the text should be placed on the screen
+            distance_x = SCREEN_WIDTH / 2
+            distance_y = SCORE_TITLE_HEIGHT_DISTANCE + sum(text_rect_heights)
+            # draw the text on the screen
+            text_rect = self.draw_text(f"1: {score_data}", SCORE_INFO_SIZE, TEXT_COLOR,
+                                       distance_x, distance_y, align="center", font_name=self.theme_font)
+            # add the new height
+            text_rect_heights.append(text_rect.height)
+
+        # get ready text
+        self.draw_text(NEXT_GAME_TEXT + format_time(self.game['score time']), SUBTILE_SIZE, TEXT_COLOR,
+                       SCREEN_WIDTH / 2, NEXT_GAME_HEIGHT_DISTANCE,
+                       align="s", font_name=self.theme_font)
 
         # update the client's monitor
         pg.display.flip()
