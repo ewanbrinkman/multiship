@@ -1,4 +1,4 @@
-# multiplayer-pygame
+# Multiship
 A multiplayer game in Python created using the pygame and socket modules.
 
 # Copyright and License
