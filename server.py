@@ -1,6 +1,6 @@
 from os import path, listdir
 from time import sleep
-from random import randint
+from random import randint, choice
 import socket
 from _thread import start_new_thread
 from pickle import dumps, loads
@@ -188,6 +188,12 @@ class Server:
             # add each item to a dictionary to keep track if it is active or not
             if tile_object.type == "item":
                 self.game['items'][current_item_id] = [True, tile_object.name]
+                # choose a random item only if it is a random item spawn
+                if tile_object.name == "random":
+                    item_name = choice(ITEM_WEIGHTS_LIST)
+                    self.game['items'][current_item_id].append(item_name)
+                else:
+                    self.game['items'][current_item_id].append(tile_object.name)
                 current_item_id += 1
 
         # reset unplayed maps if it is empty
@@ -212,7 +218,7 @@ class Server:
         # turn the game back on
         self.game['active'] = True
 
-        print("The Game Is Now Active")
+        print("\nThe Game Is Now Active")
 
     def threaded_item_respawn(self, item_id, game_id):
         # wait until enough time has passed, then set the item's active state back to True
@@ -224,7 +230,13 @@ class Server:
         else:
             sleep(NORMAL_ITEM_RESPAWN_TIME)
         if self.current_game_id == game_id:
-            self.game['items'][item_id][0] = True
+            # if it is a random item spawn, choose the random item that will spawn
+            if self.game['items'][item_id][1] == "random":
+                item_name = choice(ITEM_WEIGHTS_LIST)
+                self.game['items'][item_id][2] = item_name
+                self.game['items'][item_id][0] = True
+            else:
+                self.game['items'][item_id][0] = True
 
     def threaded_game(self):
         # setup

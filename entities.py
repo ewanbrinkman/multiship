@@ -310,10 +310,10 @@ class SpritePlayer(pg.sprite.Sprite):
         hits = pg.sprite.spritecollide(self, self.client.items, False, collide_hit_rect_both)
         for hit in hits:
             # power items give the power invincibility effect
-            if hit.name == "power":
+            if hit.current_item == "power":
                 self.power_invincible = True
                 self.power_time = pg.time.get_ticks()
-            if hit.name == "bullet":
+            if hit.current_item == "bullet":
                 self.ammo += 1
             # make sure the item is set to inactive on the client side
             self.client.item_spawns[hit.item_id][0] = False
@@ -469,12 +469,12 @@ class Obstacle(pg.sprite.Sprite):
 
 
 class SpriteItem(pg.sprite.Sprite):
-    def __init__(self, client, name, pos, item_id):
+    def __init__(self, client, item_id, name, current_item, pos):
         self._layer = ITEM_LAYER
         self.groups = client.all_sprites, client.items, client.colliders
         pg.sprite.Sprite.__init__(self, self.groups)
         # image
-        self.image = client.item_imgs[name]
+        self.image = client.item_imgs[current_item]
         self.rect = self.image.get_rect()
         self.hit_rect = self.rect
         self.rect.center = pos
@@ -482,9 +482,9 @@ class SpriteItem(pg.sprite.Sprite):
         # data
         self.client = client
         self.name = name
+        self.current_item = current_item
         self.pos = pos
         self.item_id = item_id
-        self.active = False
         # item bob
         self.tween = easeInOutSine
         self.step = 0

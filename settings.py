@@ -154,8 +154,19 @@ ITEM_IMGS = {
     "power": "itempower.png",
     "bullet": "itembullet.png",
 }
+ITEM_WEIGHTS_DICT = {
+    "power": 2,
+    "bullet": 5,
+}
+
+ITEM_WEIGHTS_LIST = []
+for item in list(ITEM_WEIGHTS_DICT.keys()):
+    for i in range(ITEM_WEIGHTS_DICT[item]):
+        ITEM_WEIGHTS_LIST.append(item)
+
 BOB_RANGE = 15
 BOB_SPEED = 0.4
+<<<<<<< HEAD
 NORMAL_ITEM_RESPAWN_TIME = 10  # in seconds
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -164,6 +175,9 @@ SPECIAL_ITEM_RESPAWN_TIME = 5  # in seconds
 SPECIAL_ITEM_RESPAWN_TIME = 10  # in seconds
 >>>>>>> 036bf0e... fixed multiple kill messages and items respawning across games
 =======
+=======
+NORMAL_ITEM_RESPAWN_TIME = 2  # in seconds
+>>>>>>> 5d19439... added random item spawns and fixed total players scoreboard bug
 SPECIAL_ITEM_RESPAWN_TIME = 60  # in seconds
 >>>>>>> 4d68141... ammo item and player kills and death counter
 

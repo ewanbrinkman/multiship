@@ -166,10 +166,13 @@ class Client:
                 self.spawn_points.append(object_center)
             # items
             if tile_object.type == "item":
+                # [0] is active or not, [1] is the item spawn type, [2] is the actual current item, [3] is the position
                 if tile_object.name == "power":
-                    self.item_spawns[current_item_id] = [False, object_center]
+                    self.item_spawns[current_item_id] = [False, tile_object.name, tile_object.name, object_center]
                 if tile_object.name == "bullet":
-                    self.item_spawns[current_item_id] = [False, object_center]
+                    self.item_spawns[current_item_id] = [False, tile_object.name, tile_object.name, object_center]
+                if tile_object.name == "random":
+                    self.item_spawns[current_item_id] = [False, tile_object.name, "None", object_center]
                 current_item_id += 1
 
     def connect(self):
@@ -558,11 +561,11 @@ class Client:
                 SpritePlayer(self, self.game['players'][player_id])
         # create and destroy item sprites if they are active or not
         for item_id, data in self.game['items'].items():
-            # data[0] is active or not, data[1] is the item name
+            # data[0] is active or not, data[1] is the item name, data[2] is the actual current item
 
             # create an item that is now active
             if data[0] and not self.item_spawns[item_id][0]:
-                SpriteItem(self, data[1], self.item_spawns[item_id][1], item_id)
+                SpriteItem(self, item_id, data[1], data[2], self.item_spawns[item_id][3])
                 # make sure an item is spawned again by setting the client side item active to True
                 self.item_spawns[item_id][0] = True
 
@@ -672,14 +675,14 @@ class Client:
                            player_spawn.y - TILESIZE / 2 + USERNAME_HEIGHT + self.camera.y,
                            align="s", font_name=self.theme_font)
         for item_id, item_spawn in self.item_spawns.items():
-            item_name = self.game['items'][item_id][1]
-            item_pos = item_spawn[1]
+            item_spawn_type = self.game['items'][item_id][1]
+            item_pos = item_spawn[3]
             # draw a rectangle centered on where the item spawn location is
             pg.draw.rect(self.screen, ITEM_SPAWN_COLOR, (item_pos.x + self.camera.x - TILESIZE / 4,
                                                          item_pos.y + self.camera.y - TILESIZE / 4,
                                                          TILESIZE / 2, TILESIZE / 2), 1)
             # put text above saying what type of item spawn it is
-            self.draw_text(item_name.title(), USERNAME_SIZE, TEXT_COLOR,
+            self.draw_text(item_spawn_type.title(), USERNAME_SIZE, TEXT_COLOR,
                            item_pos.x + self.camera.x,
                            item_pos.y - TILESIZE / 2 + USERNAME_HEIGHT + self.camera.y,
                            align="s", font_name=self.theme_font)
@@ -828,11 +831,11 @@ class Client:
                        align="center", font_name=self.theme_font)
 
         # score title
-        total_players = len(self.game_end_score)
+        total_score_players = len(self.game_end_score)
 
-        players_shown = f" - {total_players}/{total_players} Players Shown"
-        if total_players < len(self.game['players']):
-            players_shown = f" - {MAX_SCOREBOARD_PLAYERS}/{len(self.game['players'])} Players Shown"
+        players_shown = f" - {total_score_players}/{total_score_players} Players Shown"
+        if len(self.game['players']) > total_score_players:
+            players_shown = f" - {len(self.game['players'])}/{total_score_players} Players Shown"
         text_rect = self.draw_text(SCORE_TITLE + players_shown, SCORE_TITLE_SIZE,
                                    TEXT_COLOR, SCREEN_WIDTH / 2, SCORE_TITLE_HEIGHT_DISTANCE,
                                    align="center", font_name=self.theme_font)
