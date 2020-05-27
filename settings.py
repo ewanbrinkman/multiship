@@ -131,8 +131,8 @@ RESPAWN_INVINCIBLE_DURATION = 3000  # in milliseconds
 # items
 ITEM_IMGS = {
     "power": "itempower.png",
-    "bullet": "itembullet.png",
-    "largebullet": "itembulletsilver.png",
+    "bullet": "itembox.png",
+    "largebullet": "itembox.png",
 }
 ITEM_WEIGHTS_DICT = {
     "bullet": 10,
@@ -147,8 +147,9 @@ BULLET_AMOUNT = 1
 LARGE_BULLET_AMOUNT = 3
 BOB_RANGE = 15
 BOB_SPEED = 0.4
-NORMAL_ITEM_RESPAWN_TIME = 2  # in seconds
+NORMAL_ITEM_RESPAWN_TIME = 10  # in seconds
 SPECIAL_ITEM_RESPAWN_TIME = 60  # in seconds
+ITEM_BOX_SIZE_MULTIPLIER = 0.5
 
 # bullets
 SHOOT_RATE = 750  # in milliseconds

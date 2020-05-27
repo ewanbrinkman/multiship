@@ -114,6 +114,10 @@ class Client:
         # item images
         for item_name, filename in ITEM_IMGS.items():
             new_img = pg.image.load(path.join(img_folder, filename)).convert_alpha()
+            if "bullet" in item_name:
+                new_img_rect = new_img.get_rect()
+                new_img = pg.transform.scale(new_img, (int(new_img_rect.width * ITEM_BOX_SIZE_MULTIPLIER),
+                                                       int(new_img_rect.height * ITEM_BOX_SIZE_MULTIPLIER)))
             self.item_imgs[item_name] = new_img
         # bullet images
         for bullet_name, filename in BULLET_IMGS.items():
