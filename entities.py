@@ -364,8 +364,11 @@ class SpritePlayer(pg.sprite.Sprite):
         # destroy the player if collided with a bullet
         self.bullet_collisions()
 
-        # update the recent collisions dictionary with the latest players
-        self.recent_collisions = dict([(player_id, False) for player_id in self.client.player_ids])
+        # update the recent collisions with new players that have joined
+        for player_id in self.client.player_ids:
+            if player_id not in self.recent_collisions:
+                self.recent_collisions[player_id] = False
+                print("Added New Player ID", player_id)
 
         # if two players crash into each other
         self.player_collisions()

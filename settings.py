@@ -169,6 +169,7 @@ LARGE_BULLET_AMOUNT = 3
 BOB_RANGE = 15
 BOB_SPEED = 0.4
 <<<<<<< HEAD
+<<<<<<< HEAD
 NORMAL_ITEM_RESPAWN_TIME = 10  # in seconds
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -180,6 +181,9 @@ SPECIAL_ITEM_RESPAWN_TIME = 10  # in seconds
 =======
 NORMAL_ITEM_RESPAWN_TIME = 2  # in seconds
 >>>>>>> 5d19439... added random item spawns and fixed total players scoreboard bug
+=======
+NORMAL_ITEM_RESPAWN_TIME = 10  # in seconds
+>>>>>>> 31550e4... fixed a bug where killing a player would grant more than one kill
 SPECIAL_ITEM_RESPAWN_TIME = 60  # in seconds
 >>>>>>> 4d68141... ammo item and player kills and death counter
 
