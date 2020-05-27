@@ -1,4 +1,4 @@
-from random import choice
+from random import choice, randint
 from itertools import chain
 from pytweening import easeInOutSine
 import pygame as pg
@@ -175,10 +175,10 @@ class SpritePlayer(pg.sprite.Sprite):
             alpha(self, 255, 255, 255)
         # yellow power invincibility effect
         if self.power_invincible:
-            self.image.fill((255, 255, 51, 255), special_flags=pg.BLEND_RGBA_MULT)
+            self.image.fill(POWER_COLOR, special_flags=pg.BLEND_RGB_ADD)
         # blue frozen effect
         if self.frozen:
-            self.image.fill((200, 200, 250, 255), special_flags=pg.BLEND_RGBA_MULT)
+            self.image.fill(FROZEN_COLOR, special_flags=pg.BLEND_RGBA_MULT)
 
     def match_net_player(self):
         # get the correct player to overwrite data
@@ -226,18 +226,25 @@ class SpritePlayer(pg.sprite.Sprite):
         if keys[K_SPACE]:
             self.shoot()
 
+        # move faster during power mode
+        if self.power_invincible:
+            self.rot_acc *= POWER_SPEED_MULTIPLIER
+            self.acc *= POWER_SPEED_MULTIPLIER
+
     def apply_friction(self, movement_type):
         # north, south, east, and west movement
         if movement_type == "nsew":
             hits = pg.sprite.spritecollide(self, self.client.shallows, False, collide_hit_rect_both)
-            if hits:
+            # only apply slow shallow movement if the player currently does not have star power
+            if hits and not self.power_invincible:
                 return PLAYER_SHALLOW_FRICTION
             else:
                 return PLAYER_WATER_FRICTION
         # rotation movement
         elif movement_type == "rot":
             hits = pg.sprite.spritecollide(self, self.client.shallows, False, collide_hit_rect_both)
-            if hits:
+            # only apply slow shallow movement if the player currently does not have star power
+            if hits and not self.power_invincible:
                 return PLAYER_SHALLOW_ROT_FRICTION
             else:
                 return PLAYER_WATER_ROT_FRICTION
@@ -492,7 +499,7 @@ class SpriteItem(pg.sprite.Sprite):
         self.item_id = item_id
         # item bob
         self.tween = easeInOutSine
-        self.step = 0
+        self.step = randint(0, BOB_RANGE)
         self.direction = 1
         # debug
         self.color = ITEM_SPAWN_COLOR

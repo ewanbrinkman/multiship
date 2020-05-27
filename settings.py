@@ -116,13 +116,16 @@ PLAYER_IMGS = {
     "brokengreen": "brokengreen.png",
     "brokenblue": "brokenblue.png",
 }
+POWER_COLOR = (255, 255, 51, 20)
+FROZEN_COLOR = (200, 200, 250, 255)
 # hit rect
 PLAYER_HIT_RECT_WIDTH = 66
 PLAYER_HIT_RECT_HEIGHT = 66
 PLAYER_BOUNCE_VEL = 25
 PLAYER_CRASH_DURATION = 3000  # in milliseconds
 # power invincibility
-POWER_INVINCIBLE_DURATION = 12500  # in milliseconds
+POWER_INVINCIBLE_DURATION = 20000  # in milliseconds
+POWER_SPEED_MULTIPLIER = 1.5
 # respawn invincibility
 TRANSITION_SPEED = 10
 RESPAWN_ALPHA = [i for i in range(0, 255, TRANSITION_SPEED)]
@@ -132,11 +135,11 @@ RESPAWN_INVINCIBLE_DURATION = 3000  # in milliseconds
 ITEM_IMGS = {
     "power": "itempower.png",
     "bullet": "itembox.png",
-    "largebullet": "itembox.png",
+    "largebullet": "largeitembox.png",
 }
 ITEM_WEIGHTS_DICT = {
     "bullet": 10,
-    "largebullet": 1,
+    "largebullet": 3,
     "power": 1,
 }
 ITEM_WEIGHTS_LIST = []
