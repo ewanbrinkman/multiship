@@ -9,7 +9,11 @@ RECEIVE_LIMIT = 8192
 MAX_CLIENTS = 6
 
 # game
+<<<<<<< HEAD
 GAME_LENGTH = 15  # in seconds, 300 seconds = 5 minutes
+=======
+GAME_LENGTH = 60  # in seconds, 300 seconds = 5 minutes
+>>>>>>> 6c1a11f... changed settings
 END_GAME_LENGTH = 5000 # in milliseconds
 
 # shades
