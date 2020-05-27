@@ -9,29 +9,8 @@ RECEIVE_LIMIT = 8192
 MAX_CLIENTS = 6
 
 # game
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-GAME_LENGTH = 15  # in seconds, 300 seconds = 5 minutes
-=======
-GAME_LENGTH = 60  # in seconds, 300 seconds = 5 minutes
-<<<<<<< HEAD
->>>>>>> 6c1a11f... changed settings
-END_GAME_LENGTH = 5000 # in milliseconds
-=======
-END_GAME_LENGTH = 5000  # in milliseconds
->>>>>>> 5d22f34... basic square bullets with no effect
-=======
-GAME_LENGTH = 5  # in seconds, 300 seconds = 5 minutes
-=======
-GAME_LENGTH = 15  # in seconds, 300 seconds = 5 minutes
->>>>>>> a67ca5c... scoreboard shows all data and total players
-=======
 GAME_LENGTH = 300  # in seconds, 300 seconds = 5 minutes
->>>>>>> da32415... fixed bug where recent collisions would not update
 END_GAME_LENGTH = 14000  # in milliseconds
->>>>>>> ca4d69a... basic scoreboard
 
 # shades
 WHITE = (255, 255, 255)
@@ -168,47 +147,17 @@ BULLET_AMOUNT = 1
 LARGE_BULLET_AMOUNT = 3
 BOB_RANGE = 15
 BOB_SPEED = 0.4
-<<<<<<< HEAD
-<<<<<<< HEAD
-NORMAL_ITEM_RESPAWN_TIME = 10  # in seconds
-<<<<<<< HEAD
-<<<<<<< HEAD
-SPECIAL_ITEM_RESPAWN_TIME = 5  # in seconds
-=======
-SPECIAL_ITEM_RESPAWN_TIME = 10  # in seconds
->>>>>>> 036bf0e... fixed multiple kill messages and items respawning across games
-=======
-=======
 NORMAL_ITEM_RESPAWN_TIME = 2  # in seconds
->>>>>>> 5d19439... added random item spawns and fixed total players scoreboard bug
-=======
-NORMAL_ITEM_RESPAWN_TIME = 10  # in seconds
->>>>>>> 31550e4... fixed a bug where killing a player would grant more than one kill
 SPECIAL_ITEM_RESPAWN_TIME = 60  # in seconds
->>>>>>> 4d68141... ammo item and player kills and death counter
 
-<<<<<<< HEAD
-# cannonballs
-CANNONBALL_VEL = 100
-=======
 # bullets
 SHOOT_RATE = 750  # in milliseconds
 BULLET_RANGE = 1500  # in pixels
 BULLET_VEL = 300  # pixels per second
-<<<<<<< HEAD
->>>>>>> 5d22f34... basic square bullets with no effect
-=======
 BULLET_IMGS = {"basic": "cannonball.png",
                }
-<<<<<<< HEAD
-<<<<<<< HEAD
->>>>>>> 5d05003... bullet sprites that die when they hit walls
-=======
-=======
 BULLET_SIZE_MULTIPLIER = 2
->>>>>>> ca4d69a... basic scoreboard
 NORMAL_SHOOT_ANGLES = [90, -90]
->>>>>>> dfa2af0... bullets now collide and destory themselves
 
 # sounds
 MENU_BG_MUSIC = "Dryads Feast.mp3"
