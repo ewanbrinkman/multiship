@@ -90,6 +90,11 @@ class Server:
             print(f"Error Creating A Server On {self.server_name} At {self.server_ip}:{self.server_port}")
 
     def run(self):
+        # start the window
+        self.screen = pg.display.set_mode((SERVER_SCREEN_WIDTH, SERVER_SCREEN_HEIGHT))
+        pg.display.set_icon(self.icon)
+        self.window_clock = pg.time.Clock()
+
         # start a thread for input
         start_new_thread(self.threaded_input, ())
 
@@ -98,11 +103,6 @@ class Server:
 
         # start the accept new connections thread
         start_new_thread(self.threaded_socket, ())
-
-        # start the window
-        self.screen = pg.display.set_mode((SERVER_SCREEN_WIDTH, SERVER_SCREEN_HEIGHT))
-        pg.display.set_icon(self.icon)
-        self.window_clock = pg.time.Clock()
 
         while self.running:
             # pause
@@ -178,9 +178,15 @@ class Server:
         # reset game data
         self.game['items'].clear()
         self.game['bullets'].clear()
+
         # counters to give each item spawn and bullet a unique id for their group
         current_item_id = 0
         self.current_bullet_id = 0
+
+        # keep track of how many special items spawned, to remove any extras after
+        # the removal is special items is done after, so that it is not always the same item which gets priority
+        # this is because the tilemap_data is in the same order every time for a map
+        special_items_spawned = 0
 
         # get data about the current map
         tilemap_data = pytmx.load_pygame(path.join(self.map_folder, self.game['current map']), pixelalpha=True)
@@ -194,7 +200,23 @@ class Server:
                     self.game['items'][current_item_id].append(item_name)
                 else:
                     self.game['items'][current_item_id].append(tile_object.name)
+                    if tile_object.name in SPECIAL_ITEMS:
+                        special_items_spawned += 1
                 current_item_id += 1
+
+        # get special items that are currently spawned
+        spawned_special_item_ids = []
+        for item_id, item_data in self.game['items'].items():
+            if item_data[1] in SPECIAL_ITEMS:
+                spawned_special_item_ids.append(item_id)
+
+        # choose random ones to despawn until the desired limit is reached
+        while special_items_spawned > SPECIAL_ITEM_MAX_FIRST_SPAWN:
+            special_items_spawned -= 1
+            despawn_special_item_id = choice(spawned_special_item_ids)
+            # make the item inactive
+            self.game['items'][despawn_special_item_id][0] = False
+            start_new_thread(self.threaded_item_respawn, (despawn_special_item_id, self.current_game_id))
 
         # reset unplayed maps if it is empty
         if len(self.unplayed_maps) == 0:
@@ -226,7 +248,7 @@ class Server:
         # the game_id makes sure this thread doesn't respawn an item from a different game
         # if this function is called right before a game ends, it would sleep through the eng game screen
         if self.game['items'][item_id][1] == "power":
-            sleep(SPECIAL_ITEM_RESPAWN_TIME)
+            sleep(randint(SPECIAL_ITEM_RESPAWN_TIME_MIN, SPECIAL_ITEM_RESPAWN_TIME_MAX))
         else:
             sleep(NORMAL_ITEM_RESPAWN_TIME)
         if self.current_game_id == game_id:

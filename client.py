@@ -631,8 +631,7 @@ class Client:
                                       f"Deaths: {self.player.deaths}",
                                       f"Kills: {self.player.kills}"]
         self.debug_overlay = [f"Client ID: {self.player_id}",
-                              f"Username: {self.username}",
-                              f"FPS: {round(self.clock.get_fps(), 2)}"]
+                              f"Username: {self.username}"]
 
         # update display caption
         if self.debug:

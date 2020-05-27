@@ -150,9 +150,13 @@ BULLET_AMOUNT = 1
 LARGE_BULLET_AMOUNT = 3
 BOB_RANGE = 15
 BOB_SPEED = 0.4
-NORMAL_ITEM_RESPAWN_TIME = 10  # in seconds
-SPECIAL_ITEM_RESPAWN_TIME = 60  # in seconds
+NORMAL_ITEM_RESPAWN_TIME = 15  # in seconds
+SPECIAL_ITEM_RESPAWN_TIME_MIN = 60  # in seconds
+SPECIAL_ITEM_RESPAWN_TIME_MAX = 80  # in seconds
+SPECIAL_ITEM_MAX_FIRST_SPAWN = 1  # 1 how many of this item can spawn when the game first starts
 ITEM_BOX_SIZE_MULTIPLIER = 0.5
+# a list of all items considered "special"
+SPECIAL_ITEMS = ["power"]
 
 # bullets
 SHOOT_RATE = 750  # in milliseconds
