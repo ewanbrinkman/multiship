@@ -3,9 +3,9 @@ SOUND = True  # you can still toggle sound after starting
 CONN_TIMEOUT = 10  # in seconds
 
 # server
-SERVER_IP = "192.168.1.175"
+SERVER_IP = "10.80.129.114"
 PORT = 4242
-RECEIVE_LIMIT = 8192
+RECEIVE_LIMIT = 4096
 MAX_CLIENTS = 6
 
 # game
