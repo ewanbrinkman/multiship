@@ -80,8 +80,6 @@ class Client:
         self.buttons = {}
         self.menu_bg = None
         self.game_bg = None
-        self.bg_shiftx = 0
-        self.bg_shifty = 0
         self.main_menu_text = MAIN_MENU_TEXT
         self.selected_player_image = None
         self.selected_player_image_rect = None
@@ -139,9 +137,11 @@ class Client:
         self.menu_bg.make_map()
         self.game_bg = TiledMap(path.join(self.map_folder, GAME_BG_IMG))
         self.game_bg.make_map()
-        # amount to shift everything, to make up for the background being slightly bigger then the screen size
-        self.bg_shiftx = (self.menu_bg.rect.width - self.screen_width) / 2
-        self.bg_shifty = (self.menu_bg.rect.height - self.screen_height) / 2
+        # resize to fit screen
+        self.menu_bg.image = pg.transform.scale(self.menu_bg.image, (self.screen_width, self.screen_height))
+        self.menu_bg.rect = self.menu_bg.image.get_rect()
+        self.game_bg.image = pg.transform.scale(self.game_bg.image, (self.screen_width, self.screen_height))
+        self.game_bg.rect = self.game_bg.image.get_rect()
 
     def create_map(self, filename):
         # basic map background image with data
@@ -275,27 +275,29 @@ class Client:
 
         # entry boxes
         self.entry_boxes["username"] = EntryBox(self.screen_width / 2 - ENTRY_WIDTH / 2,
-                                                140, ENTRY_WIDTH,
+                                                self.screen_width * ENTRY_START_HEIGHT, ENTRY_WIDTH,
                                                 self.theme_font, VALID_USERNAME, text=self.username)
         self.entry_boxes["server ip"] = EntryBox(self.screen_width / 2 - ENTRY_WIDTH / 2,
-                                                 210, ENTRY_WIDTH,
+                                                 self.screen_width * ENTRY_START_HEIGHT + self.screen_width * ENTRY_ADD_ON_HEIGHT,
+                                                 ENTRY_WIDTH,
                                                  self.theme_font, VALID_IP, text=self.server_ip)
         self.entry_boxes["port"] = EntryBox(self.screen_width / 2 - ENTRY_WIDTH / 2,
-                                            280, ENTRY_WIDTH,
+                                            self.screen_width * ENTRY_START_HEIGHT + self.screen_width * ENTRY_ADD_ON_HEIGHT * 2,
+                                            ENTRY_WIDTH,
                                             self.theme_font, VALID_PORT, text=str(self.port))
         # buttons
         self.buttons["connect"] = Button(self.screen_width / 2 - self.screen_width / 4,
-                                         TILESIZE * 11 + TILESIZE / 2 - TILESIZE / 8, BUTTON_WIDTH, BUTTON_HEIGHT,
+                                         self.screen_height * CONNECT_QUIT_BUTTON_HEIGHT, BUTTON_WIDTH, BUTTON_HEIGHT,
                                          self.theme_font, text="Connect")
         self.buttons["quit"] = Button(self.screen_width / 2 + self.screen_width / 4 - BUTTON_WIDTH,
-                                      TILESIZE * 11 + TILESIZE / 2 - TILESIZE / 8, BUTTON_WIDTH, BUTTON_HEIGHT,
+                                      self.screen_height * CONNECT_QUIT_BUTTON_HEIGHT, BUTTON_WIDTH, BUTTON_HEIGHT,
                                       self.theme_font, text="Quit")
         self.buttons["right"] = Button(self.screen_width / 2 + 100,
-                                       570 - self.selected_player_image_rect.height / 2,
+                                       self.screen_height * SHIP_SELECTION_BUTTON_HEIGHT - self.selected_player_image_rect.height / 2,
                                        BUTTON_WIDTH_SHIP, BUTTON_HEIGHT, self.theme_font, text="Next Ship")
         self.buttons["left"] = Button(self.screen_width / 2 - 100 - BUTTON_WIDTH_SHIP,
-                                      570 - self.selected_player_image_rect.height / 2,
-                                       BUTTON_WIDTH_SHIP, BUTTON_HEIGHT, self.theme_font, text="Previous Ship")
+                                      self.screen_height * SHIP_SELECTION_BUTTON_HEIGHT - self.selected_player_image_rect.height / 2,
+                                      BUTTON_WIDTH_SHIP, BUTTON_HEIGHT, self.theme_font, text="Previous Ship")
 
         # background music
         pg.mixer.music.load(self.menu_music)
@@ -337,7 +339,8 @@ class Client:
         self.selected_player_image = pg.transform.rotate(self.selected_player_image, -90)
         # get rect to set placement
         self.selected_player_image_rect = self.selected_player_image.get_rect()
-        self.selected_player_image_rect.center = (self.screen_width / 2, 570)
+        self.selected_player_image_rect.center = (
+            self.screen_width / 2, self.screen_height * SHIP_SELECTION_BUTTON_HEIGHT)
 
     def menu_events(self):
         for event in pg.event.get():
@@ -421,13 +424,15 @@ class Client:
         self.screen.fill((255, 255, 255))
 
         # menu background image
-        self.screen.blit(self.menu_bg.image, (0 - self.bg_shiftx, 0))
+        self.screen.blit(self.menu_bg.image, (0, 0))
 
         # title
-        self.draw_text(GAME_TITLE, TITLE_SIZE, TEXT_COLOR, self.screen_width / 2, 70,
+        self.draw_text(GAME_TITLE, TITLE_SIZE, TEXT_COLOR, self.screen_width / 2,
+                       self.screen_height * TITLE_TEXT_HEIGHT,
                        align="center", font_name=self.theme_font)
         # main menu text
-        self.draw_text(self.main_menu_text, NORMAL_SIZE, TEXT_COLOR, self.screen_width / 2, 450,
+        self.draw_text(self.main_menu_text, NORMAL_SIZE, TEXT_COLOR, self.screen_width / 2,
+                       self.screen_height * MAIN_MENU_TEXT_HEIGHT,
                        align="center", font_name=self.theme_font)
 
         # entry boxes
@@ -832,10 +837,11 @@ class Client:
         # background
         self.screen.fill((255, 255, 255))
         # game background image in between game sessions
-        self.screen.blit(self.game_bg.image, (0 - self.bg_shiftx, 0))
+        self.screen.blit(self.game_bg.image, (0, 0))
 
         # game title
-        self.draw_text(GAME_TITLE, TITLE_SIZE, TEXT_COLOR, self.screen_width / 2, 70,
+        self.draw_text(GAME_TITLE, TITLE_SIZE, TEXT_COLOR, self.screen_width / 2,
+                       self.screen_height * TITLE_TEXT_HEIGHT,
                        align="center", font_name=self.theme_font)
 
         # score title
@@ -845,7 +851,7 @@ class Client:
         if len(self.game['players']) > total_score_players:
             players_shown = f" - {len(self.game['players'])}/{total_score_players} Players Shown"
         text_rect = self.draw_text(SCORE_TITLE + players_shown, SCORE_TITLE_SIZE,
-                                   TEXT_COLOR, self.screen_width / 2, SCORE_TITLE_HEIGHT_DISTANCE,
+                                   TEXT_COLOR, self.screen_width / 2, self.screen_height * SCORE_TITLE_HEIGHT_DISTANCE,
                                    align="center", font_name=self.theme_font)
 
         # game end score board
@@ -864,7 +870,7 @@ class Client:
 
             # calculate where the text should be placed on the screen
             distance_x = self.screen_width / 2
-            distance_y = SCORE_TITLE_HEIGHT_DISTANCE + sum(text_rect_heights)
+            distance_y = self.screen_height * SCORE_TITLE_HEIGHT_DISTANCE + sum(text_rect_heights)
 
             scoreboard_text = (f"{i}{ordinal_indicator} Place: {score_data[0]} "
                                f"- {score_data[1]} Points")

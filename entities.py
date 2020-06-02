@@ -414,9 +414,11 @@ class SpritePlayer(pg.sprite.Sprite):
             self.acc += self.vel * self.apply_friction("nsew")
 
             # new velocity after
+            # vf = vi + at
             self.vel = self.vel + self.acc * self.client.dt
 
             # displacement
+            # d = vit + 1/2at^2
             displacement = self.vel * self.client.dt + 0.5 * self.acc * self.client.dt ** 2
             self.pos += displacement
 
