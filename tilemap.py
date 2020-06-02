@@ -8,8 +8,10 @@ def format_map(filename):
 
 
 class Camera:
-    def __init__(self, map_width, map_height):
+    def __init__(self, screen_width, screen_height, map_width, map_height):
         self.rect = pg.Rect(0, 0, map_width, map_height)
+        self.screen_width = screen_width
+        self.screen_height = screen_height
         self.width = map_width
         self.height = map_height
         self.x = None
@@ -23,20 +25,20 @@ class Camera:
 
     def update(self, target):
         # make the target on the center of the screen
-        self.x = -target.rect.centerx + int(SCREEN_WIDTH / 2)
-        self.y = -target.rect.centery + int(SCREEN_HEIGHT / 2)
+        self.x = -target.rect.centerx + int(self.screen_width / 2)
+        self.y = -target.rect.centery + int(self.screen_height / 2)
 
         # limit scrolling to map size
         self.x = min(0, self.x)  # left
         self.y = min(0, self.y)  # top
-        self.x = max(-(self.width - SCREEN_WIDTH), self.x)  # right
-        self.y = max(-(self.height - SCREEN_HEIGHT), self.y)  # left
+        self.x = max(-(self.width - self.screen_width), self.x)  # right
+        self.y = max(-(self.height - self.screen_height), self.y)  # left
 
         # center the map if it is smaller then the screen size
-        if self.width < SCREEN_WIDTH:
-            self.x = SCREEN_WIDTH / 2 - self.width / 2
-        if self.height < SCREEN_HEIGHT:
-            self.y = SCREEN_HEIGHT / 2 - self.height / 2
+        if self.width < self.screen_width:
+            self.x = self.screen_width / 2 - self.width / 2
+        if self.height < self.screen_height:
+            self.y = self.screen_height / 2 - self.height / 2
 
         self.rect = pg.Rect(self.x, self.y, self.width, self.height)
 

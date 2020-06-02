@@ -463,7 +463,7 @@ class Client:
         # create the map
         self.create_map(self.current_map)
         # create camera to fit map size
-        self.camera = Camera(self.map.width, self.map.height)
+        self.camera = Camera(self.screen_width, self.screen_height, self.map.width, self.map.height)
 
         # choose a random spawn point
         self.player.pos = Vec(choice(self.spawn_points))
@@ -878,7 +878,7 @@ class Client:
 
         # get ready text
         self.draw_text(NEXT_GAME_TEXT + format_time(self.game['score time']), SUBTILE_SIZE, TEXT_COLOR,
-                       self.screen_width / 2, NEXT_GAME_HEIGHT_DISTANCE,
+                       self.screen_width / 2, self.screen_height - NEXT_GAME_BOTTOM_HEIGHT_DISTANCE,
                        align="s", font_name=self.theme_font)
 
         # update the client's monitor
