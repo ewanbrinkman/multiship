@@ -615,6 +615,8 @@ class Server:
                         connection.sendall(dumps(reply))
                 except EOFError:
                     break
+                except ConnectionResetError:
+                    break
 
             # close the connection with the client that has disconnected
             self.disconnect_client(player_id)

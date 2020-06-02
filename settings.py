@@ -1,6 +1,6 @@
 # launch options
 SOUND = True  # you can still toggle sound after starting
-CONN_TIMEOUT = 3  # in seconds
+CONN_TIMEOUT = 10  # in seconds
 
 # server
 SERVER_IP = "192.168.1.175"
