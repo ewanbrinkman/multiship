@@ -285,10 +285,12 @@ class Client:
         self.buttons["quit"] = Button(SCREEN_WIDTH / 2 + SCREEN_WIDTH / 4 - BUTTON_WIDTH,
                                       TILESIZE * 11 + TILESIZE / 2 - TILESIZE / 8, BUTTON_WIDTH, BUTTON_HEIGHT,
                                       self.theme_font, text="Quit")
-        self.buttons["right"] = Button(SCREEN_WIDTH / 2 + 100, 570 - self.selected_player_image_rect.height / 2,
-                                       BUTTON_WIDTH, BUTTON_HEIGHT, self.theme_font, text="Right")
-        self.buttons["left"] = Button(SCREEN_WIDTH / 2 - 100 - BUTTON_WIDTH, 570 - self.selected_player_image_rect.height / 2,
-                                       BUTTON_WIDTH, BUTTON_HEIGHT, self.theme_font, text="Left")
+        self.buttons["right"] = Button(SCREEN_WIDTH / 2 + 100,
+                                       570 - self.selected_player_image_rect.height / 2,
+                                       BUTTON_WIDTH_SHIP, BUTTON_HEIGHT, self.theme_font, text="Next Ship")
+        self.buttons["left"] = Button(SCREEN_WIDTH / 2 - 100 - BUTTON_WIDTH_SHIP,
+                                      570 - self.selected_player_image_rect.height / 2,
+                                       BUTTON_WIDTH_SHIP, BUTTON_HEIGHT, self.theme_font, text="Previous Ship")
 
         # background music
         pg.mixer.music.load(self.menu_music)

@@ -43,7 +43,7 @@ class Server:
         self.client_changes = {}
         self.server_commands = ["help", "listall", "getusername", "getid", "setattr", "setusername", "setcolor",
                                 "kick", "kickall", "respawn", "freeze", "unfreeze", "freezeall", "unfreezeall",
-                                "setitem", "open", "close"]
+                                "setitem", "addammo", "open", "close"]
         self.current_player = 0  # the current client id
         # game attributes
         self.maps = []
@@ -247,7 +247,7 @@ class Server:
         # the time until the item respawns depends on the item
         # the game_id makes sure this thread doesn't respawn an item from a different game
         # if this function is called right before a game ends, it would sleep through the eng game screen
-        if self.game['items'][item_id][1] == "power":
+        if self.game['items'][item_id][1] in SPECIAL_ITEMS:
             sleep(randint(SPECIAL_ITEM_RESPAWN_TIME_MIN, SPECIAL_ITEM_RESPAWN_TIME_MAX))
         else:
             sleep(NORMAL_ITEM_RESPAWN_TIME)

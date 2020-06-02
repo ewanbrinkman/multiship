@@ -3,7 +3,7 @@ SOUND = True  # you can still toggle sound after starting
 CONN_TIMEOUT = 3  # in seconds
 
 # server
-SERVER_IP = "192.168.86.66"
+SERVER_IP = "192.168.1.175"
 PORT = 4242
 RECEIVE_LIMIT = 8192
 MAX_CLIENTS = 6
@@ -92,6 +92,7 @@ BUTTON_INACTIVE = INACTIVE_BLUE
 BUTTON_ACTIVE = ACTIVE_BLUE
 BUTTON_PRESSED = PRESSED_BLUE
 BUTTON_WIDTH = 190
+BUTTON_WIDTH_SHIP = 290
 BUTTON_HEIGHT = 80
 
 # player
@@ -124,8 +125,8 @@ PLAYER_HIT_RECT_HEIGHT = 66
 PLAYER_BOUNCE_VEL = 25
 PLAYER_CRASH_DURATION = 3000  # in milliseconds
 # power invincibility
-POWER_INVINCIBLE_DURATION = 20000  # in milliseconds
-POWER_SPEED_MULTIPLIER = 1.5
+POWER_INVINCIBLE_DURATION = 18000  # in milliseconds
+POWER_SPEED_MULTIPLIER = 1.3
 # respawn invincibility
 TRANSITION_SPEED = 10
 RESPAWN_ALPHA = [i for i in range(0, 255, TRANSITION_SPEED)]
@@ -138,8 +139,8 @@ ITEM_IMGS = {
     "largebullet": "largeitembox.png",
 }
 ITEM_WEIGHTS_DICT = {
-    "bullet": 10,
-    "largebullet": 3,
+    "bullet": 15,
+    "largebullet": 4,
     "power": 1,
 }
 ITEM_WEIGHTS_LIST = []
@@ -151,8 +152,8 @@ LARGE_BULLET_AMOUNT = 3
 BOB_RANGE = 15
 BOB_SPEED = 0.4
 NORMAL_ITEM_RESPAWN_TIME = 15  # in seconds
-SPECIAL_ITEM_RESPAWN_TIME_MIN = 60  # in seconds
-SPECIAL_ITEM_RESPAWN_TIME_MAX = 80  # in seconds
+SPECIAL_ITEM_RESPAWN_TIME_MIN = 90  # in seconds
+SPECIAL_ITEM_RESPAWN_TIME_MAX = 120  # in seconds
 SPECIAL_ITEM_MAX_FIRST_SPAWN = 1  # 1 how many of this item can spawn when the game first starts
 ITEM_BOX_SIZE_MULTIPLIER = 0.5
 # a list of all items considered "special"
