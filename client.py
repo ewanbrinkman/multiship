@@ -62,6 +62,8 @@ class Client:
         self.fullscreen = True
         self.show_fps = False
         self.debug = False
+        self.screen_width = 0
+        self.screen_height= 0
         # data to load
         self.map_folder = None
         self.icon = None
@@ -138,8 +140,8 @@ class Client:
         self.game_bg = TiledMap(path.join(self.map_folder, GAME_BG_IMG))
         self.game_bg.make_map()
         # amount to shift everything, to make up for the background being slightly bigger then the screen size
-        self.bg_shiftx = (self.menu_bg.rect.width - SCREEN_WIDTH) / 2
-        self.bg_shifty = (self.menu_bg.rect.height - SCREEN_HEIGHT) / 2
+        self.bg_shiftx = (self.menu_bg.rect.width - self.screen_width) / 2
+        self.bg_shifty = (self.menu_bg.rect.height - self.screen_height) / 2
 
     def create_map(self, filename):
         # basic map background image with data
@@ -233,6 +235,9 @@ class Client:
         self.clock = pg.time.Clock()
         # set up display
         self.screen = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pg.FULLSCREEN)
+        window_dimensions = pg.display.get_surface()
+        self.screen_width = window_dimensions.get_width()
+        self.screen_height = window_dimensions.get_height()
         if self.debug:
             pg.display.set_caption(
                 f"Client - ID: {self.player_id} - Username: {self.username} - FPS: {round(self.clock.get_fps(), 2)}")
@@ -269,26 +274,26 @@ class Client:
         self.update_player_image()
 
         # entry boxes
-        self.entry_boxes["username"] = EntryBox(SCREEN_WIDTH / 2 - ENTRY_WIDTH / 2,
+        self.entry_boxes["username"] = EntryBox(self.screen_width / 2 - ENTRY_WIDTH / 2,
                                                 140, ENTRY_WIDTH,
                                                 self.theme_font, VALID_USERNAME, text=self.username)
-        self.entry_boxes["server ip"] = EntryBox(SCREEN_WIDTH / 2 - ENTRY_WIDTH / 2,
+        self.entry_boxes["server ip"] = EntryBox(self.screen_width / 2 - ENTRY_WIDTH / 2,
                                                  210, ENTRY_WIDTH,
                                                  self.theme_font, VALID_IP, text=self.server_ip)
-        self.entry_boxes["port"] = EntryBox(SCREEN_WIDTH / 2 - ENTRY_WIDTH / 2,
+        self.entry_boxes["port"] = EntryBox(self.screen_width / 2 - ENTRY_WIDTH / 2,
                                             280, ENTRY_WIDTH,
                                             self.theme_font, VALID_PORT, text=str(self.port))
         # buttons
-        self.buttons["connect"] = Button(SCREEN_WIDTH / 2 - SCREEN_WIDTH / 4,
+        self.buttons["connect"] = Button(self.screen_width / 2 - self.screen_width / 4,
                                          TILESIZE * 11 + TILESIZE / 2 - TILESIZE / 8, BUTTON_WIDTH, BUTTON_HEIGHT,
                                          self.theme_font, text="Connect")
-        self.buttons["quit"] = Button(SCREEN_WIDTH / 2 + SCREEN_WIDTH / 4 - BUTTON_WIDTH,
+        self.buttons["quit"] = Button(self.screen_width / 2 + self.screen_width / 4 - BUTTON_WIDTH,
                                       TILESIZE * 11 + TILESIZE / 2 - TILESIZE / 8, BUTTON_WIDTH, BUTTON_HEIGHT,
                                       self.theme_font, text="Quit")
-        self.buttons["right"] = Button(SCREEN_WIDTH / 2 + 100,
+        self.buttons["right"] = Button(self.screen_width / 2 + 100,
                                        570 - self.selected_player_image_rect.height / 2,
                                        BUTTON_WIDTH_SHIP, BUTTON_HEIGHT, self.theme_font, text="Next Ship")
-        self.buttons["left"] = Button(SCREEN_WIDTH / 2 - 100 - BUTTON_WIDTH_SHIP,
+        self.buttons["left"] = Button(self.screen_width / 2 - 100 - BUTTON_WIDTH_SHIP,
                                       570 - self.selected_player_image_rect.height / 2,
                                        BUTTON_WIDTH_SHIP, BUTTON_HEIGHT, self.theme_font, text="Previous Ship")
 
@@ -332,7 +337,7 @@ class Client:
         self.selected_player_image = pg.transform.rotate(self.selected_player_image, -90)
         # get rect to set placement
         self.selected_player_image_rect = self.selected_player_image.get_rect()
-        self.selected_player_image_rect.center = (SCREEN_WIDTH / 2, 570)
+        self.selected_player_image_rect.center = (self.screen_width / 2, 570)
 
     def menu_events(self):
         for event in pg.event.get():
@@ -350,9 +355,9 @@ class Client:
                 if event.key == K_F1:
                     self.fullscreen = not self.fullscreen
                     if self.fullscreen:
-                        self.screen = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), FULLSCREEN)
+                        self.screen = pg.display.set_mode((self.screen_width, self.screen_height), FULLSCREEN)
                     else:
-                        self.screen = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+                        self.screen = pg.display.set_mode((self.screen_width, self.screen_height))
                 # mute volume
                 if event.key == K_F2:
                     if pg.mixer.music.get_volume():
@@ -419,10 +424,10 @@ class Client:
         self.screen.blit(self.menu_bg.image, (0 - self.bg_shiftx, 0))
 
         # title
-        self.draw_text(GAME_TITLE, TITLE_SIZE, TEXT_COLOR, SCREEN_WIDTH / 2, 70,
+        self.draw_text(GAME_TITLE, TITLE_SIZE, TEXT_COLOR, self.screen_width / 2, 70,
                        align="center", font_name=self.theme_font)
         # main menu text
-        self.draw_text(self.main_menu_text, NORMAL_SIZE, TEXT_COLOR, SCREEN_WIDTH / 2, 450,
+        self.draw_text(self.main_menu_text, NORMAL_SIZE, TEXT_COLOR, self.screen_width / 2, 450,
                        align="center", font_name=self.theme_font)
 
         # entry boxes
@@ -525,9 +530,9 @@ class Client:
                 if event.key == K_F1:
                     self.fullscreen = not self.fullscreen
                     if self.fullscreen:
-                        self.screen = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), FULLSCREEN)
+                        self.screen = pg.display.set_mode((self.screen_width, self.screen_height), FULLSCREEN)
                     else:
-                        self.screen = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+                        self.screen = pg.display.set_mode((self.screen_width, self.screen_height))
                 # mute volume
                 if event.key == K_F2:
                     if pg.mixer.music.get_volume():
@@ -654,10 +659,10 @@ class Client:
 
     def draw_grid(self):
         # a grid of lines to represent the tiles of the map
-        for x in range(self.camera.x, SCREEN_WIDTH, TILESIZE):
-            pg.draw.line(self.screen, GRID_COLOR, (x, 0), (x, SCREEN_HEIGHT))
-        for y in range(self.camera.y, SCREEN_HEIGHT, TILESIZE):
-            pg.draw.line(self.screen, GRID_COLOR, (0, y), (SCREEN_WIDTH, y))
+        for x in range(self.camera.x, self.screen_width, TILESIZE):
+            pg.draw.line(self.screen, GRID_COLOR, (x, 0), (x, self.screen_height))
+        for y in range(self.camera.y, self.screen_height, TILESIZE):
+            pg.draw.line(self.screen, GRID_COLOR, (0, y), (self.screen_width, y))
 
     def draw_debug(self):
         # draw the grid of tiles
@@ -709,18 +714,18 @@ class Client:
             elif screen_corner == "topright":
                 # top right corner
                 text_align = "ne"
-                distance_x = SCREEN_WIDTH - OVERLAY_WIDTH_DISTANCE
+                distance_x = self.screen_width - OVERLAY_WIDTH_DISTANCE
                 distance_y = OVERLAY_HEIGHT_DISTANCE + sum(text_rect_heights)
             elif screen_corner == "bottomleft":
                 # bottom left corner
                 text_align = "sw"
                 distance_x = OVERLAY_WIDTH_DISTANCE
-                distance_y = SCREEN_HEIGHT - OVERLAY_HEIGHT_DISTANCE - sum(text_rect_heights)
+                distance_y = self.screen_height - OVERLAY_HEIGHT_DISTANCE - sum(text_rect_heights)
             else:
                 # bottom right corner
                 text_align = "se"
-                distance_x = SCREEN_WIDTH - OVERLAY_WIDTH_DISTANCE
-                distance_y = SCREEN_HEIGHT - OVERLAY_HEIGHT_DISTANCE - sum(text_rect_heights)
+                distance_x = self.screen_width - OVERLAY_WIDTH_DISTANCE
+                distance_y = self.screen_height - OVERLAY_HEIGHT_DISTANCE - sum(text_rect_heights)
 
             # draw the text on the screen
             text_rect = self.draw_text(overlay_text, OVERLAY_SIZE, TEXT_COLOR,
@@ -756,11 +761,11 @@ class Client:
         self.draw_overlay(self.game_overlay_right, "topright")
         self.draw_overlay(self.player_status_overlay, "bottomleft")
         self.draw_text(f"Map Name: {format_map(self.game['current map'])}", OVERLAY_SIZE, TEXT_COLOR,
-                       SCREEN_WIDTH / 2, OVERLAY_HEIGHT_DISTANCE,
+                       self.screen_width / 2, OVERLAY_HEIGHT_DISTANCE,
                        align="n", font_name=self.theme_font)
         if self.show_fps:
             self.draw_text(f"FPS: {round(self.clock.get_fps(), 2)}", OVERLAY_SIZE, TEXT_COLOR,
-                           SCREEN_WIDTH / 2, OVERLAY_HEIGHT_DISTANCE * 3,
+                           self.screen_width / 2, OVERLAY_HEIGHT_DISTANCE * 3,
                            align="n", font_name=self.theme_font)
 
         for sprite_bullet in self.bullets.sprites():
@@ -830,7 +835,7 @@ class Client:
         self.screen.blit(self.game_bg.image, (0 - self.bg_shiftx, 0))
 
         # game title
-        self.draw_text(GAME_TITLE, TITLE_SIZE, TEXT_COLOR, SCREEN_WIDTH / 2, 70,
+        self.draw_text(GAME_TITLE, TITLE_SIZE, TEXT_COLOR, self.screen_width / 2, 70,
                        align="center", font_name=self.theme_font)
 
         # score title
@@ -840,7 +845,7 @@ class Client:
         if len(self.game['players']) > total_score_players:
             players_shown = f" - {len(self.game['players'])}/{total_score_players} Players Shown"
         text_rect = self.draw_text(SCORE_TITLE + players_shown, SCORE_TITLE_SIZE,
-                                   TEXT_COLOR, SCREEN_WIDTH / 2, SCORE_TITLE_HEIGHT_DISTANCE,
+                                   TEXT_COLOR, self.screen_width / 2, SCORE_TITLE_HEIGHT_DISTANCE,
                                    align="center", font_name=self.theme_font)
 
         # game end score board
@@ -858,7 +863,7 @@ class Client:
                 ordinal_indicator = "th"
 
             # calculate where the text should be placed on the screen
-            distance_x = SCREEN_WIDTH / 2
+            distance_x = self.screen_width / 2
             distance_y = SCORE_TITLE_HEIGHT_DISTANCE + sum(text_rect_heights)
 
             scoreboard_text = (f"{i}{ordinal_indicator} Place: {score_data[0]} "
@@ -873,7 +878,7 @@ class Client:
 
         # get ready text
         self.draw_text(NEXT_GAME_TEXT + format_time(self.game['score time']), SUBTILE_SIZE, TEXT_COLOR,
-                       SCREEN_WIDTH / 2, NEXT_GAME_HEIGHT_DISTANCE,
+                       self.screen_width / 2, NEXT_GAME_HEIGHT_DISTANCE,
                        align="s", font_name=self.theme_font)
 
         # update the client's monitor
