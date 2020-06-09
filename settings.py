@@ -3,7 +3,7 @@ SOUND = True  # you can still toggle sound after starting
 CONN_TIMEOUT = 10  # in seconds
 
 # server
-SERVER_IP = "10.80.129.114"
+SERVER_IP = "127.0.0.1"
 PORT = 4242
 RECEIVE_LIMIT = 4096
 MAX_CLIENTS = 6
@@ -37,7 +37,7 @@ SCORE_TITLE = "Game Scoreboard"
 NEXT_GAME_TEXT = "Next Game In: "
 MAIN_MENU_TEXT = "Please Enter A Username By Clicking The First Entry Box"
 FPS = 60
-SCREEN_WIDTH = 0
+SCREEN_WIDTH = 0  # 1920 * 1080
 SCREEN_HEIGHT = 0
 SERVER_SCREEN_WIDTH = 600
 SERVER_SCREEN_HEIGHT = 450
@@ -106,11 +106,11 @@ BUTTON_HEIGHT = 80
 # north, west, east, and south movement
 PLAYER_ACC = 100
 PLAYER_WATER_FRICTION = -0.5
-PLAYER_SHALLOW_FRICTION = -3
+PLAYER_SHALLOW_FRICTION = -2
 # rotation movement
-PLAYER_ROT_ACC = 100
-PLAYER_WATER_ROT_FRICTION = -0.5
-PLAYER_SHALLOW_ROT_FRICTION = -3
+PLAYER_ROT_ACC = 200
+PLAYER_WATER_ROT_FRICTION = -2.5
+PLAYER_SHALLOW_ROT_FRICTION = -10
 # images
 PLAYER_IMGS_CYCLE = ["blue", "green", "yellow", "red"]
 PLAYER_IMGS = {
@@ -146,7 +146,7 @@ ITEM_IMGS = {
     "largebullet": "largeitembox.png",
 }
 ITEM_WEIGHTS_DICT = {
-    "bullet": 15,
+    "bullet": 20,
     "largebullet": 4,
     "power": 1,
 }
@@ -159,8 +159,8 @@ LARGE_BULLET_AMOUNT = 3
 BOB_RANGE = 15
 BOB_SPEED = 0.4
 NORMAL_ITEM_RESPAWN_TIME = 15  # in seconds
-SPECIAL_ITEM_RESPAWN_TIME_MIN = 90  # in seconds
-SPECIAL_ITEM_RESPAWN_TIME_MAX = 120  # in seconds
+SPECIAL_ITEM_RESPAWN_TIME_MIN = 180  # in seconds
+SPECIAL_ITEM_RESPAWN_TIME_MAX = 210  # in seconds
 SPECIAL_ITEM_MAX_FIRST_SPAWN = 1  # 1 how many of this item can spawn when the game first starts
 ITEM_BOX_SIZE_MULTIPLIER = 0.5
 # a list of all items considered "special"
