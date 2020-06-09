@@ -60,6 +60,7 @@ class Server:
                      "active": True
                      }
         # load data
+        self.map_folder = None
         self.load()
 
     def load(self):
