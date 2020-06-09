@@ -633,7 +633,11 @@ class Server:
 
     def verify_client(self, connection):
         # verify client has a unique username and the server has room
-        player_data = loads(connection.recv(RECEIVE_LIMIT))
+        try:
+            player_data = loads(connection.recv(RECEIVE_LIMIT))
+        except ConnectionResetError:
+            verify = False
+            reason = "Connection Reset"
         verify = True
         reason = None
         if not bool(player_data.username):
