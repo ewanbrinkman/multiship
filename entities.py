@@ -250,9 +250,10 @@ class SpritePlayer(pg.sprite.Sprite):
                 return PLAYER_WATER_ROT_FRICTION
 
     def respawn_player(self):
-        # reset effects
+        # reset effects and attributes
         self.power_invincible = False
         self.power_time = False
+        self.ammo = 0
         # reset image
         self.image_string = PLAYER_IMGS[self.image_color]
         self.update_image()

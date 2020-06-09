@@ -1,5 +1,6 @@
+from sys import platform
 from os import path
-from random import choice, randint
+from random import choice
 import pygame as pg
 from pygame.locals import *
 from pygame.math import Vector2 as Vec
@@ -8,7 +9,23 @@ from entities import collide_hit_rect_both, update_net_object, SpritePlayer, Obs
 from tilemap import format_map, Camera, TiledMap
 from widgets import EntryBox, Button
 from settings import *
+if platform.startswith("win"):
+    from ctypes import c_int, windll, byref
 
+# make sure the screen is the correct size
+if platform.startswith("win"):
+    # Query DPI Awareness (Windows 10 and 8)
+    awareness = c_int()
+    windll.shcore.GetProcessDpiAwareness(0, byref(awareness))
+    # Set DPI Awareness  (Windows 10 and 8)
+    windll.shcore.SetProcessDpiAwareness(2)
+    # the argument is the awareness level, which can be 0, 1 or 2:
+    # for 1-to-1 pixel control I seem to need it to be non-zero (I'm using level 2)
+    # Set DPI Awareness  (Windows 7 and Vista)
+    success = windll.user32.SetProcessDPIAware()
+
+
+# behaviour on later OSes is undefined, although when I run it on my Windows 10 machine, it seems to work with effects identical to SetProcessDpiAwareness(1)
 
 def format_time(total_seconds):
     minutes = int(total_seconds // 60)
